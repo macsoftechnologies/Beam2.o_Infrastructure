@@ -26,10 +26,10 @@ export const FLOOR_MAPPING = {
   ],
 
   17: [
-    "Ground Floor",
-    "First Floor",
-    "Second Floor",
-    "Roof Floor",
+    "MB.0",
+    "MB.1",
+    "MB.2",
+    "MB.R",
   ],
 
   18: [
@@ -37,18 +37,18 @@ export const FLOOR_MAPPING = {
   ],
 
   19: [
-    "Ground Floor",
-    "First Floor",
-    "Second Floor",
-    "Third Floor",
-    "Roof Floor",
+    "MA.II 0",
+    "MA.II 1",
+    "MA.II 2",
+    "MA.II 3",
+    "MA.II R",
   ],
 
   20: [
-    "Ground Floor",
-    "First Floor",
-    "Second Floor",
-    "Third Floor",
-    "Roof Floor",
+    "MA.III 0",
+    "MA.III 1",
+    "MA.III 2",
+    "MA.III 3",
+    "MA.III R",
   ],
 };

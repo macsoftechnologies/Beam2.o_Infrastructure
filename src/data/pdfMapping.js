@@ -79,10 +79,10 @@ export const FLOOR_PDFS = {
 
   // MB (Building 17)
   "17": {
-    "Ground Floor": MB0Pdf,
-    "First Floor": MB1Pdf,
-    "Second Floor": MB2Pdf,
-    "Roof Floor": MB4Pdf,
+    "MB.0": MB0Pdf,
+    "MB.1": MB1Pdf,
+    "MB.2": MB2Pdf,
+    "MB.R": MB4Pdf,
   },
 
   // MA Basement (Building 18)
@@ -92,19 +92,19 @@ export const FLOOR_PDFS = {
 
   // MA.II (Building 19)
   "19": {
-    "Ground Floor": MA20Pdf,
-    "First Floor": MA21Pdf,
-    "Second Floor": MA22Pdf,
-    "Third Floor": MA23Pdf,
-    "Roof Floor": MA24Pdf,
+    "MA.II 0": MA20Pdf,
+    "MA.II 1": MA21Pdf,
+    "MA.II 2": MA22Pdf,
+    "MA.II 3": MA23Pdf,
+    "MA.II R": MA24Pdf,
   },
 
   // MA.III (Building 20)
   "20": {
-    "Ground Floor": MA30Pdf,
-    "First Floor": MA31Pdf,
-    "Second Floor": MA32Pdf,
-    "Third Floor": MA33Pdf,
-    "Roof Floor": MA34Pdf,
+    "MA.III 0": MA30Pdf,
+    "MA.III 1": MA31Pdf,
+    "MA.III 2": MA32Pdf,
+    "MA.III 3": MA33Pdf,
+    "MA.III R": MA34Pdf,
   },
 };

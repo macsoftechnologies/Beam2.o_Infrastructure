@@ -28,6 +28,50 @@ import MU902Pdf from "../assets/drawings/m3north/plans/MU90/MU90.2/MU90.2.pdf";
 import MU90RPdf from "../assets/drawings/m3north/plans/MU90/MU90.R/MU90.R.pdf";
 
 
+// ─── MU91 imports ─────────────────────────────────────────────────
+// MU91.0
+import MU910APdf from "../assets/drawings/m3north/plans/MU91/MU91.0/Zones/MU91.0A.pdf";
+import MU910BPdf from "../assets/drawings/m3north/plans/MU91/MU91.0/Zones/MU91.0B.pdf";
+import MU910CPdf from "../assets/drawings/m3north/plans/MU91/MU91.0/Zones/MU91.0C.pdf";
+import MU910DPdf from "../assets/drawings/m3north/plans/MU91/MU91.0/Zones/MU91.0D.pdf";
+import MU910EPdf from "../assets/drawings/m3north/plans/MU91/MU91.0/Zones/MU91.0E.pdf";
+import MU910FPdf from "../assets/drawings/m3north/plans/MU91/MU91.0/Zones/MU91.0F.pdf";
+import MU910GPdf from "../assets/drawings/m3north/plans/MU91/MU91.0/Zones/MU91.0G.pdf";
+import MU910HPdf from "../assets/drawings/m3north/plans/MU91/MU91.0/Zones/MU91.0H.pdf";
+import MU910IPdf from "../assets/drawings/m3north/plans/MU91/MU91.0/Zones/MU91.0I.pdf";
+import MU910JPdf from "../assets/drawings/m3north/plans/MU91/MU91.0/Zones/MU91.0J.pdf";
+import MU910KPdf from "../assets/drawings/m3north/plans/MU91/MU91.0/Zones/MU91.0K.pdf";
+import MU910LPdf from "../assets/drawings/m3north/plans/MU91/MU91.0/Zones/MU91.0L.pdf";
+import MU910MPdf from "../assets/drawings/m3north/plans/MU91/MU91.0/Zones/MU91.0M.pdf";
+import MU910NPdf from "../assets/drawings/m3north/plans/MU91/MU91.0/Zones/MU91.0N.pdf";
+import MU910OPdf from "../assets/drawings/m3north/plans/MU91/MU91.0/Zones/MU91.0O.pdf";
+import MU910PPdf from "../assets/drawings/m3north/plans/MU91/MU91.0/Zones/MU91.0P.pdf";
+import MU910QPdf from "../assets/drawings/m3north/plans/MU91/MU91.0/Zones/MU91.0Q.pdf";
+import MU910RPdf from "../assets/drawings/m3north/plans/MU91/MU91.0/Zones/MU91.0R.pdf";
+import MU910SPdf from "../assets/drawings/m3north/plans/MU91/MU91.0/Zones/MU91.0S.pdf";
+
+// MU91.1
+import MU911APdf from "../assets/drawings/m3north/plans/MU91/MU91.1/Zones/MU91.1A.pdf";
+import MU911FPdf from "../assets/drawings/m3north/plans/MU91/MU91.1/Zones/MU91.1F.pdf";
+import MU911GPdf from "../assets/drawings/m3north/plans/MU91/MU91.1/Zones/MU91.1G.pdf";
+import MU911HPdf from "../assets/drawings/m3north/plans/MU91/MU91.1/Zones/MU91.1H.pdf";
+import MU911MPdf from "../assets/drawings/m3north/plans/MU91/MU91.1/Zones/MU91.1M.pdf";
+import MU911NPdf from "../assets/drawings/m3north/plans/MU91/MU91.1/Zones/MU91.1N.pdf";
+import MU911PPdf from "../assets/drawings/m3north/plans/MU91/MU91.1/Zones/MU91.1P.pdf";
+
+// MU91.2
+import MU912FloorPdf from "../assets/drawings/m3north/plans/MU91/MU91.2/Zones/MU91.2F.pdf";
+
+// MU91.3
+import MU913FloorPdf from "../assets/drawings/m3north/plans/MU91/MU91.3/Zones/MU91.3F.pdf";
+
+// MU91.4
+import MU914FloorPdf from "../assets/drawings/m3north/plans/MU91/MU91.4/Zones/MU91.4F.pdf";
+
+// MU91.R — single Roof.pdf used for all rooms
+import MU91RoofPdf from "../assets/drawings/m3north/plans/MU91/MU91.R/Roof.pdf";
+
+
 import CP_EGEPdf from "../assets/drawings/m3north/plans/external/external-zones/CP_EGE.pdf";
 import CT_DarkPdf from "../assets/drawings/m3north/plans/external/external-zones/CT_Dark.pdf";
 import Laydown20Pdf from "../assets/drawings/m3north/plans/external/external-zones/Laydown_20.pdf";
@@ -108,6 +152,151 @@ import MA_2F_70_2BPdf from "../assets/drawings/m3north/plans/MA/SecondFloor/Zone
 // MA - Third Floor & Roof
 import MA_3F_RoofPdf from "../assets/drawings/m3north/plans/MA/ThirdFloor/ThirdFloor.pdf";
 import MA_RoofPdf from "../assets/drawings/m3north/plans/MA/Roof/Roof.pdf";
+
+
+// ─── MB imports ─────────────────────────────────────────────────
+import MB020APdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.A.pdf";
+import MB020BPdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.B.pdf";
+import MB020CPdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.C.pdf";
+import MB020DPdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.D.pdf";
+import MB020EPdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.E.pdf";
+import MB020FPdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.F.pdf";
+import MB020GPdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.G.pdf";
+import MB020HPdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.H.pdf";
+import MB020IPdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.I.pdf";
+import MB020JPdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.J.pdf";
+import MB020KPdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.K.pdf";
+import MB020LPdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.L.pdf";
+import MB020MPdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.M.pdf";
+import MB020NPdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.N.pdf";
+import MB020PPdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.P.pdf";
+import MB020Q1Pdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.Q1.pdf";
+import MB020Q2Pdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.Q2.pdf";
+import MB020Q3Pdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.Q3.pdf";
+import MB020Q4Pdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.Q4.pdf";
+import MB020R1Pdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.R1.pdf";
+import MB020R2Pdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.R2.pdf";
+import MB020R3Pdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.R3.pdf";
+import MB020S1Pdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.S1.pdf";
+import MB020S2Pdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.S2.pdf";
+import MB020S3Pdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.S3.pdf";
+import MB020TPdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.T.pdf";
+import MB020UPdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.U.pdf";
+import MB020V1Pdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.V1.pdf";
+import MB020V2Pdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.V2.pdf";
+import MB020X1Pdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.X1.pdf";
+import MB020X2Pdf from "../assets/drawings/m3north/plans/MB/GroundFloor/Zones/MB020.X2.pdf";
+import MB130APdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.A.pdf";
+import MB130BPdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.B.pdf";
+import MB130CPdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.C.pdf";
+import MB130DPdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.D.pdf";
+import MB130EPdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.E.pdf";
+import MB130FPdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.F.pdf";
+import MB130GPdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.G.pdf";
+import MB130HPdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.H.pdf";
+import MB130IPdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.I.pdf";
+import MB130JPdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.J.pdf";
+import MB130KPdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.K.pdf";
+import MB130LPdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.L.pdf";
+import MB130MPdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.M.pdf";
+import MB130NPdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.N.pdf";
+import MB130OPdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.O.pdf";
+import MB130R1Pdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.R1.pdf";
+import MB130S1Pdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.S1.pdf";
+import MB130S2Pdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.S2.pdf";
+import MB130S3Pdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.S3.pdf";
+import MB130TPdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.T.pdf";
+import MB130V1Pdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.V1.pdf";
+import MB130V2Pdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.V2.pdf";
+import MB130Z1Pdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.Z1.pdf";
+import MB130Z2Pdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.Z2.pdf";
+import MB130Z3Pdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.Z3.pdf";
+import MB130Z4Pdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.Z4.pdf";
+import MB130Z5Pdf from "../assets/drawings/m3north/plans/MB/FirstFloor/Zones/MB130.Z5.pdf";
+import MB240APdf from "../assets/drawings/m3north/plans/MB/SecondFloor/Zones/MB240.A.pdf";
+import MB240BPdf from "../assets/drawings/m3north/plans/MB/SecondFloor/Zones/MB240.B.pdf";
+import MB240CPdf from "../assets/drawings/m3north/plans/MB/SecondFloor/Zones/MB240.C.pdf";
+import MB240DPdf from "../assets/drawings/m3north/plans/MB/SecondFloor/Zones/MB240.D.pdf";
+import MB240EPdf from "../assets/drawings/m3north/plans/MB/SecondFloor/Zones/MB240.E.pdf";
+import MB240FPdf from "../assets/drawings/m3north/plans/MB/SecondFloor/Zones/MB240.F.pdf";
+import MB240GPdf from "../assets/drawings/m3north/plans/MB/SecondFloor/Zones/MB240.G.pdf";
+import MB240HPdf from "../assets/drawings/m3north/plans/MB/SecondFloor/Zones/MB240.H.pdf";
+import MB240IPdf from "../assets/drawings/m3north/plans/MB/SecondFloor/Zones/MB240.I.pdf";
+import MB240JPdf from "../assets/drawings/m3north/plans/MB/SecondFloor/Zones/MB240.J.pdf";
+import MB240S1Pdf from "../assets/drawings/m3north/plans/MB/SecondFloor/Zones/MB240.S1.pdf";
+import MB240S2Pdf from "../assets/drawings/m3north/plans/MB/SecondFloor/Zones/MB240.S2.pdf";
+import MB240S3Pdf from "../assets/drawings/m3north/plans/MB/SecondFloor/Zones/MB240.S3.pdf";
+import MB240V1Pdf from "../assets/drawings/m3north/plans/MB/SecondFloor/Zones/MB240.V1.pdf";
+import MB240Z1Pdf from "../assets/drawings/m3north/plans/MB/SecondFloor/Zones/MB240.Z1.pdf";
+import MB240Z2Pdf from "../assets/drawings/m3north/plans/MB/SecondFloor/Zones/MB240.Z2.pdf";
+import MB240Z3Pdf from "../assets/drawings/m3north/plans/MB/SecondFloor/Zones/MB240.Z3.pdf";
+import MB240Z4Pdf from "../assets/drawings/m3north/plans/MB/SecondFloor/Zones/MB240.Z4.pdf";
+import MB_RoofPdf from "../assets/drawings/m3north/plans/MB/RoofFloor/MB_Roof.pdf";
+
+
+
+import MA30GFCorridorNPdf from "../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/30.GF.CorridorN.pdf";
+import MA30GFCorridorSPdf from "../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/30.GF.CorridorS.pdf";
+import MA310Pdf from "../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/31.0.pdf";
+import MA600APdf from "../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/60.0A.pdf";
+import MA600BPdf from "../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/60.0B.pdf";
+import MA600CPdf from "../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/60.0C.pdf";
+import MA600DPdf from '../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/60.0D.pdf';
+import MA600EPdf from '../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/60.0E.pdf';
+import MA600FPdf from '../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/60.0F.pdf';
+import MA600GPdf from '../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/60.0G.pdf';
+import MA600HPdf from '../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/60.0H.pdf';
+import MA600IPdf from '../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/60.0I.pdf';
+import MA600JPdf from '../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/60.0J.pdf';
+import MA600KPdf from '../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/60.0K.pdf';
+import MA600LPdf from '../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/60.0L.pdf';
+import MA600MPdf from '../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/60.0M.pdf';
+import MA600NPdf from '../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/60.0N.pdf';
+import MA600PPdf from '../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/60.0P.pdf';
+import MA600QPdf from '../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/60.0Q.pdf';
+import MA600RPdf from '../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/60.0R.pdf';
+import MA600SPdf from '../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/60.0S.pdf';
+import MA600TPdf from '../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/60.0T.pdf';
+import MABS30Pdf from '../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/BS3.0.pdf';
+import MAFS50Pdf from '../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/FS5.0.pdf';
+import MAFS60Pdf from '../assets/drawings/m3north/plans/MAIII/GroundFloor/Zones/FS6.0.pdf';
+import MA30FFCorridorNPdf from '../assets/drawings/m3north/plans/MAIII/FirstFloor/Zones/30.FF.CorridorN.pdf';
+import MA30FFCorridorSPdf from '../assets/drawings/m3north/plans/MAIII/FirstFloor/Zones/30.FF.CorridorS.pdf';
+import MA601APdf from '../assets/drawings/m3north/plans/MAIII/FirstFloor/Zones/60.1A.pdf';
+import MA601CPdf from '../assets/drawings/m3north/plans/MAIII/FirstFloor/Zones/60.1C.pdf';
+import MA601DPdf from '../assets/drawings/m3north/plans/MAIII/FirstFloor/Zones/60.1D.pdf';
+import MA601EPdf from '../assets/drawings/m3north/plans/MAIII/FirstFloor/Zones/60.1E.pdf';
+import MA601FPdf from '../assets/drawings/m3north/plans/MAIII/FirstFloor/Zones/60.1F.pdf';
+import MA601GPdf from '../assets/drawings/m3north/plans/MAIII/FirstFloor/Zones/60.1G.pdf';
+import MA601HPdf from '../assets/drawings/m3north/plans/MAIII/FirstFloor/Zones/60.1H.pdf';
+import MA601IPdf from '../assets/drawings/m3north/plans/MAIII/FirstFloor/Zones/60.1I.pdf';
+import MA601JPdf from '../assets/drawings/m3north/plans/MAIII/FirstFloor/Zones/60.1J.pdf';
+import MA601LPdf from '../assets/drawings/m3north/plans/MAIII/FirstFloor/Zones/60.1L.pdf';
+import MA601MPdf from '../assets/drawings/m3north/plans/MAIII/FirstFloor/Zones/60.1M.pdf';
+import MA601NPdf from '../assets/drawings/m3north/plans/MAIII/FirstFloor/Zones/60.1N.pdf';
+import MABS31Pdf from '../assets/drawings/m3north/plans/MAIII/FirstFloor/Zones/BS3.1.pdf';
+import MA602A1Pdf from '../assets/drawings/m3north/plans/MAIII/SecondFloor/Zones/60.2A.1.pdf';
+import MA602A2Pdf from '../assets/drawings/m3north/plans/MAIII/SecondFloor/Zones/60.2A.2.pdf';
+import MA602A3Pdf from '../assets/drawings/m3north/plans/MAIII/SecondFloor/Zones/60.2A.3.pdf';
+import MA602BPdf from '../assets/drawings/m3north/plans/MAIII/SecondFloor/Zones/60.2B.pdf';
+import MA602CPdf from '../assets/drawings/m3north/plans/MAIII/SecondFloor/Zones/60.2C.pdf';
+import MA602DPdf from '../assets/drawings/m3north/plans/MAIII/SecondFloor/Zones/60.2D.pdf';
+import MA602EPdf from '../assets/drawings/m3north/plans/MAIII/SecondFloor/Zones/60.2E.pdf';
+import MA602FPdf from '../assets/drawings/m3north/plans/MAIII/SecondFloor/Zones/60.2F.pdf';
+import MABS32Pdf from '../assets/drawings/m3north/plans/MAIII/SecondFloor/Zones/BS3.2.pdf';
+import MAFS52Pdf from '../assets/drawings/m3north/plans/MAIII/SecondFloor/Zones/FS5.2.pdf';
+import MAFS62Pdf from '../assets/drawings/m3north/plans/MAIII/SecondFloor/Zones/FS6.2.pdf';
+import MA603APdf from '../assets/drawings/m3north/plans/MAIII/ThirdFloor/Zones/60.3A.pdf';
+import MAMAIIIRPdf from '../assets/drawings/m3north/plans/MAIII/Roof/MA.III_R.pdf';
+
+
+
+import MABBasementPdf from '../assets/drawings/m3north/plans/MABasement/MA_B.pdf';
+import MAB_B80_0APdf from '../assets/drawings/m3north/plans/MABasement/Zones/MA_B_B80.0A.pdf';
+import MAB_B80_0BPdf from '../assets/drawings/m3north/plans/MABasement/Zones/MA_B_B80.0B.pdf';
+import MAB_B80_0CPdf from '../assets/drawings/m3north/plans/MABasement/Zones/MA_B_B80.0C.pdf';
+import MAB_B80_0DPdf from '../assets/drawings/m3north/plans/MABasement/Zones/MA_B_B80.0D.pdf';
+
 
 
 export const ZONE_MAPPING = {
@@ -429,6 +618,332 @@ export const ZONE_MAPPING = {
       ]
     }
   ],
+
+  // ─── MU91.0 ───────────────────────────────────────────────────────
+  "MU91.0": [
+    {
+      id: 1,
+      name: "MU91.0A",
+      className: "MU91_0A",
+      pdf: MU910APdf,
+      rooms: [
+        { name: "MU91.0A", className: "MU91-zoneMU91_0A-1" }
+      ]
+    },
+    {
+      id: 2,
+      name: "MU91.0B",
+      className: "MU91_0B",
+      pdf: MU910BPdf,
+      rooms: [
+        { name: "MU91.0B", className: "MU91-zoneMU91_0B-1" }
+      ]
+    },
+    {
+      id: 3,
+      name: "MU91.0C",
+      className: "MU91_0C",
+      pdf: MU910CPdf,
+      rooms: [
+        { name: "MU91.0C", className: "MU91-zoneMU91_0C-1" }
+      ]
+    },
+    {
+      id: 4,
+      name: "MU91.0D",
+      className: "MU91_0D",
+      pdf: MU910DPdf,
+      rooms: [
+        { name: "MU91.0D", className: "MU91-zoneMU91_0D-1" }
+      ]
+    },
+    {
+      id: 5,
+      name: "MU91.0E",
+      className: "MU91_0E",
+      pdf: MU910EPdf,
+      rooms: [
+        { name: "MU91.0E", className: "MU91-zoneMU91_0E-1" }
+      ]
+    },
+    {
+      id: 6,
+      name: "MU91.0F",
+      className: "MU91_0F",
+      pdf: MU910FPdf,
+      rooms: [
+        { name: "MU91.0F.A", className: "MU91-zoneMU91_0F-1" },
+        { name: "MU91.0F.B", className: "MU91-zoneMU91_0F-2" }
+      ]
+    },
+    {
+      id: 7,
+      name: "MU91.0G",
+      className: "MU91_0G",
+      pdf: MU910GPdf,
+      rooms: [
+        { name: "S.10", className: "MU91-zoneMU91_0G-1" }
+      ]
+    },
+    {
+      id: 8,
+      name: "MU91.0H",
+      className: "MU91_0H",
+      pdf: MU910HPdf,
+      rooms: [
+        { name: "S.11", className: "MU91-zoneMU91_0H-1" },
+        { name: "S.08", className: "MU91-zoneMU91_0H-2" },
+        { name: "S.09", className: "MU91-zoneMU91_0H-3" },
+        { name: "S.07", className: "MU91-zoneMU91_0H-4" },
+        { name: "S.05", className: "MU91-zoneMU91_0H-5" },
+        { name: "S.02", className: "MU91-zoneMU91_0H-6" },
+        { name: "S.03", className: "MU91-zoneMU91_0H-7" },
+        { name: "S.01", className: "MU91-zoneMU91_0H-8" }
+      ]
+    },
+    {
+      id: 9,
+      name: "MU91.0I",
+      className: "MU91_0I",
+      pdf: MU910IPdf,
+      rooms: [
+        { name: "MU91.0I", className: "MU91-zoneMU91_0I-1" }
+      ]
+    },
+    {
+      id: 10,
+      name: "MU91.0J",
+      className: "MU91_0J",
+      pdf: MU910JPdf,
+      rooms: [
+        { name: "MU91.0J", className: "MU91-zoneMU91_0J-1" }
+      ]
+    },
+    {
+      id: 11,
+      name: "MU91.0K",
+      className: "MU91_0K",
+      pdf: MU910KPdf,
+      rooms: [
+        { name: "S.13", className: "MU91-zoneMU91_0K-1" }
+      ]
+    },
+    {
+      id: 12,
+      name: "MU91.0L",
+      className: "MU91_0L",
+      pdf: MU910LPdf,
+      rooms: [
+        { name: "MU91.0L", className: "MU91-zoneMU91_0L-1" }
+      ]
+    },
+    {
+      id: 13,
+      name: "MU91.0M",
+      className: "MU91_0M",
+      pdf: MU910MPdf,
+      rooms: [
+        { name: "MU91.0M", className: "MU91-zoneMU91_0M-1" }
+      ]
+    },
+    {
+      id: 14,
+      name: "MU91.0N",
+      className: "MU91_0N",
+      pdf: MU910NPdf,
+      rooms: [
+        { name: "S.10", className: "MU91-zoneMU91_0N-1" },
+        { name: "S.11", className: "MU91-zoneMU91_0N-2" },
+        { name: "T.R1", className: "MU91-zoneMU91_0N-3" },
+        { name: "S.07", className: "MU91-zoneMU91_0N-4" },
+        { name: "S.02", className: "MU91-zoneMU91_0N-5" },
+        { name: "S.05", className: "MU91-zoneMU91_0N-6" },
+        { name: "S.04", className: "MU91-zoneMU91_0N-7" },
+        { name: "S.03", className: "MU91-zoneMU91_0N-8" },
+        { name: "S.01", className: "MU91-zoneMU91_0N-9" }
+      ]
+    },
+    {
+      id: 15,
+      name: "MU91.0O",
+      className: "MU91_0O",
+      pdf: MU910OPdf,
+      rooms: [
+        { name: "MU91.0O", className: "MU91-zoneMU91_0O-1" }
+      ]
+    },
+    {
+      id: 16,
+      name: "MU91.0P",
+      className: "MU91_0P",
+      pdf: MU910PPdf,
+      rooms: [
+        { name: "MU91.0P", className: "MU91-zoneMU91_0P-1" }
+      ]
+    },
+    {
+      id: 17,
+      name: "MU91.0Q",
+      className: "MU91_0Q",
+      pdf: MU910QPdf,
+      rooms: [
+        { name: "MU91.0Q", className: "MU91-zoneMU91_0Q-1" }
+      ]
+    },
+    {
+      id: 18,
+      name: "MU91.0R",
+      className: "MU91-zoneMU91_0R",
+      pdf: MU910RPdf,
+      rooms: [
+        { name: "MU91.0R", className: "MU91-zoneMU91_0R-1" }
+      ]
+    },
+    {
+      id: 19,
+      name: "MU91.0S",
+      className: "MU91-zoneMU91_0S",
+      pdf: MU910SPdf,
+      rooms: [
+        { name: "MU91.0S", className: "MU91-zoneMU91_0S-1" }
+      ]
+    }
+  ],
+  // ─── MU91.1 ───────────────────────────────────────────────────────
+  "MU91.1": [
+    {
+      id: 1,
+      name: "MU91.1A",
+      className: "MU91_1A",
+      pdf: MU911APdf,
+      rooms: [
+        { name: "MU91.1A", className: "MU91-zoneMU91_1A-1" }
+      ]
+    },
+    {
+      id: 2,
+      name: "MU91.1F",
+      className: "MU91_1F",
+      pdf: MU911FPdf,
+      rooms: [
+        { name: "MU91.1F.A", className: "MU91-zoneMU91_1F-1" },
+        { name: "MU91.1F.B", className: "MU91-zoneMU91_1F-2" }
+      ]
+    },
+    {
+      id: 3,
+      name: "MU91.1G",
+      className: "MU91_1G",
+      pdf: MU911GPdf,
+      rooms: [
+        { name: "S.10", className: "MU91-zoneMU91_1G-1" }
+      ]
+    },
+    {
+      id: 4,
+      name: "MU91.1H",
+      className: "MU91_1H",
+      pdf: MU911HPdf,
+      rooms: [
+        { name: "1.01", className: "MU91-zoneMU91_1H-1" }
+      ]
+    },
+    {
+      id: 5,
+      name: "MU91.1M",
+      className: "MU91_1M",
+      pdf: MU911MPdf,
+      rooms: [
+        { name: "MU91.1M", className: "MU91-zoneMU91_1M-1" }
+      ]
+    },
+    {
+      id: 6,
+      name: "MU91.1N",
+      className: "MU91_1N",
+      pdf: MU911NPdf,
+      rooms: [
+        { name: "S.10", className: "MU91-zoneMU91_1N-1" },
+        { name: "1.11.1", className: "MU91-zoneMU91_1N-2" },
+        { name: "1.11", className: "MU91-zoneMU91_1N-3" },
+        { name: "TR1", className: "MU91-zoneMU91_1N-4" },
+        { name: "1.09", className: "MU91-zoneMU91_1N-5" },
+        { name: "1.09.1", className: "MU91-zoneMU91_1N-6" },
+        { name: "S.02", className: "MU91-zoneMU91_1N-7" },
+        { name: "1.03", className: "MU91-zoneMU91_1N-8" },
+        { name: "S.01", className: "MU91-zoneMU91_1N-9" }
+      ]
+    },
+    {
+      id: 7,
+      name: "MU91.1P",
+      className: "MU91_1P",
+      pdf: MU911PPdf,
+      rooms: [
+        { name: "MU91.1P", className: "MU91-zoneMU91_1P-1" }
+      ]
+    }
+  ],
+  // ─── MU91.2 ───────────────────────────────────────────────────────
+  "MU91.2": [
+    {
+      id: 1,
+      name: "MU91.2",
+      className: "MU91_2F",
+      pdf: MU912FloorPdf,
+      rooms: [
+        { name: "MU91.2F.A", className: "MU91-zoneMU91_2F-1" },
+        { name: "MU91.2F.B", className: "MU91-zoneMU91_2F-2" }
+      ]
+    }
+  ],
+  // ─── MU91.3 ───────────────────────────────────────────────────────
+  "MU91.3": [
+    {
+      id: 1,
+      name: "MU91.3",
+      className: "MU91_3F",
+      pdf: MU913FloorPdf,
+      rooms: [
+        { name: "MU91.3F.A", className: "MU91-zoneMU91_3F-1" },
+        { name: "MU91.3F.B", className: "MU91-zoneMU91_3F-2" }
+      ]
+    }
+  ],
+  // ─── MU91.4 ───────────────────────────────────────────────────────
+  "MU91.4": [
+    {
+      id: 1,
+      name: "MU91.4",
+      className: "MU91_4F",
+      pdf: MU914FloorPdf,
+      rooms: [
+        { name: "MU91.4F.A", className: "MU91-zoneMU91_4F-1" },
+        { name: "MU91.4F.B", className: "MU91-zoneMU91_4F-2" }
+      ]
+    }
+  ],
+  // ─── MU91.R ───────────────────────────────────────────────────────
+  "MU91.R": [
+    {
+      id: 1,
+      name: "MU91.R",
+      className: "MU91_R",
+      pdf: MU91RoofPdf,
+      rooms: [
+        { name: "91.RE", className: "MU91_RE_1" },
+        { name: "91.RG", className: "MU91_RG_1" },
+        { name: "91.RR", className: "MU91_RR_1" },
+        { name: "91.RH", className: "MU91_RH_1" },
+        { name: "91.RL", className: "MU91_RL_1" },
+        { name: "91.RK", className: "MU91_RK_1" },
+        { name: "91.RS", className: "MU91_RS_1" },
+        { name: "91.RN", className: "MU91_RN_1" },
+        { name: "91.RO", className: "MU91_RO_1" }
+      ]
+    }
+  ],
+
   "External Areas": [
     {
       id: 0,
@@ -660,7 +1175,6 @@ export const ZONE_MAPPING = {
       ]
     }
   ],
-
 
   // ─── MA Purification - Ground Floor ──────────────────────────────
   "Ground Floor": [
@@ -994,7 +1508,6 @@ export const ZONE_MAPPING = {
       ]
     }
   ],
-
   // ─── MA Purification - First Floor ───────────────────────────────
   "First Floor": [
     {
@@ -1267,7 +1780,6 @@ export const ZONE_MAPPING = {
       ]
     }
   ],
-
   // ─── MA Purification - Second Floor ──────────────────────────────
   "Second Floor": [
     {
@@ -1466,7 +1978,6 @@ export const ZONE_MAPPING = {
       ]
     }
   ],
-
   // ─── MA Purification - Third Floor ───────────────────────────────
   "Third Floor": [
     {
@@ -1483,7 +1994,6 @@ export const ZONE_MAPPING = {
       ]
     }
   ],
-
   // ─── MA Purification - Roof Plan ─────────────────────────────────
   "Roof Plan": [
     {
@@ -1500,6 +2010,2489 @@ export const ZONE_MAPPING = {
       ]
     }
   ],
+
+  "MB.0": [
+    {
+      id: 1,
+      name: "MB020.A",
+      className: "MB020_A",
+      pdf: MB020APdf,
+      rooms: [
+        { name: "S.003.3", className: "MB-20_A-1" },
+        { name: "S.003.2", className: "MB-20_A-2" },
+        { name: "S.005.3", className: "MB-20_A-3" },
+        { name: "S.005.2", className: "MB-20_A-4" },
+        { name: "WORK BENCH", className: "MB-20_A-5" },
+        { name: "S.003.1", className: "MB-20_A-6" },
+        { name: "S.005.1", className: "MB-20_A-7" },
+        { name: "WORK BENCH", className: "MB-20_A-8" },
+        { name: "S.003", className: "MB-20_A-9" },
+        { name: "S.005", className: "MB-20_A-10" },
+        { name: "KARDEX SHUTTLE", className: "MB-20_A-11" },
+        { name: "S.007", className: "MB-20_A-12" },
+        { name: "LIFTING PLATFORM", className: "MB-20_A-13" },
+        { name: "LOCKER", className: "MB-20_A-14" }
+      ]
+    },
+    {
+      id: 2,
+      name: "MB020.B",
+      className: "MB020_B",
+      pdf: MB020BPdf,
+      rooms: [
+        { name: "S.009", className: "MB-20_B-1" }
+      ]
+    },
+    {
+      id: 3,
+      name: "MB020.C",
+      className: "MB020_C",
+      pdf: MB020CPdf,
+      rooms: [
+        { name: "S.002", className: "MB-20_C-1" },
+        { name: "S.004", className: "MB-20_C-2" },
+        { name: "S.006", className: "MB-20_C-3" }
+      ]
+    },
+    {
+      id: 4,
+      name: "MB020.D",
+      className: "MB020_D",
+      pdf: MB020DPdf,
+      rooms: [
+        { name: "S.092", className: "MB-20_D-1" },
+        { name: "S.094", className: "MB-20_D-2" },
+        { name: "S.008", className: "MB-20_D-3" }
+      ]
+    },
+    {
+      id: 5,
+      name: "MB020.E",
+      className: "MB020_E",
+      pdf: MB020EPdf,
+      rooms: [
+        { name: "S.031.2", className: "MB-20_E-1" },
+        { name: "S.031.1", className: "MB-20_E-2" },
+        { name: "S.031", className: "MB-20_E-3" }
+      ]
+    },
+    {
+      id: 6,
+      name: "MB020.F",
+      className: "MB020_F",
+      pdf: MB020FPdf,
+      rooms: [
+        { name: "S.033", className: "MB-20_F-1" }
+      ]
+    },
+    {
+      id: 7,
+      name: "MB020.G",
+      className: "MB020_G",
+      pdf: MB020GPdf,
+      rooms: [
+        { name: "S.037", className: "MB-20_G-1" },
+        { name: "S.041", className: "MB-20_G-2" },
+        { name: "S.041.1", className: "MB-20_G-3" },
+        { name: "S.035", className: "MB-20_G-4" },
+        { name: "S.039", className: "MB-20_G-5" },
+        { name: "S.039.1", className: "MB-20_G-6" },
+        { name: "S.043.1", className: "MB-20_G-7" },
+        { name: "S.043", className: "MB-20_G-8" }
+      ]
+    },
+    {
+      id: 8,
+      name: "MB020.H",
+      className: "MB020_H",
+      pdf: MB020HPdf,
+      rooms: [
+        { name: "S.072", className: "MB-20_H-1" }
+      ]
+    },
+    {
+      id: 9,
+      name: "MB020.I",
+      className: "MB020_I",
+      pdf: MB020IPdf,
+      rooms: [
+        { name: "S.070.1", className: "MB-20_I-1" },
+        { name: "Passbox", className: "MB-20_I-2" },
+        { name: "S.070", className: "MB-20_I-3" }
+      ]
+    },
+    {
+      id: 10,
+      name: "MB020.J",
+      className: "MB020_J",
+      pdf: MB020JPdf,
+      rooms: [
+        { name: "S.068", className: "MB-20_J-1" }
+      ]
+    },
+    {
+      id: 11,
+      name: "MB020.K",
+      className: "MB020_K",
+      pdf: MB020KPdf,
+      rooms: [
+        { name: "S.066", className: "MB-20_K-1" }
+      ]
+    },
+    {
+      id: 12,
+      name: "MB020.L",
+      className: "MB020_L",
+      pdf: MB020LPdf,
+      rooms: [
+        { name: "S.062", className: "MB-20_L-1" }
+      ]
+    },
+    {
+      id: 13,
+      name: "MB020.M",
+      className: "MB020_M",
+      pdf: MB020MPdf,
+      rooms: [
+        { name: "S.022", className: "MB-20_M-1" }
+      ]
+    },
+    {
+      id: 14,
+      name: "MB020.N",
+      className: "MB020_N",
+      pdf: MB020NPdf,
+      rooms: [
+        { name: "S.012", className: "MB-20_N-1" }
+      ]
+    },
+    {
+      id: 15,
+      name: "MB020.P",
+      className: "MB020_P",
+      pdf: MB020PPdf,
+      rooms: [
+        { name: "S.020", className: "MB-20_P-1" }
+      ]
+    },
+    {
+      id: 16,
+      name: "MB020.Q1",
+      className: "MB020_Q_1",
+      pdf: MB020Q1Pdf,
+      rooms: [
+        { name: "S.013", className: "MB-20_Q_1-1" },
+        { name: "S.027", className: "MB-20_Q_1-2" },
+        { name: "S.029.1", className: "MB-20_Q_1-3" },
+        { name: "S.029", className: "MB-20_Q_1-4" },
+        { name: "Hand PALLET", className: "MB-20_Q_1-5" },
+        { name: "S.017", className: "MB-20_Q_1-6" },
+        { name: "S.019", className: "MB-20_Q_1-7" },
+        { name: "S.023", className: "MB-20_Q_1-8" },
+        { name: "S.021", className: "MB-20_Q_1-9" },
+        { name: "S.023.1", className: "MB-20_Q_1-10" },
+        { name: "S.025.1", className: "MB-20_Q_1-11" }
+      ]
+    },
+    {
+      id: 17,
+      name: "MB020.Q2",
+      className: "MB020_Q_2",
+      pdf: MB020Q2Pdf,
+      rooms: [
+        { name: "S.024.1", className: "MB-20_Q_2-1" },
+        { name: "S.024", className: "MB-20_Q_2-2" },
+        { name: "S.026", className: "MB-20_Q_2-3" },
+        { name: "S.050", className: "MB-20_Q_2-4" }
+      ]
+    },
+    {
+      id: 18,
+      name: "MB020.Q3",
+      className: "MB020_Q_3",
+      pdf: MB020Q3Pdf,
+      rooms: [
+        { name: "S.052", className: "MB-20_Q_3-1" }
+      ]
+    },
+    {
+      id: 19,
+      name: "MB020.Q4",
+      className: "MB020_Q_4",
+      pdf: MB020Q4Pdf,
+      rooms: [
+        { name: "S.011.1", className: "MB-20_Q_4-1" },
+        { name: "S.011", className: "MB-20_Q_4-2" },
+        { name: "SK08", className: "MB-20_Q_4-3" },
+        { name: "S.015.1", className: "MB-20_Q_4-4" },
+        { name: "S.015", className: "MB-20_Q_4-5" },
+        { name: "S.015.2", className: "MB-20_Q_4-6" },
+        { name: "S.015.3", className: "MB-20_Q_4-7" },
+        { name: "Barrel Lifting Solution", className: "MB-20_Q_4-8" },
+        { name: "EPL", className: "MB-20_Q_4-9" }
+      ]
+    },
+    {
+      id: 20,
+      name: "MB020.R1",
+      className: "MB020_R_1",
+      pdf: MB020R1Pdf,
+      rooms: [
+        { name: "S.001.1", className: "MB-20_R_1-1" },
+        { name: "S.001", className: "MB-20_R_1-2" }
+      ]
+    },
+    {
+      id: 21,
+      name: "MB020.R2",
+      className: "MB020_R_2",
+      pdf: MB020R2Pdf,
+      rooms: [
+        { name: "S.010", className: "MB-20_R_2-1" }
+      ]
+    },
+    {
+      id: 22,
+      name: "MB020.R3",
+      className: "MB020_R_3",
+      pdf: MB020R3Pdf,
+      rooms: [
+        { name: "S.091", className: "MB-20_R_3-1" }
+      ]
+    },
+    {
+      id: 23,
+      name: "MB020.S1",
+      className: "MB020_S_1",
+      pdf: MB020S1Pdf,
+      rooms: [
+        { name: "TR01", className: "MB-20_S_1-1" },
+        { name: "UP", className: "MB-20_S_1-2" }
+      ]
+    },
+    {
+      id: 24,
+      name: "MB020.S2",
+      className: "MB020_S_2",
+      pdf: MB020S2Pdf,
+      rooms: [
+        { name: "TR02", className: "MB-20_S_2-1" },
+        { name: "UP", className: "MB-20_S_2-2" }
+      ]
+    },
+    {
+      id: 25,
+      name: "MB020.S3",
+      className: "MB020_S_3",
+      pdf: MB020S3Pdf,
+      rooms: [
+        { name: "TR03", className: "MB-20_S_3-1" },
+        { name: "UP", className: "MB-20_S_3-2" }
+      ]
+    },
+    {
+      id: 26,
+      name: "MB020.T",
+      className: "MB020_T",
+      pdf: MB020TPdf,
+      rooms: [
+        { name: "S.025", className: "MB020_T-1" }
+      ]
+    },
+    {
+      id: 27,
+      name: "MB020.U",
+      className: "MB020_U",
+      pdf: MB020UPdf,
+      rooms: [
+        { name: "AMR Charging", className: "MB-20_U-1" },
+        { name: "Emergency breakable glass", className: "MB-20_U-2" },
+        { name: "S.060", className: "MB-20_U-3" },
+        { name: "S.064", className: "MB-20_U-4" },
+        { name: "S.054", className: "MB-20_U-5" },
+        { name: "S.056", className: "MB-20_U-6" },
+        { name: "S.056.1", className: "MB-20_U-7" },
+        { name: "Mist Shower", className: "MB-20_U-8" }
+      ]
+    },
+    {
+      id: 28,
+      name: "MB020.V1",
+      className: "MB020_V_1",
+      pdf: MB020V1Pdf,
+      rooms: [
+        { name: "LI01", className: "MB020_V_1-1" }
+      ]
+    },
+    {
+      id: 29,
+      name: "MB020.V2",
+      className: "MB020_V_2",
+      pdf: MB020V2Pdf,
+      rooms: [
+        { name: "LI02", className: "MB020_V_2-1" }
+      ]
+    },
+    {
+      id: 30,
+      name: "MB020.X1",
+      className: "MB020_X_1",
+      pdf: MB020X1Pdf,
+      rooms: [
+        { name: "KAEDEX", className: "MB-20_X_1-1" },
+        { name: "KAEDEX", className: "MB-20_X_1-2" },
+        { name: "S014", className: "MB-20_X_1-3" },
+        { name: "S.016", className: "MB-20_X_1-4" },
+        { name: "Scissor", className: "MB-20_X_1-5" }
+      ]
+    },
+    {
+      id: 31,
+      name: "MB020.X2",
+      className: "MB-20_X_2",
+      pdf: MB020X2Pdf,
+      rooms: [
+        { name: "S.028", className: "MB-20_X_2-1" }
+      ]
+    }
+  ],
+
+  "MB.1": [
+    {
+      id: 1,
+      name: "MB130.A",
+      className: "MB130_A",
+      pdf: MB130APdf,
+      rooms: [
+        { name: "1.007", className: "MB-30_A-1" }
+      ]
+    },
+    {
+      id: 2,
+      name: "MB130.B",
+      className: "MB130_B",
+      pdf: MB130BPdf,
+      rooms: [
+        { name: "1.002", className: "MB-30_B-1" }
+      ]
+    },
+    {
+      id: 3,
+      name: "MB130.C",
+      className: "MB130_C",
+      pdf: MB130CPdf,
+      rooms: [
+        { name: "1.006", className: "MB-30_C-1" },
+        { name: "1.008", className: "MB-30_C-2" },
+        { name: "1.004", className: "MB-30_C-3" }
+      ]
+    },
+    {
+      id: 4,
+      name: "MB130.D",
+      className: "MB130_D",
+      pdf: MB130DPdf,
+      rooms: [
+        { name: "1.013.1", className: "MB-30_D-1" },
+        { name: "1.013", className: "MB-30_D-2" },
+        { name: "1.015", className: "MB-30_D-3" },
+        { name: "1.015.1", className: "MB-30_D-4" },
+        { name: "1.015.2", className: "MB-30_D-5" },
+        { name: "1.015.3", className: "MB-30_D-6" },
+        { name: "1.015.4", className: "MB-30_D-7" },
+        { name: "1.001.2", className: "MB-30_D-8" },
+        { name: "1.019.1", className: "MB-30_D-9" },
+        { name: "1.019.2", className: "MB-30_D-10" },
+        { name: "1.019.3", className: "MB-30_D-11" },
+        { name: "1.019.4", className: "MB-30_D-12" },
+        { name: "1.017", className: "MB-30_D-13" },
+        { name: "1.017.1", className: "MB-30_D-14" },
+        { name: "1.019", className: "MB-30_D-15" },
+        { name: "1.025.1", className: "MB-30_D-16" },
+        { name: "1.019.5", className: "MB-30_D-17" },
+        { name: "1.015.5", className: "MB-30_D-18" }
+      ]
+    },
+    {
+      id: 5,
+      name: "MB130.E",
+      className: "MB130_E",
+      pdf: MB130EPdf,
+      rooms: [
+        { name: "1.021.1", className: "MB-30_E-1" },
+        { name: "1.021", className: "MB-30_E-2" },
+        { name: "1.023", className: "MB-30_E-3" },
+        { name: "1.021.4", className: "MB-30_E-4" },
+        { name: "1.021.3", className: "MB-30_E-5" },
+        { name: "1.021.2", className: "MB-30_E-6" }
+      ]
+    },
+    {
+      id: 6,
+      name: "MB130.F",
+      className: "MB130_F",
+      pdf: MB130FPdf,
+      rooms: [
+        { name: "MB130.F", className: "MB-30_F" }
+      ]
+    },
+    {
+      id: 7,
+      name: "MB130.G",
+      className: "MB130_G",
+      pdf: MB130GPdf,
+      rooms: [
+        { name: "MB130.G", className: "MB-30_G" }
+      ]
+    },
+    {
+      id: 8,
+      name: "MB130.H",
+      className: "MB130_H",
+      pdf: MB130HPdf,
+      rooms: [
+        { name: "30.H.2", className: "MB-30_H-1" },
+        { name: "30.H.4", className: "MB-30_H-2" },
+        { name: "30.H.1", className: "MB-30_H-3" },
+        { name: "30.H.3", className: "MB-30_H-4" }
+      ]
+    },
+    {
+      id: 9,
+      name: "MB130.I",
+      className: "MB130_I",
+      pdf: MB130IPdf,
+      rooms: [
+        { name: "1.018", className: "MB-30_I-1" }
+      ]
+    },
+    {
+      id: 10,
+      name: "MB130.J",
+      className: "MB130_J",
+      pdf: MB130JPdf,
+      rooms: [
+        { name: "1.018.1", className: "MB-30_J-1" }
+      ]
+    },
+    {
+      id: 11,
+      name: "MB130.K",
+      className: "MB130_K",
+      pdf: MB130KPdf,
+      rooms: [
+        { name: "1.035", className: "MB-30_K-1" },
+        { name: "1.035.1", className: "MB-30_K-2" },
+        { name: "1.035.2", className: "MB-30_K-3" },
+        { name: "1.027.1", className: "MB-30_K-4" },
+        { name: "1.027.2", className: "MB-30_K-5" },
+        { name: "1.027", className: "MB-30_K-6" },
+        { name: "1.033", className: "MB-30_K-7" },
+        { name: "1.031", className: "MB-30_K-8" },
+        { name: "1.025.2", className: "MB-30_K-9" },
+        { name: "1.037", className: "MB-30_K-10" },
+        { name: "1.041", className: "MB-30_K-11" },
+        { name: "1.039", className: "MB-30_K-12" }
+      ]
+    },
+    {
+      id: 12,
+      name: "MB130.L",
+      className: "MB130_L",
+      pdf: MB130LPdf,
+      rooms: [
+        { name: "1.030", className: "MB-30_L-1" },
+        { name: "1.034", className: "MB-30_L-2" },
+        { name: "1.032", className: "MB-30_L-3" },
+        { name: "FLOW VAN", className: "MB-30_L-4" },
+        { name: "EPL", className: "MB-30_L-5" },
+        { name: "WATER POLISH", className: "MB-30_L-6" },
+        { name: "BENCH DRILL", className: "MB-30_L-7" },
+        { name: "KARDEX SHUTTLE", className: "MB-30_L-8" },
+        { name: "LOCKER", className: "MB-30_L-9" },
+        { name: "MOBILE", className: "MB-30_L-10" },
+        { name: "STRAINER", className: "MB-30_L-11" },
+        { name: "WORK BENCH", className: "MB-30_L-12" }
+      ]
+    },
+    {
+      id: 13,
+      name: "MB130.M",
+      className: "MB130_M",
+      pdf: MB130MPdf,
+      rooms: [
+        { name: "1.009", className: "MB-30_M-1" }
+      ]
+    },
+    {
+      id: 14,
+      name: "MB130.N",
+      className: "MB130_N",
+      pdf: MB130NPdf,
+      rooms: [
+        { name: "1.010", className: "MB-30_N-1" }
+      ]
+    },
+    {
+      id: 15,
+      name: "MB130.O",
+      className: "MB130_O",
+      pdf: MB130OPdf,
+      rooms: [
+        { name: "SK07", className: "MB-30_O-1" }
+      ]
+    },
+    {
+      id: 16,
+      name: "MB130.R1",
+      className: "MB130_R1",
+      pdf: MB130R1Pdf,
+      rooms: [
+        { name: "1.001.1", className: "MB-30_R_1-1" },
+        { name: "1.001", className: "MB-30_R_1-2" }
+      ]
+    },
+    {
+      id: 17,
+      name: "MB130.S1",
+      className: "MB130_S1",
+      pdf: MB130S1Pdf,
+      rooms: [
+        { name: "TR01", className: "MB-30_S_1-1" }
+      ]
+    },
+    {
+      id: 18,
+      name: "MB130.S2",
+      className: "MB130_S2",
+      pdf: MB130S2Pdf,
+      rooms: [
+        { name: "TR02", className: "MB-30_S_2-1" }
+      ]
+    },
+    {
+      id: 19,
+      name: "MB130.S3",
+      className: "MB130_S3",
+      pdf: MB130S3Pdf,
+      rooms: [
+        { name: "TR03", className: "MB-30_S_3-1" }
+      ]
+    },
+    {
+      id: 20,
+      name: "MB130.T",
+      className: "MB130_T",
+      pdf: MB130TPdf,
+      rooms: [
+        { name: "1.011", className: "MB-30_T-1" },
+        { name: "1.025", className: "MB-30_T-2" },
+        { name: "1.014", className: "MB-30_T-3" },
+        { name: "HAND PALLET", className: "MB-30_T-4" }
+      ]
+    },
+    {
+      id: 21,
+      name: "MB130.V1",
+      className: "MB130_V1",
+      pdf: MB130V1Pdf,
+      rooms: [
+        { name: "TR03", className: "MB-30_V_1-1" }
+      ]
+    },
+    {
+      id: 22,
+      name: "MB130.V2",
+      className: "MB130_V2",
+      pdf: MB130V2Pdf,
+      rooms: [
+        { name: "LI02", className: "MB-30_V_2-1" }
+      ]
+    },
+    {
+      id: 23,
+      name: "MB130.Z1",
+      className: "MB130_Z1",
+      pdf: MB130Z1Pdf,
+      rooms: [
+        { name: "SK01", className: "MB-30_Z_1-1" }
+      ]
+    },
+    {
+      id: 24,
+      name: "MB130.Z2",
+      className: "MB130_Z2",
+      pdf: MB130Z2Pdf,
+      rooms: [
+        { name: "SK02", className: "MB-30_Z_2-1" }
+      ]
+    },
+    {
+      id: 25,
+      name: "MB130.Z3",
+      className: "MB130_Z3",
+      pdf: MB130Z3Pdf,
+      rooms: [
+        { name: "SK04", className: "MB-30_Z_3-1" }
+      ]
+    },
+    {
+      id: 26,
+      name: "MB130.Z4",
+      className: "MB130_Z4",
+      pdf: MB130Z4Pdf,
+      rooms: [
+        { name: "SK05", className: "MB-30_Z_4-1" }
+      ]
+    },
+    {
+      id: 27,
+      name: "MB130.Z5",
+      className: "MB130_Z5",
+      pdf: MB130Z5Pdf,
+      rooms: [
+        { name: "SK06", className: "MB-30_Z_5-1" }
+      ]
+    }
+  ],
+
+  "MB.2": [
+    {
+      id: 1,
+      name: "MB240.A",
+      className: "MB240_A",
+      pdf: MB240APdf,
+      rooms: [
+        { name: "1-2.003", className: "MB-40_A-1" },
+        { name: "1-2.009", className: "MB-40_A-2" },
+        { name: "40.A.1", className: "MB-40_A-3" },
+        { name: "1-2.033", className: "MB-40_A-4" },
+        { name: "40.A.2", className: "MB-40_A-5" },
+        { name: "2-2.001", className: "MB-40_A-6" },
+        { name: "3-2.006.1", className: "MB-40_A-7" },
+        { name: "40.A.3", className: "MB-40_A-8" }
+      ]
+    },
+    {
+      id: 2,
+      name: "MB240.B",
+      className: "MB240_B",
+      pdf: MB240BPdf,
+      rooms: [
+        { name: "2.005", className: "MB-40_B-1" }
+      ]
+    },
+    {
+      id: 3,
+      name: "MB240.C",
+      className: "MB240_C",
+      pdf: MB240CPdf,
+      rooms: [
+        { name: "2.039", className: "MB-40_C-1" }
+      ]
+    },
+    {
+      id: 4,
+      name: "MB240.D",
+      className: "MB240_D",
+      pdf: MB240DPdf,
+      rooms: [
+        { name: "2.004", className: "MB-40_D-1" },
+        { name: "2.006", className: "MB-40_D-2" },
+        { name: "2.008", className: "MB-40_D-3" }
+      ]
+    },
+    {
+      id: 5,
+      name: "MB240.E",
+      className: "MB240_E",
+      pdf: MB240EPdf,
+      rooms: [
+        { name: "2.037.1", className: "MB-40_E-1" },
+        { name: "2.035", className: "MB-40_E-2" },
+        { name: "2.037", className: "MB-40_E-3" }
+      ]
+    },
+    {
+      id: 6,
+      name: "MB240.F",
+      className: "MB240_F",
+      pdf: MB240FPdf,
+      rooms: [
+        { name: "MB240.F", className: "MB-40_F" }
+      ]
+    },
+    {
+      id: 7,
+      name: "MB240.G",
+      className: "MB240_G",
+      pdf: MB240GPdf,
+      rooms: [
+        { name: "2.007", className: "MB-40_G-1" }
+      ]
+    },
+    {
+      id: 8,
+      name: "MB240.H",
+      className: "MB240_H",
+      pdf: MB240HPdf,
+      rooms: [
+        { name: "2.002", className: "MB-40_H-1" }
+      ]
+    },
+    {
+      id: 9,
+      name: "MB240.I",
+      className: "MB240_I",
+      pdf: MB240IPdf,
+      rooms: [
+        { name: "2.031", className: "MB-40_I-1" }
+      ]
+    },
+    {
+      id: 10,
+      name: "MB240.J",
+      className: "MB240_J",
+      pdf: MB240JPdf,
+      rooms: [
+        { name: "MB240.J", className: "MB-40_J" }
+      ]
+    },
+    {
+      id: 11,
+      name: "MB240.S1",
+      className: "MB240_S1",
+      pdf: MB240S1Pdf,
+      rooms: [
+        { name: "TR01", className: "MB-40_S_1-1" }
+      ]
+    },
+    {
+      id: 12,
+      name: "MB240.S2",
+      className: "MB240_S2",
+      pdf: MB240S2Pdf,
+      rooms: [
+        { name: "TR02", className: "MB-40_S_2-1" }
+      ]
+    },
+    {
+      id: 13,
+      name: "MB240.S3",
+      className: "MB240_S3",
+      pdf: MB240S3Pdf,
+      rooms: [
+        { name: "TR03", className: "MB-40_S_3-1" }
+      ]
+    },
+    {
+      id: 14,
+      name: "MB240.V1",
+      className: "MB240_V1",
+      pdf: MB240V1Pdf,
+      rooms: [
+        { name: "LI01", className: "MB-40_V_1-1" }
+      ]
+    },
+    {
+      id: 15,
+      name: "MB240.Z1",
+      className: "MB240_Z1",
+      pdf: MB240Z1Pdf,
+      rooms: [
+        { name: "MB240.Z1", className: "MB-40_Z_1" }
+      ]
+    },
+    {
+      id: 16,
+      name: "MB240.Z2",
+      className: "MB240_Z2",
+      pdf: MB240Z2Pdf,
+      rooms: [
+        { name: "SK06", className: "MB-40_Z_2-1" }
+      ]
+    },
+    {
+      id: 17,
+      name: "MB240.Z3",
+      className: "MB240_Z3",
+      pdf: MB240Z3Pdf,
+      rooms: [
+        { name: "MB240.Z3", className: "MB-40_Z_3-1" }
+      ]
+    },
+    {
+      id: 18,
+      name: "MB240.Z4",
+      className: "MB240_Z4",
+      pdf: MB240Z4Pdf,
+      rooms: [
+        { name: "MB240.Z4", className: "MB-40_Z_4" }
+      ]
+    }
+  ],
+
+  "MB.R": [
+    {
+      id: 1,
+      name: "MB.Roof",
+      className: "MB_Roof",
+      pdf: MB_RoofPdf,
+      rooms: [
+        { name: "50.S.2", className: "MB-Roof-1" },
+        { name: "R.W", className: "MB-Roof-2" },
+        { name: "R.M", className: "MB-Roof-3" },
+        { name: "R.E", className: "MB-Roof-4" }
+      ]
+    }
+  ],
+
+
+  // MAIII Floors
+  'MA.III 0': [
+    {
+      id: 1,
+      name: '30.GF.CorridorN',
+      className: 'GF_30_CorridorN',
+      pdf: MA30GFCorridorNPdf,
+      rooms: [
+        {
+          name: '30.GF-S.300',
+          className: 'MA_30_GFN-1'
+        }
+      ]
+    },
+    {
+      id: 2,
+      name: '30.GF.CorridorS',
+      className: 'GF_30_CorridorS',
+      pdf: MA30GFCorridorSPdf,
+      rooms: [
+        {
+          name: '30.GF-CorridorS',
+          className: 'MA_30_GFS-1'
+        }
+      ]
+    },
+    {
+      id: 3,
+      name: '31.0',
+      className: 'GF_31_0',
+      pdf: MA310Pdf,
+      rooms: [
+        {
+          name: '31.0-S.323',
+          className: 'MA_III_31_0-1'
+        },
+        {
+          name: '31.0-S.331',
+          className: 'MA_III_31_0-2'
+        },
+        {
+          name: '31.0-S.335.2',
+          className: 'MA_III_31_0-3'
+        },
+        {
+          name: '31.0-S.335.1',
+          className: 'MA_III_31_0-4'
+        },
+        {
+          name: '31.0-S.335',
+          className: 'MA_III_31_0-5'
+        },
+        {
+          name: '31.0-S.341',
+          className: 'MA_III_31_0-6'
+        },
+        {
+          name: '31.0-S.339.1',
+          className: 'MA_III_31_0-7'
+        },
+        {
+          name: '31.0-S.339',
+          className: 'MA_III_31_0-8'
+        },
+        {
+          name: '31.0-S.337',
+          className: 'MA_III_31_0-9'
+        },
+        {
+          name: '31.0-S.339.2',
+          className: 'MA_III_31_0-10'
+        },
+        {
+          name: '31.0-S.339.3',
+          className: 'MA_III_31_0-11'
+        },
+        {
+          name: '31.0-S.343',
+          className: 'MA_III_31_0-12'
+        },
+        {
+          name: '31.0-S.339.4',
+          className: 'MA_III_31_0-13'
+        },
+        {
+          name: '31.0-S.345',
+          className: 'MA_III_31_0-14'
+        }
+      ]
+    },
+    {
+      id: 4,
+      name: '60.0A',
+      className: 'GF_60_0A',
+      pdf: MA600APdf,
+      rooms: [
+        {
+          name: '60.0A-S.612.1',
+          className: 'MA_60_0A-1'
+        },
+        {
+          name: '60.0A-S.618',
+          className: 'MA_60_0A-2'
+        },
+        {
+          name: '60.0A-S.612',
+          className: 'MA_60_0A-3'
+        },
+        {
+          name: '60.0A-S.618.1',
+          className: 'MA_60_0A-4'
+        },
+        {
+          name: '60.0A-S.612.2',
+          className: 'MA_60_0A-5'
+        },
+        {
+          name: '60.0A-S.620',
+          className: 'MA_60_0A-6'
+        }
+      ]
+    },
+    {
+      id: 5,
+      name: '60.0B',
+      className: 'GF_60_0B',
+      pdf: MA600BPdf,
+      rooms: [
+        {
+          name: '60.0B-S.616',
+          className: 'MA_60_0B-1'
+        }
+      ]
+    },
+    {
+      id: 6,
+      name: '60.0C',
+      className: 'GF_60_0C',
+      pdf: MA600CPdf,
+      rooms: [
+        {
+          name: '60.0C-TR61',
+          className: 'MA_60_0C-1'
+        },
+        {
+          name: '60.0C-LI61',
+          className: 'MA_60_0C-2'
+        },
+        {
+          name: '60.0C-S.614',
+          className: 'MA_60_0C-3'
+        },
+        {
+          name: '60.0C-S.629',
+          className: 'MA_60_0C-4'
+        },
+        {
+          name: '60.0C-LI62',
+          className: 'MA_60_0C-5'
+        },
+        {
+          name: '60.0C-TR63',
+          className: 'MA_60_0C-6'
+        }
+      ]
+    },
+    {
+      id: 7,
+      name: '60.0D',
+      className: 'GF_60_0D',
+      pdf: MA600DPdf,
+      rooms: [
+        {
+          name: '60.0D-S.624',
+          className: 'MA_60_0D-1'
+        },
+        {
+          name: '60.0D-S.626',
+          className: 'MA_60_0D-2'
+        },
+        {
+          name: '60.0D-S.626.3',
+          className: 'MA_60_0D-3'
+        },
+        {
+          name: '60.0D-S.626',
+          className: 'MA_60_0D-4'
+        },
+        {
+          name: '60.0D-S.626.2',
+          className: 'MA_60_0D-5'
+        }
+      ]
+    },
+    {
+      id: 8,
+      name: '60.0E',
+      className: 'GF_60_0E',
+      pdf: MA600EPdf,
+      rooms: [
+        {
+          name: '60.0E-S.632',
+          className: 'MA_60_0E-1'
+        },
+        {
+          name: '60.0E-S.634',
+          className: 'MA_60_0E-2'
+        }
+      ]
+    },
+    {
+      id: 9,
+      name: '60.0F',
+      className: 'GF_60_0F',
+      pdf: MA600FPdf,
+      rooms: [
+        {
+          name: '60.0F-S.630.1',
+          className: 'MA_60_0F-1'
+        },
+        {
+          name: '60.0F-S.630.2',
+          className: 'MA_60_0F-2'
+        },
+        {
+          name: '60.0F-S.636',
+          className: 'MA_60_0F-3'
+        },
+        {
+          name: '60.0F-S.630',
+          className: 'MA_60_0F-4'
+        },
+        {
+          name: '60.0F-S.630.4',
+          className: 'MA_60_0F-5'
+        },
+        {
+          name: '60.0F-S.630.3',
+          className: 'MA_60_0F-6'
+        }
+      ]
+    },
+    {
+      id: 10,
+      name: '60.0G',
+      className: 'GF_60_0G',
+      pdf: MA600GPdf,
+      rooms: [
+        {
+          name: '60.0G-S.640',
+          className: 'MA_60_0G-1'
+        },
+        {
+          name: '60.0G-S.638',
+          className: 'MA_60_0G-2'
+        },
+        {
+          name: '60.0G-S.642',
+          className: 'MA_60_0G-3'
+        },
+        {
+          name: '60.0G-S.642.1',
+          className: 'MA_60_0G-4'
+        },
+        {
+          name: '60.0G-S.638.1',
+          className: 'MA_60_0G-5'
+        },
+        {
+          name: '60.0G-S.638.3',
+          className: 'MA_60_0G-6'
+        },
+        {
+          name: '60.0G-S.638.2',
+          className: 'MA_60_0G-7'
+        },
+        {
+          name: '60.0G-S.642.2',
+          className: 'MA_60_0G-8'
+        },
+        {
+          name: '60.0G-S.642.2',
+          className: 'MA_60_0G-9'
+        },
+        {
+          name: '60.0G-S.642.3',
+          className: 'MA_60_0G-10'
+        },
+        {
+          name: '60.0G-S.638.4',
+          className: 'MA_60_0G-11'
+        },
+        {
+          name: '60.0G-S.644.2',
+          className: 'MA_60_0G-12'
+        }
+      ]
+    },
+    {
+      id: 11,
+      name: '60.0H',
+      className: 'GF_60_0H',
+      pdf: MA600HPdf,
+      rooms: [
+        {
+          name: '60.0H-TR62',
+          className: 'MA_60_0H-1'
+        },
+        {
+          name: '60.0H-S.646',
+          className: 'MA_60_0H-2'
+        }
+      ]
+    },
+    {
+      id: 12,
+      name: '60.0I',
+      className: 'GF_60_0I',
+      pdf: MA600IPdf,
+      rooms: [
+        {
+          name: '60.0I-S.656',
+          className: 'MA_60_0I-1'
+        },
+        {
+          name: '60.0I-S.658',
+          className: 'MA_60_0I-2'
+        },
+        {
+          name: '60.0I-S.660',
+          className: 'MA_60_0I-3'
+        },
+        {
+          name: '60.0I-S.660.1',
+          className: 'MA_60_0I-4'
+        },
+        {
+          name: '60.0I-S.650.1',
+          className: 'MA_60_0I-5'
+        },
+        {
+          name: '60.0I-S.650.2',
+          className: 'MA_60_0I-6'
+        },
+        {
+          name: '60.0I-S.650.3',
+          className: 'MA_60_0I-7'
+        },
+        {
+          name: '60.0I-S.650',
+          className: 'MA_60_0I-8'
+        },
+        {
+          name: '60.0I-S.652.1',
+          className: 'MA_60_0I-9'
+        },
+        {
+          name: '60.0I-S.652.2',
+          className: 'MA_60_0I-10'
+        },
+        {
+          name: '60.0I-S.652.3',
+          className: 'MA_60_0I-11'
+        },
+        {
+          name: '60.0I- S.652',
+          className: 'MA_60_0I-12'
+        },
+        {
+          name: '60.0I-S.654.2',
+          className: 'MA_60_0I-13'
+        },
+        {
+          name: '60.0I-S.654.1',
+          className: 'MA_60_0I-14'
+        },
+        {
+          name: '60.0I-S.654.3',
+          className: 'MA_60_0I-15'
+        },
+        {
+          name: '60.0I-S.654',
+          className: 'MA_60_0I-16'
+        }
+      ]
+    },
+    {
+      id: 13,
+      name: '60.0J',
+      className: 'GF_60_0J',
+      pdf: MA600JPdf,
+      rooms: [
+        {
+          name: '60.0J-S.644',
+          className: 'MA_60_0J-1'
+        },
+        {
+          name: '60.0J-S.644.1',
+          className: 'MA_60_0J-2'
+        }
+      ]
+    },
+    {
+      id: 14,
+      name: '60.0K',
+      className: 'GF_60_0K',
+      pdf: MA600KPdf,
+      rooms: [
+        {
+          name: '60.0K-S.609.1',
+          className: 'MA_60_0K-1'
+        },
+        {
+          name: '60.0K-S.611',
+          className: 'MA_60_0K-2'
+        },
+        {
+          name: '60.0K-S.617',
+          className: 'MA_60_0K-3'
+        },
+        {
+          name: '60.0K-S.605',
+          className: 'MA_60_0K-4'
+        },
+        {
+          name: '60.0K-S.609',
+          className: 'MA_60_0K-5'
+        },
+        {
+          name: '60.0K-S.607.2',
+          className: 'MA_60_0K-6'
+        },
+        {
+          name: '60.0K-S.607.1',
+          className: 'MA_60_0K-7'
+        },
+        {
+          name: '60.0K-S.607.3',
+          className: 'MA_60_0K-8'
+        },
+        {
+          name: '60.0K-S.613',
+          className: 'MA_60_0K-9'
+        },
+        {
+          name: '60.0K-S.607',
+          className: 'MA_60_0K-10'
+        },
+        {
+          name: '60.0K-S.615',
+          className: 'MA_60_0K-11'
+        }
+      ]
+    },
+    {
+      id: 15,
+      name: '60.0L',
+      className: 'GF_60_0L',
+      pdf: MA600LPdf,
+      rooms: [
+        {
+          name: '60.0L-S.621',
+          className: 'MA_60_0L-1'
+        }
+      ]
+    },
+    {
+      id: 16,
+      name: '60.0M',
+      className: 'GF_60_0M',
+      pdf: MA600MPdf,
+      rooms: [
+        {
+          name: '60.0M-S.623',
+          className: 'MA_60_0M-1'
+        },
+        {
+          name: '60.0M-S.625',
+          className: 'MA_60_0M-2'
+        }
+      ]
+    },
+    {
+      id: 17,
+      name: '60.0N',
+      className: 'GF_60_0N',
+      pdf: MA600NPdf,
+      rooms: [
+        {
+          name: '60.0N-S.627.2',
+          className: 'MA_60_0N-1'
+        },
+        {
+          name: '60.0N-S.627.1',
+          className: 'MA_60_0N-2'
+        },
+        {
+          name: '60.0N-S.629.1',
+          className: 'MA_60_0N-3'
+        },
+        {
+          name: '60.0N-S.631.1',
+          className: 'MA_60_0N-4'
+        },
+        {
+          name: '60.0N-S.627',
+          className: 'MA_60_0N-5'
+        },
+        {
+          name: '60.0N-S.628.1',
+          className: 'MA_60_0N-6'
+        },
+        {
+          name: '60.0N-S.629',
+          className: 'MA_60_0N-7'
+        },
+        {
+          name: '60.0N-S.631',
+          className: 'MA_60_0N-8'
+        }
+      ]
+    },
+    {
+      id: 18,
+      name: '60.0P',
+      className: 'GF_60_0P',
+      pdf: MA600PPdf,
+      rooms: [
+        {
+          name: '60.0P-S.647',
+          className: 'MA_60_0P-1'
+        },
+        {
+          name: '60.0P-S.647.1',
+          className: 'MA_60_0P-2'
+        },
+        {
+          name: '60.0P-S.645.1',
+          className: 'MA_60_0P-3'
+        },
+        {
+          name: '60.0P-S.645',
+          className: 'MA_60_0P-4'
+        },
+        {
+          name: '60.0P-S.649',
+          className: 'MA_60_0P-5'
+        },
+        {
+          name: '60.0P-S.653',
+          className: 'MA_60_0P-6'
+        }
+      ]
+    },
+    {
+      id: 19,
+      name: '60.0Q',
+      className: 'GF_60_0Q',
+      pdf: MA600QPdf,
+      rooms: [
+        {
+          name: '60.0Q-S.633',
+          className: 'MA_60_0Q-1'
+        }
+      ]
+    },
+    {
+      id: 20,
+      name: '60.0R',
+      className: 'GF_60_0R',
+      pdf: MA600RPdf,
+      rooms: [
+        {
+          name: '60.0R-S.641.1',
+          className: 'MA_60_0R-1'
+        },
+        {
+          name: '60.0R-S.643.2',
+          className: 'MA_60_0R-2'
+        },
+        {
+          name: '60.0R-S.643.3',
+          className: 'MA_60_0R-3'
+        },
+        {
+          name: '60.0R-S.651',
+          className: 'MA_60_0R-4'
+        },
+        {
+          name: '60.0R-S.653.2',
+          className: 'MA_60_0R-5'
+        },
+        {
+          name: '60.0R- S.637',
+          className: 'MA_60_0R-6'
+        },
+        {
+          name: '60.0R-S.641',
+          className: 'MA_60_0R-7'
+        },
+        {
+          name: '60.0R-S.643.1',
+          className: 'MA_60_0R-8'
+        },
+        {
+          name: '60.0R-S.643',
+          className: 'MA_60_0R-9'
+        },
+        {
+          name: '60.0R-S.639',
+          className: 'MA_60_0R-10'
+        },
+        {
+          name: '60.0R-S.653.1',
+          className: 'MA_60_0R-11'
+        },
+        {
+          name: '60.0R-S.655.1',
+          className: 'MA_60_0R-12'
+        },
+        {
+          name: '60.0R-S.655',
+          className: 'MA_60_0R-13'
+        }
+      ]
+    },
+    {
+      id: 21,
+      name: '60.0S',
+      className: 'GF_60_0S',
+      pdf: MA600SPdf,
+      rooms: [
+        {
+          name: '60.0S-S.648',
+          className: 'MA_60_0S-1'
+        }
+      ]
+    },
+    {
+      id: 22,
+      name: '60.0T',
+      className: 'GF_60_0T',
+      pdf: MA600TPdf,
+      rooms: [
+        {
+          name: '60.0T-S.635',
+          className: 'MA_60_0T-1'
+        }
+      ]
+    },
+    {
+      id: 23,
+      name: 'BS3.0',
+      className: 'GF_BS3_0',
+      pdf: MABS30Pdf,
+      rooms: [
+        {
+          name: 'BS3.0-S.306',
+          className: 'MA_BS3_0-1'
+        }
+      ]
+    },
+    {
+      id: 24,
+      name: 'FS5.0',
+      className: 'GF_FS5_0',
+      pdf: MAFS50Pdf,
+      rooms: [
+        {
+          name: 'FS5.0-S.304',
+          className: 'MA_FS5_0-1'
+        }
+      ]
+    },
+    {
+      id: 25,
+      name: 'FS6.0',
+      className: 'GF_FS6_0',
+      pdf: MAFS60Pdf,
+      rooms: [
+        {
+          name: 'FS6.0-S.301',
+          className: 'MA_FS6_0-1'
+        },
+        {
+          name: 'FS6.0-S.303',
+          className: 'MA_FS6_0-2'
+        }
+      ]
+    }
+  ],
+  'MA.III 1': [
+    {
+      id: 1,
+      name: '30.FF.CorridorN',
+      className: 'FF_30_CorridorN',
+      pdf: MA30FFCorridorNPdf,
+      rooms: [
+        {
+          name: '30.FF-1.302',
+          className: 'MA_30_FFN-1'
+        },
+        {
+          name: '30.FF-1.300',
+          className: 'MA_30_FFN-2'
+        },
+        {
+          name: '30.FF-1.301',
+          className: 'MA_30_FFN-3'
+        }
+      ]
+    },
+    {
+      id: 2,
+      name: '30.FF.CorridorS',
+      className: 'FF_30_CorridorS',
+      pdf: MA30FFCorridorSPdf,
+      rooms: [
+        {
+          name: '30.FF-1.351',
+          className: 'MA_30_FFS-1'
+        },
+        {
+          name: '30.FF-1.353',
+          className: 'MA_30_FFS-2'
+        }
+      ]
+    },
+    {
+      id: 3,
+      name: '60.1A',
+      className: 'FF_60_1A',
+      pdf: MA601APdf,
+      rooms: [
+        {
+          name: '60.1A-1.618',
+          className: 'MA_60_1A-1'
+        },
+        {
+          name: '60.1A-1.622.1',
+          className: 'MA_60_1A-2'
+        },
+        {
+          name: '60.1A-1.622.2',
+          className: 'MA_60_1A-3'
+        },
+        {
+          name: '60.1A-1.622.3',
+          className: 'MA_60_1A-4'
+        },
+        {
+          name: '60.1A-1.622.4',
+          className: 'MA_60_1A-5'
+        }
+      ]
+    },
+    {
+      id: 4,
+      name: '60.1C',
+      className: 'FF_60_1C',
+      pdf: MA601CPdf,
+      rooms: [
+        {
+          name: '60.1C-1.628',
+          className: 'MA_60_1C-1'
+        },
+        {
+          name: '60.1C-TR61',
+          className: 'MA_60_1C-2'
+        },
+        {
+          name: '60.1C-LI61',
+          className: 'MA_60_1C-3'
+        },
+        {
+          name: '60.1C-1.624',
+          className: 'MA_60_1C-4'
+        },
+        {
+          name: '60.1C-1.622',
+          className: 'MA_60_1C-5'
+        },
+        {
+          name: '60.1C-SK62.1',
+          className: 'MA_60_1C-6'
+        },
+        {
+          name: '60.1C-SK62',
+          className: 'MA_60_1C-7'
+        },
+        {
+          name: '60.1C-1.632',
+          className: 'MA_60_1C-8'
+        },
+        {
+          name: '60.1C-TR62',
+          className: 'MA_60_1C-9'
+        },
+        {
+          name: '60.1C-1.646',
+          className: 'MA_60_1C-10'
+        },
+        {
+          name: '60.1C-LI62',
+          className: 'MA_60_1C-11'
+        },
+        {
+          name: '60.1C-TR63',
+          className: 'MA_60_1C-12'
+        }
+      ]
+    },
+    {
+      id: 5,
+      name: '60.1D',
+      className: 'FF_60_1D',
+      pdf: MA601DPdf,
+      rooms: [
+        {
+          name: '60.1D-SK64',
+          className: 'MA_60_1D-1'
+        },
+        {
+          name: '60.1D-1.615',
+          className: 'MA_60_1D-2'
+        },
+        {
+          name: '60.1D-1.621',
+          className: 'MA_60_1D-3'
+        },
+        {
+          name: '60.1D-1.623',
+          className: 'MA_60_1D-4'
+        },
+        {
+          name: '60.1D-1.617.5',
+          className: 'MA_60_1D-5'
+        },
+        {
+          name: '60.1D-1.617.4',
+          className: 'MA_60_1D-6'
+        },
+        {
+          name: '60.1D-1.617.3',
+          className: 'MA_60_1D-7'
+        },
+        {
+          name: '60.1D-1.617.2',
+          className: 'MA_60_1D-8'
+        },
+        {
+          name: '60.1D-1.617.1',
+          className: 'MA_60_1D-9'
+        },
+        {
+          name: '60.1D-1.617',
+          className: 'MA_60_1D-10'
+        },
+        {
+          name: '60.1D-1.613',
+          className: 'MA_60_1D-11'
+        }
+      ]
+    },
+    {
+      id: 6,
+      name: '60.1E',
+      className: 'FF_60_1E',
+      pdf: MA601EPdf,
+      rooms: [
+        {
+          name: '60.1E-1.630.1',
+          className: 'MA_60_1E-1'
+        },
+        {
+          name: '60.1E-1.634',
+          className: 'MA_60_1E-2'
+        }
+      ]
+    },
+    {
+      id: 7,
+      name: '60.1F',
+      className: 'FF_60_1F',
+      pdf: MA601FPdf,
+      rooms: [
+        {
+          name: '60.1F-1.630',
+          className: 'MA_60_1F-1'
+        }
+      ]
+    },
+    {
+      id: 8,
+      name: '60.1G',
+      className: 'FF_60_1G',
+      pdf: MA601GPdf,
+      rooms: [
+        {
+          name: '60.1G-1.640',
+          className: 'MA_60_1G-1'
+        },
+        {
+          name: '60.1G-1.642',
+          className: 'MA_60_1G-2'
+        },
+        {
+          name: '60.1G-1.638',
+          className: 'MA_60_1G-3'
+        },
+        {
+          name: '60.1G-1.642.1',
+          className: 'MA_60_1G-4'
+        },
+        {
+          name: '60.1G-1.638.1',
+          className: 'MA_60_1G-5'
+        },
+        {
+          name: '60.1G-1.638.2',
+          className: 'MA_60_1G-6'
+        },
+        {
+          name: '60.1G-1.642.2',
+          className: 'MA_60_1G-7'
+        },
+        {
+          name: '60.1G-1.642.3',
+          className: 'MA_60_1G-8'
+        },
+        {
+          name: '60.1G-1.638.4',
+          className: 'MA_60_1G-9'
+        },
+        {
+          name: '60.1G-1.642.4',
+          className: 'MA_60_1G-10'
+        },
+        {
+          name: '60.1G-1.644.2',
+          className: 'MA_60_1G-11'
+        }
+      ]
+    },
+    {
+      id: 9,
+      name: '60.1H',
+      className: 'FF_60_1H',
+      pdf: MA601HPdf,
+      rooms: [
+        {
+          name: '60.1H-SK67',
+          className: 'MA_60_1H-1'
+        },
+        {
+          name: '60.1H-1.633.1',
+          className: 'MA_60_1H-2'
+        },
+        {
+          name: '60.1H-1.633',
+          className: 'MA_60_1H-3'
+        },
+        {
+          name: '60.1H-1.625',
+          className: 'MA_60_1H-4'
+        },
+        {
+          name: '60.1H-1.629',
+          className: 'MA_60_1H-5'
+        },
+        {
+          name: '60.1H-1.625.1',
+          className: 'MA_60_1H-6'
+        },
+        {
+          name: '60.1H-1.627',
+          className: 'MA_60_1H-7'
+        },
+        {
+          name: '60.1H-1.629.1',
+          className: 'MA_60_1H-8'
+        },
+        {
+          name: '60.1H-1.631',
+          className: 'MA_60_1H-9'
+        },
+        {
+          name: '60.1H-1.637.1',
+          className: 'MA_60_1H-10'
+        },
+        {
+          name: '60.1H-1.637',
+          className: 'MA_60_1H-11'
+        }
+      ]
+    },
+    {
+      id: 10,
+      name: '60.1I',
+      className: 'FF_60_1I',
+      pdf: MA601IPdf,
+      rooms: [
+        {
+          name: '60.1I-1.635.1',
+          className: 'MA_60_1I-1'
+        },
+        {
+          name: '60.1I-1.635.2',
+          className: 'MA_60_1I-2'
+        },
+        {
+          name: '60.1I-1.635.3',
+          className: 'MA_60_1I-3'
+        },
+        {
+          name: '60.1I-1.635.4',
+          className: 'MA_60_1I-4'
+        },
+        {
+          name: '60.1I-1.635',
+          className: 'MA_60_1I-5'
+        }
+      ]
+    },
+    {
+      id: 11,
+      name: '60.1J',
+      className: 'FF_60_1J',
+      pdf: MA601JPdf,
+      rooms: [
+        {
+          name: '60.1J-1.644',
+          className: 'MA_60_1J-1'
+        },
+        {
+          name: '60.1J-1.644.1',
+          className: 'MA_60_1J-2'
+        }
+      ]
+    },
+    {
+      id: 12,
+      name: '60.1L',
+      className: 'FF_60_1L',
+      pdf: MA601LPdf,
+      rooms: [
+        {
+          name: '60.1L-SK63',
+          className: 'MA_60_1L-1'
+        },
+        {
+          name: '60.1L-1.645',
+          className: 'MA_60_1L-2'
+        },
+        {
+          name: '60.1L-1.647',
+          className: 'MA_60_1L-3'
+        },
+        {
+          name: '60.1L-1.647.1',
+          className: 'MA_60_1L-4'
+        },
+        {
+          name: '60.1L-1.647.2',
+          className: 'MA_60_1L-5'
+        },
+        {
+          name: '60.1L-1.643',
+          className: 'MA_60_1L-6'
+        },
+        {
+          name: '60.1L-1.649',
+          className: 'MA_60_1L-7'
+        },
+        {
+          name: '60.1L-1.653',
+          className: 'MA_60_1L-8'
+        },
+        {
+          name: '60.1L-1.657',
+          className: 'MA_60_1L-9'
+        },
+        {
+          name: '60.1L-1.649.1',
+          className: 'MA_60_1L-10'
+        },
+        {
+          name: '60.1L-1.651',
+          className: 'MA_60_1L-11'
+        },
+        {
+          name: '60.1L-1.659',
+          className: 'MA_60_1L-12'
+        }
+      ]
+    },
+    {
+      id: 13,
+      name: '60.1M',
+      className: 'FF_60_1M',
+      pdf: MA601MPdf,
+      rooms: [
+        {
+          name: '60.1M-1.639',
+          className: 'MA_60_1M-1'
+        },
+        {
+          name: '60.1M-1.641',
+          className: 'MA_60_1M-2'
+        },
+        {
+          name: '60.1M-1.641.6',
+          className: 'MA_60_1M-3'
+        },
+        {
+          name: '60.1M-1.641.5',
+          className: 'MA_60_1M-4'
+        },
+        {
+          name: '60.1M-1.641.4',
+          className: 'MA_60_1M-5'
+        },
+        {
+          name: '60.1M-1.641.3',
+          className: 'MA_60_1M-6'
+        },
+        {
+          name: '60.1M-1.641.2',
+          className: 'MA_60_1M-7'
+        },
+        {
+          name: '60.1M-1.641.1',
+          className: 'MA_60_1M-8'
+        }
+      ]
+    },
+    {
+      id: 14,
+      name: '60.1N',
+      className: 'FF_60_1N',
+      pdf: MA601NPdf,
+      rooms: [
+        {
+          name: '60.1N-1.650',
+          className: 'MA_60_1N-1'
+        }
+      ]
+    },
+    {
+      id: 15,
+      name: 'BS3.1',
+      className: 'FF_BS3_1',
+      pdf: MABS31Pdf,
+      rooms: [
+        {
+          name: 'BS3.1-S.306',
+          className: 'MA_BS3_1-1'
+        }
+      ]
+    }
+  ],
+  'MA.III 2': [
+    {
+      id: 1,
+      name: '60.2A.1',
+      className: 'SF_60_2A_1',
+      pdf: MA602A1Pdf,
+      rooms: [
+        {
+          name: '60.2A.1-2.611',
+          className: 'MA_60_2A_1-1'
+        },
+        {
+          name: '60.2A.1-2.600',
+          className: 'MA_60_2A_1-2'
+        },
+        {
+          name: '60.2A.1-2.613',
+          className: 'MA_60_2A_1-3'
+        },
+        {
+          name: '60.2A.1-SK67',
+          className: 'MA_60_2A_1-4'
+        },
+        {
+          name: '60.2A.1-2.633',
+          className: 'MA_60_2A_1-5'
+        },
+        {
+          name: '60.2A.1-2.600',
+          className: 'MA_60_2A_1-6'
+        },
+        {
+          name: '60.2A.1-2.655',
+          className: 'MA_60_2A_1-7'
+        },
+        {
+          name: '60.2A.1-2.653',
+          className: 'MA_60_2A_1-8'
+        },
+        {
+          name: '60.2A.1-2.651',
+          className: 'MA_60_2A_1-9'
+        }
+      ]
+    },
+    {
+      id: 2,
+      name: '60.2A.2',
+      className: 'SF_60_2A_2',
+      pdf: MA602A2Pdf,
+      rooms: [
+        {
+          name: '60.2A.2-2.600',
+          className: 'MA_60_2A_2-1'
+        },
+        {
+          name: '60.2A.2-SK61',
+          className: 'MA_60_2A_2-2'
+        },
+        {
+          name: '60.2A.2-2.600',
+          className: 'MA_60_2A_2-3'
+        },
+        {
+          name: '60.2A.2-2.602',
+          className: 'MA_60_2A_2-4'
+        },
+        {
+          name: '60.2A.2-2.300',
+          className: 'MA_60_2A_2-5'
+        }
+      ]
+    },
+    {
+      id: 3,
+      name: '60.2A.3',
+      className: 'SF_60_2A_3',
+      pdf: MA602A3Pdf,
+      rooms: [
+        {
+          name: '60.2A.3-2.600',
+          className: 'MA_60_2A_3-1'
+        },
+        {
+          name: '60.2A.3-2.652',
+          className: 'MA_60_2A_3-2'
+        }
+      ]
+    },
+    {
+      id: 4,
+      name: '60.2B',
+      className: 'SF_60_2B',
+      pdf: MA602BPdf,
+      rooms: [
+        {
+          name: '60.2B-TR61',
+          className: 'MA_60_2B-1'
+        },
+        {
+          name: '60.2B-2.616',
+          className: 'MA_60_2B-2'
+        },
+        {
+          name: '60.2B-LI61',
+          className: 'MA_60_2B-3'
+        }
+      ]
+    },
+    {
+      id: 5,
+      name: '60.2C',
+      className: 'SF_60_2C',
+      pdf: MA602CPdf,
+      rooms: [
+        {
+          name: '60.2C-2.634.1',
+          className: 'MA_60_2C-1'
+        },
+        {
+          name: '60.2C-2.634',
+          className: 'MA_60_2C-2'
+        },
+        {
+          name: '60.2C-2.634.2',
+          className: 'MA_60_2C-3'
+        }
+      ]
+    },
+    {
+      id: 6,
+      name: '60.2D',
+      className: 'SF_60_2D',
+      pdf: MA602DPdf,
+      rooms: [
+        {
+          name: '60.2D-2.630.1',
+          className: 'MA_60_2D-1'
+        },
+        {
+          name: '60.2D-SK62.1',
+          className: 'MA_60_2D-2'
+        },
+        {
+          name: '60.2D-SK62',
+          className: 'MA_60_2D-3'
+        },
+        {
+          name: '60.2D-2.630',
+          className: 'MA_60_2D-4'
+        }
+      ]
+    },
+    {
+      id: 7,
+      name: '60.2E',
+      className: 'SF_60_2E',
+      pdf: MA602EPdf,
+      rooms: [
+        {
+          name: '60.2E-2.638.3',
+          className: 'MA_60_2E_1-1'
+        },
+        {
+          name: '60.2E-2.640',
+          className: 'MA_60_2E_1-2'
+        },
+        {
+          name: '60.2E-2.644',
+          className: 'MA_60_2E_1-3'
+        },
+        {
+          name: '60.2E-2.638',
+          className: 'MA_60_2E_1-4'
+        },
+        {
+          name: '60.2E-2.642.1',
+          className: 'MA_60_2E_1-5'
+        },
+        {
+          name: '60.2E-2.642',
+          className: 'MA_60_2E_1-6'
+        },
+        {
+          name: '60.2E-2.638.1',
+          className: 'MA_60_2E_1-7'
+        },
+        {
+          name: '60.2E-TR62',
+          className: 'MA_60_2E_1-8'
+        },
+        {
+          name: '60.2E-2.642.2',
+          className: 'MA_60_2E_1-9'
+        },
+        {
+          name: '60.2E-2.638.2',
+          className: 'MA_60_2E_1-10'
+        },
+        {
+          name: '60.2E-2.642.3',
+          className: 'MA_60_2E_1-11'
+        },
+        {
+          name: '60.2E-2.638.4',
+          className: 'MA_60_2E_1-12'
+        },
+        {
+          name: '60.2E-2.642.4',
+          className: 'MA_60_2E_1-13'
+        },
+        {
+          name: '60.2E-2.644.2',
+          className: 'MA_60_2E_1-14'
+        }
+      ]
+    },
+    {
+      id: 8,
+      name: '60.2F',
+      className: 'SF_60_2F',
+      pdf: MA602FPdf,
+      rooms: [
+        {
+          name: '60.2F-2.656',
+          className: 'MA_60_2F-1'
+        },
+        {
+          name: '60.2F-2.658',
+          className: 'MA_60_2F-2'
+        },
+        {
+          name: '60.2F-LI62',
+          className: 'MA_60_2F-3'
+        },
+        {
+          name: '60.2F-TR63',
+          className: 'MA_60_2F-4'
+        }
+      ]
+    },
+    {
+      id: 9,
+      name: 'BS3.2',
+      className: 'SF_BS3_2',
+      pdf: MABS32Pdf,
+      rooms: [
+        {
+          name: 'BS3.2-S.306',
+          className: 'MA_BS3_2-1'
+        },
+        {
+          name: 'BS3.2-2.356',
+          className: 'MA_BS3_2-2'
+        },
+        {
+          name: 'BS3.2-2.370',
+          className: 'MA_BS3_2-3'
+        }
+      ]
+    },
+    {
+      id: 10,
+      name: 'FS5.2',
+      className: 'SF_FS5_2',
+      pdf: MAFS52Pdf,
+      rooms: [
+        {
+          name: 'FS5.2-2.308',
+          className: 'MA_FS5_2-1'
+        },
+        {
+          name: 'FS5.2-2.302',
+          className: 'MA_FS5_2-2'
+        },
+        {
+          name: 'FS5.2-2.368',
+          className: 'MA_FS5_2-3'
+        }
+      ]
+    },
+    {
+      id: 11,
+      name: 'FS6.2',
+      className: 'SF_FS6_2',
+      pdf: MAFS62Pdf,
+      rooms: [
+        {
+          name: 'FS6.2-2.305',
+          className: 'MA_FS6_2-1'
+        },
+        {
+          name: 'FS6.2-2.301',
+          className: 'MA_FS6_2-2'
+        },
+        {
+          name: 'BS3.2-2.369',
+          className: 'MA_BS3_2-3'
+        }
+      ]
+    }
+  ],
+  'MA.III 3': [
+    {
+      id: 1,
+      name: '60.3A',
+      className: 'TF_60_3A',
+      pdf: MA603APdf,
+      rooms: [
+        {
+          name: '60.3A-TR61',
+          className: 'MA_60_3A-1'
+        },
+        {
+          name: '60.3A-3.616',
+          className: 'MA_60_3A-2'
+        },
+        {
+          name: '60.3A-3.614',
+          className: 'MA_60_3A-3'
+        },
+        {
+          name: '60.3A-3.618',
+          className: 'MA_60_3A-4'
+        },
+        {
+          name: '60.3A-3.600',
+          className: 'MA_60_3A-5'
+        },
+        {
+          name: '60.3A-TR64',
+          className: 'MA_60_3A-6'
+        },
+        {
+          name: '60.3A-3.617',
+          className: 'MA_60_3A-7'
+        },
+        {
+          name: '60.3A-LI62',
+          className: 'MA_60_3A-8'
+        },
+        {
+          name: '60.3A-3.620',
+          className: 'MA_60_3A-9'
+        }
+      ]
+    }
+  ],
+  'MA.III R': [
+    {
+      id: 1,
+      name: 'MA.III_R',
+      className: 'MA_III_R',
+      pdf: MAMAIIIRPdf,
+      rooms: [
+        {
+          name: 'R-60.RB',
+          className: 'MA_III_R-1'
+        },
+        {
+          name: 'R-60.RA',
+          className: 'MA_III_R-2'
+        },
+        {
+          name: 'R-60.RC',
+          className: 'MA_III_R-3'
+        },
+        {
+          name: 'R-30.R',
+          className: 'MA_III_R-4'
+        },
+        {
+          name: 'R-31.R',
+          className: 'MA_III_R-5'
+        }
+      ]
+    }
+  ],
+
+
+
+  'MA Basement': [
+    {
+      id: 1,
+      name: 'MA_B_B80.0A',
+      className: 'B80_0A',
+      pdf: MAB_B80_0APdf,
+      rooms: [
+        { name: 'B80.0A-TR73', className: 'B80_0A-1' },
+        { name: 'B80.0A-LI73', className: 'B80_0A-2' },
+        { name: 'B80.0A-K.738', className: 'B80_0A-3' },
+        { name: 'B80.0A-SK73', className: 'B80_0A-4' },
+        { name: 'B80.0A-TR83', className: 'B80_0A-5' },
+        { name: 'B80.0A-LI83', className: 'B80_0A-6' },
+        { name: 'B80.0A-K.838', className: 'B80_0A-7' },
+        { name: 'B80.0A-SK83', className: 'B80_0A-8' },
+        { name: 'B80.0A-K.733', className: 'B80_0A-9' },
+        { name: 'B80.0A-K.233', className: 'B80_0A-10' },
+        { name: 'B80.0A-K.833', className: 'B80_0A-11' },
+        { name: 'B80.0A-TR72', className: 'B80_0A-12' },
+        { name: 'B80.0A-TR82', className: 'B80_0A-13' },
+      ]
+    },
+    {
+      id: 2,
+      name: 'MA_B_B80.0B',
+      className: 'B80_0B',
+      pdf: MAB_B80_0BPdf,
+      rooms: [
+        { name: 'B80.0B-K.834', className: 'B80_0B-1' },
+        { name: 'B80.0B-K.832', className: 'B80_0B-2' },
+        { name: 'B80.0B-K.830', className: 'B80_0B-3' },
+        { name: 'B80.0B-K.828', className: 'B80_0B-4' },
+        { name: 'B80.0B-K.826', className: 'B80_0B-5' },
+        { name: 'B80.0B-K.829', className: 'B80_0B-6' },
+        { name: 'B80.0B-K.816', className: 'B80_0B-7' },
+        { name: 'B80.0B-K.814', className: 'B80_0B-8' },
+        { name: 'B80.0B-K.813', className: 'B80_0B-9' },
+        { name: 'B80.0B-K.824.2', className: 'B80_0B-10' },
+        { name: 'B80.0B-K.824.1', className: 'B80_0B-11' },
+        { name: 'B80.0B-K.824', className: 'B80_0B-12' },
+        { name: 'B80.0B-K.820.2', className: 'B80_0B-13' },
+        { name: 'B80.0B-K.820.1', className: 'B80_0B-14' },
+        { name: 'B80.0B-K.820', className: 'B80_0B-15' },
+        { name: 'B80.0B-K.816.2', className: 'B80_0B-16' },
+        { name: 'B80.0B-K.800.3', className: 'B80_0B-17' },
+        { name: 'B80.0B-K.822.2', className: 'B80_0B-18' },
+        { name: 'B80.0B-K.822.1', className: 'B80_0B-19' },
+        { name: 'B80.0B-K.822', className: 'B80_0B-20' },
+        { name: 'B80.0B-K.818.2', className: 'B80_0B-21' },
+        { name: 'B80.0B-K.818.1', className: 'B80_0B-22' },
+        { name: 'B80.0B-K.818', className: 'B80_0B-23' },
+        { name: 'B80.0B-K.814.2', className: 'B80_0B-24' },
+        { name: 'B80.0B-K.800.4', className: 'B80_0B-25' },
+        { name: 'B80.0B-K.821.1', className: 'B80_0B-26' },
+        { name: 'B80.0B-K.821', className: 'B80_0B-27' },
+        { name: 'B80.0B-K.819.1', className: 'B80_0B-28' },
+        { name: 'B80.0B-K.819', className: 'B80_0B-29' },
+        { name: 'B80.0B-K.817.1', className: 'B80_0B-30' },
+        { name: 'B80.0B-K.817', className: 'B80_0B-31' },
+        { name: 'B80.0B-K.815', className: 'B80_0B-32' },
+        { name: 'B80.0B-K.813.2', className: 'B80_0B-33' },
+        { name: 'B80.0B-K.813.1', className: 'B80_0B-34' },
+        { name: 'B80.0B-K.812', className: 'B80_0B-35' },
+        { name: 'B80.0B-K.812.1', className: 'B80_0B-36' },
+        { name: 'B80.0B-K.810.1', className: 'B80_0B-37' },
+        { name: 'B80.0B-K.810', className: 'B80_0B-38' },
+        { name: 'B80.0B-K.809', className: 'B80_0B-39' },
+        { name: 'B80.0B-K.811', className: 'B80_0B-40' },
+        { name: 'B80.0B-K.806', className: 'B80_0B-41' },
+        { name: 'B80.0B-K.807', className: 'B80_0B-42' },
+        { name: 'B80.0B-K.804', className: 'B80_0B-43' },
+        { name: 'B80.0B-K.802', className: 'B80_0B-44' },
+        { name: 'B80.0B-K.805', className: 'B80_0B-45' },
+        { name: 'B80.0B-LI81', className: 'B80_0B-46' },
+        { name: 'B80.0B-K.801', className: 'B80_0B-47' },
+        { name: 'B80.0B-SK81', className: 'B80_0B-48' },
+        { name: 'B80.0B-TR81', className: 'B80_0B-49' },
+      ]
+    },
+    {
+      id: 3,
+      name: 'MA_B_B80.0C',
+      className: 'B80_0C',
+      pdf: MAB_B80_0CPdf,
+      rooms: [
+        { name: 'B80.0C-K.800', className: 'B80_0C-1' },
+        { name: 'B80.0C-K.800.1', className: 'B80_0C-2' },
+      ]
+    },
+    {
+      id: 4,
+      name: 'MA_B_B80.0D',
+      className: 'B80_0D',
+      pdf: MAB_B80_0DPdf,
+      rooms: [
+        { name: 'B80.0D-S.533', className: 'B80_0D-1' },
+      ]
+    },
+  ]
+
+
+
+
 
 };
 
