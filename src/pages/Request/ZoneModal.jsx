@@ -84,21 +84,26 @@ function ZoneModal({
       const reservedHeight = 150; // Header (65px) + Footer (70px) is ~135px
       const availableHeightForImage = Math.max(maxHeight - reservedHeight, 200);
 
-      let imgWidth = dimensions.width;
-      let imgHeight = dimensions.height;
-
       const imageRatio = dimensions.width / dimensions.height;
 
       // Fit inside viewport limits (leaving 350px space for the right sidebar directory)
-      const maxPdfWidth = maxWidth - 350;
+      const maxPdfWidth = maxWidth - 350 - 20;
 
-      if (imgWidth > maxPdfWidth) {
-        imgWidth = maxPdfWidth;
-        imgHeight = imgWidth / imageRatio;
-      }
+      // Scale to max available width first
+      let imgWidth = maxPdfWidth;
+      let imgHeight = imgWidth / imageRatio;
+
+      // If it exceeds the available height, scale it down to fit the height
       if (imgHeight > availableHeightForImage) {
         imgHeight = availableHeightForImage;
         imgWidth = imgHeight * imageRatio;
+      }
+
+      // Enforce a minimum width for the drawing so tall/narrow drawings do not shrink excessively
+      const minPdfWidth = Math.min(350, maxPdfWidth);
+      if (imgWidth < minPdfWidth) {
+        imgWidth = minPdfWidth;
+        imgHeight = imgWidth / imageRatio;
       }
 
       const modalWidth = Math.min(imgWidth + 350, maxWidth);
@@ -199,7 +204,8 @@ function ZoneModal({
             style={{
               position: "relative",
               height: "100%",
-              overflow: "hidden",
+              overflowX: "hidden",
+              overflowY: "auto",
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
@@ -208,7 +214,7 @@ function ZoneModal({
             }}
           >
             {/* Relative wrapper holding the rendered canvas and checkbox overlays together */}
-            <div style={{ position: "relative", display: "inline-block" }}>
+            <div style={{ position: "relative", display: "inline-block", margin: "auto" }}>
               <Document file={zone.pdf} onLoadError={(err) => console.error("PDF Load error:", err)}>
                 <Page
                   pageNumber={1}
@@ -337,42 +343,42 @@ function ZoneModal({
                 .map((room) => {
                   const roomName = typeof room === "object" ? room.name : room;
                   const isSelected = selectedRooms.includes(roomName);
-                return (
-                  <label
-                    key={roomName}
-                    className={`room-item ${isSelected ? "checked" : ""}`}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      padding: "12px 16px",
-                      background: isSelected ? "rgba(16, 185, 129, 0.1)" : "rgba(255, 255, 255, 0.02)",
-                      border: "1px solid",
-                      borderColor: isSelected ? "#10b981" : "rgba(255, 255, 255, 0.06)",
-                      color: isSelected ? "#4ade80" : "#fff",
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                      fontWeight: "500",
-                      transition: "all 0.2s ease",
-                      userSelect: "none",
-                      margin: 0,
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => toggleRoom(roomName)}
+                  return (
+                    <label
+                      key={roomName}
+                      className={`room-item ${isSelected ? "checked" : ""}`}
                       style={{
-                        width: "16px",
-                        height: "16px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        padding: "12px 16px",
+                        background: isSelected ? "rgba(16, 185, 129, 0.1)" : "rgba(255, 255, 255, 0.02)",
+                        border: "1px solid",
+                        borderColor: isSelected ? "#10b981" : "rgba(255, 255, 255, 0.06)",
+                        color: isSelected ? "#4ade80" : "#fff",
+                        borderRadius: "8px",
                         cursor: "pointer",
-                        accentColor: "#10b981",
+                        fontWeight: "500",
+                        transition: "all 0.2s ease",
+                        userSelect: "none",
+                        margin: 0,
                       }}
-                    />
-                    <span className="room-item-label" style={{ fontSize: "13px" }}>{roomName}</span>
-                  </label>
-                );
-              })}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleRoom(roomName)}
+                        style={{
+                          width: "16px",
+                          height: "16px",
+                          cursor: "pointer",
+                          accentColor: "#10b981",
+                        }}
+                      />
+                      <span className="room-item-label" style={{ fontSize: "13px" }}>{roomName}</span>
+                    </label>
+                  );
+                })}
             </div>
           </div>
         </div>

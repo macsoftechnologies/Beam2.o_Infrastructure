@@ -1351,3 +1351,3363 @@
   top: 21.5%;
   right: 33%;
 }
+
+/* External Areas check boxs */
+
+
+.CP_EGE_Red_Zones-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 25%;
+  left: 48%;
+}
+
+.CT_Dark_Red_Zones-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 25%;
+  left: 21%;
+}
+
+.CT_Dark_Red_Zones-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 35%;
+  left: 50%;
+}
+
+.CT_Dark_Red_Zones-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 58%;
+  right: -7%;
+}
+
+.CT_Dark_Red_Zones-4 {
+  position: absolute;
+  z-index: 9999;
+  top: 39%;
+  right: -59%;
+}
+
+.CT_Dark_Cool_tower {
+  position: absolute;
+  z-index: 9999;
+  top: 30%;
+  right: -10%;
+}
+
+
+/* Ma--I */
+
+.MA_I_Blue_Zones-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 2%;
+  left: 16%;
+}
+
+.MA_I_Blue_Zones-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 2%;
+  right: 19%;
+}
+
+.MA_I_Blue_Zones-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 24%;
+  left: 11%;
+}
+
+.MA_I_Blue_Zones-4 {
+  position: absolute;
+  z-index: 9999;
+  top: 18%;
+  left: 38%;
+}
+
+.MA_I_Blue_Zones-5 {
+  position: absolute;
+  z-index: 9999;
+  top: 35%;
+  right: 18%;
+}
+
+.MA_I_Blue_Zones-6 {
+  position: absolute;
+  z-index: 9999;
+  top: 35%;
+  left: 18%;
+}
+
+.MA_I_Blue_Zones-7 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 31%;
+  left: 18%;
+}
+
+.MA_I_Blue_Zones-8 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 34%;
+  left: 45%;
+}
+
+.MA_I_Blue_Zones-9 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 39%;
+  right: 20%;
+}
+
+.MA_I_Blue_Zones-10 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 17%;
+  left: 20%;
+
+}
+
+.MA_I_Blue_Zones-11 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 9%;
+  left: 31%;
+}
+
+.MA_I_Blue_Zones-12 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 19%;
+  right: 15%;
+}
+
+/* ends MA-II */
+
+/* start Area MA-II */
+
+.MA_II_Red_Zones-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 2%;
+  left: 28%;
+}
+
+.MA_II_Red_Zones-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 2%;
+  right: 23%;
+}
+
+.MA_II_Red_Zones-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 19%;
+  left: 29%;
+}
+
+.MA_II_Red_Zones-4 {
+  position: absolute;
+  z-index: 9999;
+  top: 43%;
+  right: 20%;
+}
+
+.MA_II_Red_Zones-5 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 37%;
+  right: 20%;
+
+}
+
+.MA_II_Red_Zones-6 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 33%;
+  left: 31%;
+}
+
+.MA_II_Red_Zones-7 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 8%;
+  right: 3%;
+}
+
+.MA_II_Red_Zones-8 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 2%;
+  right: 47%;
+}
+
+/* end Area MA-II */
+
+/* start MA_III_Yellow_Zones-1 */
+
+.MA_III_Yellow_Zones-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 2%;
+  left: 11%;
+}
+
+.MA_III_Yellow_Zones-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 2%;
+  left: 49%;
+}
+
+.MA_III_Yellow_Zones-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 10%;
+  right: 10%;
+}
+
+.MA_III_Yellow_Zones-4 {
+  position: absolute;
+  z-index: 9999;
+  top: 22%;
+  right: 10%;
+}
+
+.MA_III_Yellow_Zones-5 {
+  position: absolute;
+  z-index: 9999;
+  top: 41%;
+  right: 25%;
+}
+
+.MA_III_Yellow_Zones-6 {
+  position: absolute;
+  z-index: 9999;
+  top: 41%;
+  right: 44%;
+}
+
+.MA_III_Yellow_Zones-7 {
+  position: absolute;
+  z-index: 9999;
+  top: 57%;
+  right: 48%;
+}
+
+.MA_III_Yellow_Zones-8 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 17%;
+  right: 44%;
+}
+
+.MA_III_Yellow_Zones-9 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 2%;
+  left: 19%;
+}
+
+.MA_III_Yellow_Zones-10 {
+  position: absolute;
+  z-index: 9999;
+  top: 13%;
+  left: 35%;
+}
+
+.MA_III_Yellow_Zones-11 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 41%;
+  left: 26%;
+}
+
+/* end MA_III_Yellow_Zones-1 */
+
+/* / start mani Area MB / */
+
+.MB_LT_Blue_Zones-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 1%;
+  left: 28%;
+}
+
+.MB_LT_Blue_Zones-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 26%;
+  left: 29%;
+}
+
+.MB_LT_Blue_Zones-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 26%;
+  left: 29%;
+}
+
+.MB_LT_Blue_Zones-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 26%;
+  left: 79%;
+}
+
+.MB_LT_Blue_Zones-4 {
+  position: absolute;
+  z-index: 9999;
+  top: 35%;
+  left: 64%;
+}
+
+.MB_LT_Blue_Zones-5 {
+  position: absolute;
+  z-index: 9999;
+  top: 41%;
+  left: 30%;
+}
+
+.MB_LT_Blue_Zones-6 {
+  position: absolute;
+  z-index: 9999;
+  top: 73%;
+  left: 90%;
+}
+
+.MB_LT_Blue_Zones-7 {
+  position: absolute;
+  z-index: 9999;
+  top: 94%;
+  left: 60%;
+}
+
+.MB_LT_Blue_Zones-8 {
+  position: absolute;
+  z-index: 9999;
+  top: 73%;
+  left: 2%;
+}
+
+/* / end Area MB / */
+
+/* start of mani Area MT-MS*/
+
+.MU91_Green_Zones-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 3%;
+  left: 10%;
+}
+
+.MU91_Green_Zones-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 1%;
+  left: 59%;
+}
+
+.MU91_Green_Zones-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 22%;
+  left: 67%;
+}
+
+.MU91_Green_Zones-4 {
+  position: absolute;
+  z-index: 9999;
+  top: 12%;
+  left: 46%;
+}
+
+.MU91_Green_Zones-5 {
+  position: absolute;
+  z-index: 9999;
+  top: 42%;
+  left: 58%;
+}
+
+.MU91_Green_Zones-6 {
+  position: absolute;
+  z-index: 9999;
+  top: 53%;
+  left: 56%;
+}
+
+.MU91_Green_Zones-7 {
+  position: absolute;
+  z-index: 9999;
+  top: 67%;
+  left: 54%;
+}
+
+.MU91_Green_Zones-8 {
+  position: absolute;
+  z-index: 9999;
+  top: 75%;
+  left: 74%;
+}
+
+.MU91_Green_Zones-9 {
+  position: absolute;
+  z-index: 9999;
+  top: 66%;
+  left: 92%;
+}
+
+.MU91_Green_Zones-10 {
+  position: absolute;
+  z-index: 9999;
+  top: 92%;
+  left: 60%;
+}
+
+.MU91_Green_Zones-11 {
+  position: absolute;
+  z-index: 9999;
+  top: 92%;
+  left: 11%;
+}
+
+.MU91_Green_Zones-12 {
+  position: absolute;
+  z-index: 9999;
+  top: 40%;
+  left: 1%;
+}
+
+/* / end of Area MT-MS / */
+
+
+
+
+
+
+/* / end of Roads / */
+
+
+.MU91-zoneMU91_0A-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 57%;
+  left: 33%;
+}
+
+.MU91-zoneMU91_0B-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 50%;
+  left: 23%;
+}
+
+.MU91-zoneMU91_0C-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 51%;
+  left: 50%;
+}
+
+.MU91-zoneMU91_0D-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 50%;
+  left: 21%;
+}
+
+.MU91-zoneMU91_0E-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 35%;
+  left: 36%;
+}
+
+.MU91-zoneMU91_0F-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 53%;
+  left: 20%;
+}
+
+.MU91-zoneMU91_0F-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 53%;
+  right: 16%;
+}
+
+.MU91-zoneMU91_0G-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 10%;
+  right: 34%;
+}
+
+.MU91-zoneMU91_0H-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 35%;
+  left: 13%;
+}
+
+.MU91-zoneMU91_0H-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 7%;
+  left: 29%;
+}
+
+.MU91-zoneMU91_0H-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 46%;
+  left: 21%;
+}
+
+.MU91-zoneMU91_0H-4 {
+  position: absolute;
+  z-index: 9999;
+  top: 65%;
+  left: 44%;
+}
+
+.MU91-zoneMU91_0H-5 {
+  position: absolute;
+  z-index: 9999;
+  top: 33%;
+  right: 32%;
+}
+
+.MU91-zoneMU91_0H-6 {
+  position: absolute;
+  z-index: 9999;
+  top: 7%;
+  right: 19%;
+}
+
+.MU91-zoneMU91_0H-7 {
+  position: absolute;
+  z-index: 9999;
+  top: 46%;
+  right: 25%;
+}
+
+.MU91-zoneMU91_0H-8 {
+  position: absolute;
+  z-index: 9999;
+  top: 61%;
+  right: 3%;
+}
+
+.MU91-zoneMU91_0I-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 57%;
+  right: 32%;
+}
+
+.MU91-zoneMU91_0J-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 57%;
+  right: 37%;
+}
+
+.MU91-zoneMU91_0K-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 57%;
+  right: 24%;
+}
+
+.MU91-zoneMU91_0L-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 30%;
+  right: 32%;
+}
+
+.MU91-zoneMU91_0M-1 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 21%;
+  right: 28%;
+}
+
+.MU91-zoneMU91_0N-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 8%;
+  left: 15%;
+}
+
+.MU91-zoneMU91_0N-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 6%;
+  right: 5%;
+}
+
+.MU91-zoneMU91_0N-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 22%;
+  right: 4%;
+}
+
+.MU91-zoneMU91_0N-4 {
+  position: absolute;
+  z-index: 9999;
+  top: 36%;
+  right: 4%;
+}
+
+.MU91-zoneMU91_0N-5 {
+  position: absolute;
+  z-index: 9999;
+  top: 47%;
+  left: 17%;
+}
+
+.MU91-zoneMU91_0N-6 {
+  position: absolute;
+  z-index: 9999;
+  top: 47%;
+  right: 24%;
+}
+
+.MU91-zoneMU91_0N-7 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 16%;
+  left: 12%;
+}
+
+.MU91-zoneMU91_0N-8 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 13%;
+  right: 21%;
+}
+
+.MU91-zoneMU91_0N-9 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 2%;
+  right: 21%;
+}
+
+.MU91-zoneMU91_0O-1 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 9%;
+  left: 38%;
+}
+
+.MU91-zoneMU91_0P-1 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 9%;
+  right: 45%;
+}
+
+.MU91-zoneMU91_0Q-1 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 8%;
+  right: 20%;
+}
+
+.MU91-zoneMU91_0R-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 31%;
+  left: 15%;
+}
+
+.MU91-zoneMU91_0S-1 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 26%;
+  left: 15%;
+}
+
+/* //start MU91 section */
+
+.MU91-zoneMU91_1A-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 56%;
+  left: 32%;
+}
+
+.MU91-zoneMU91_1F-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 43%;
+  left: 35%;
+}
+
+.MU91-zoneMU91_1F-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 43%;
+  right: 30%;
+}
+
+.MU91-zoneMU91_1G-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 19%;
+  right: 34%;
+}
+
+.MU91-zoneMU91_1H-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 31%;
+  right: 43%;
+}
+
+.MU91-zoneMU91_1M-1 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 23%;
+  right: 30%;
+}
+
+.MU91-zoneMU91_1N-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 13%;
+  left: 22%;
+}
+
+.MU91-zoneMU91_1N-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 10.5%;
+  right: 9%;
+}
+
+.MU91-zoneMU91_1N-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 13.5%;
+  right: 17%;
+}
+
+.MU91-zoneMU91_1N-4 {
+  position: absolute;
+  z-index: 9999;
+  top: 20.5%;
+  right: 31%;
+}
+
+.MU91-zoneMU91_1N-5 {
+  position: absolute;
+  z-index: 9999;
+  top: 30.5%;
+  right: 45%;
+}
+
+.MU91-zoneMU91_1N-6 {
+  position: absolute;
+  z-index: 9999;
+  top: 35.5%;
+  right: 10%;
+}
+
+.MU91-zoneMU91_1N-7 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 43.5%;
+  left: 21%;
+}
+
+.MU91-zoneMU91_1N-8 {
+  position: absolute;
+  z-index: 9999;
+  top: 46.5%;
+  right: 18%;
+}
+
+.MU91-zoneMU91_1N-9 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 18.5%;
+  right: 37%;
+}
+
+.MU91-zoneMU91_1P-1 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 17%;
+  right: 55%;
+}
+
+.MU91-zoneMU91_2F-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 36%;
+  left: 32%;
+}
+
+.MU91-zoneMU91_2F-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 36%;
+  right: 29%;
+}
+
+.MU91-zoneMU91_3F-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 18%;
+  left: 34%;
+}
+
+.MU91-zoneMU91_3F-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 18%;
+  right: 31%;
+}
+
+.MU91-zoneMU91_4F-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 23%;
+  left: 32%;
+}
+
+.MU91-zoneMU91_4F-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 23%;
+  right: 32%;
+}
+
+.MU91_RE_1 {
+  position: absolute;
+  z-index: 9999;
+  top: 19%;
+  right: 55%;
+}
+
+.MU91_RG_1 {
+  position: absolute;
+  z-index: 9999;
+  top: 29%;
+  right: 34%;
+}
+
+.MU91_RR_1 {
+  position: absolute;
+  z-index: 9999;
+  top: 34%;
+  left: 10%;
+}
+
+.MU91_RH_1 {
+  position: absolute;
+  z-index: 9999;
+  top: 38%;
+  right: 23%;
+}
+
+.MU91_RL_1 {
+  position: absolute;
+  z-index: 9999;
+  top: 55%;
+  right: 33%;
+}
+
+.MU91_RK_1 {
+  position: absolute;
+  z-index: 9999;
+  top: 57%;
+  right: 10%;
+}
+
+.MU91_RS_1 {
+  position: absolute;
+  z-index: 9999;
+  top: 69%;
+  left: 10%;
+}
+
+.MU91_RN_1 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 26%;
+  right: 15%;
+}
+
+.MU91_RO_1 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 11%;
+  left: 36%;
+}
+
+/* ends mu91 */
+
+/* start MA section */
+
+/* ground floor start */
+
+.MA-zone10_GF_Backage-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 26%;
+  left: 29%;
+}
+
+.MA-zone10_GF_Corridor_N-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 39%;
+  left: 29%;
+}
+
+.MA-zone10_GF_Corridor_S-1 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 40%;
+  left: 34%;
+}
+
+.MA-zone10_GF_Frontstage_E-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 50%;
+  left: 37%;
+}
+
+.MA-zone10_GF_Frontstage_E-2 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 47%;
+  right: 15%;
+}
+
+.MA-zone10_GF_Frontstage_W-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 50%;
+  left: 6%;
+}
+
+.MA-zone10_GF_Frontstage_W-2 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 47%;
+  right: 25%;
+}
+
+.MA-zone11_0-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 10%;
+  left: 32%;
+}
+
+.MA-zone11_0-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 39%;
+  left: 30%;
+}
+
+.MA-zone11_0-3 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 26%;
+  left: 16%;
+}
+
+.MA-zone11_0-4 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 29%;
+  left: 56%;
+}
+
+.MA-zone11_0-5 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 31%;
+  right: 12%;
+}
+
+.MA-zone11_0-6 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 26%;
+  right: 12%;
+}
+
+.MA-zone11_0-7 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 19%;
+  left: 13%;
+}
+
+.MA-zone11_0-8 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 19%;
+  right: 56%;
+}
+
+.MA-zone11_0-9 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 19%;
+  right: 27%;
+}
+
+.MA-zone11_0-10 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 18%;
+  right: 13%;
+}
+
+.MA-zone11_0-11 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 12%;
+  right: 40%;
+}
+
+.MA-zone11_0-12 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 4%;
+  left: 21%;
+}
+
+.MA-zone11_0-13 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 4%;
+  right: 33%;
+}
+
+.MA-zone11_0-14 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 4%;
+  right: 13%;
+}
+
+.MA-zone70_0A-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 6%;
+  left: 11%;
+}
+
+.MA-zone70_0A-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 2%;
+  right: 26%;
+}
+
+.MA-zone70_0A-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 6%;
+  right: 7%;
+}
+
+.MA-zone70_0A-4 {
+  position: absolute;
+  z-index: 9999;
+  top: 10%;
+  right: 21%;
+}
+
+.MA-zone70_0A-5 {
+  position: absolute;
+  z-index: 9999;
+  top: 14%;
+  right: 45%;
+}
+
+.MA-zone70_0A-6 {
+  position: absolute;
+  z-index: 9999;
+  top: 30%;
+  left: 17%;
+}
+
+.MA-zone70_0A-7 {
+  position: absolute;
+  z-index: 9999;
+  top: 33%;
+  right: 17%;
+}
+
+.MA-zone70_0A-8 {
+  position: absolute;
+  z-index: 9999;
+  top: 39%;
+  left: 17%;
+}
+
+.MA-zone70_0A-9 {
+  position: absolute;
+  z-index: 9999;
+  top: 46%;
+  left: 24%;
+}
+
+.MA-zone70_0A-10 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 44%;
+  left: 12%;
+}
+
+.MA-zone70_0A-11 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 49%;
+  left: 12%;
+}
+
+.MA-zone70_0A-12 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 37%;
+  left: 21%;
+}
+
+.MA-zone70_0A-13 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 34%;
+  left: 42%;
+}
+
+.MA-zone70_0A-14 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 27%;
+  left: 20%;
+}
+
+.MA-zone70_0A-15 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 18%;
+  left: 20%;
+}
+
+.MA-zone70_0A-16 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 3%;
+  left: 24%;
+}
+
+.MA-zone70_0A-17 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 3%;
+  left: 10%;
+}
+
+.MA-zone70_0B-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 10%;
+  right: 11%;
+}
+
+.MA-zone70_0B-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 34%;
+  left: 31%;
+}
+
+.MA-zone70_0B-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 49%;
+  left: 8%;
+}
+
+.MA-zone70_0B-4 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 39%;
+  left: 8%;
+}
+
+.MA-zone70_0B-5 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 39%;
+  right: 23%;
+}
+
+.MA-zone70_0B-6 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 44%;
+  right: 11%;
+}
+
+.MA-zone70_0B-7 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 48%;
+  right: 11%;
+}
+
+.MA-zone70_0B-8 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 40%;
+  right: 11%;
+}
+
+.MA-zone70_0B-9 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 34%;
+  right: 48%;
+}
+
+.MA-zone70_0B-10 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 28%;
+  right: 48%;
+}
+
+.MA-zone70_0B-11 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 28%;
+  right: 16%;
+}
+
+.MA-zone70_0B-12 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 18%;
+  left: 16%;
+}
+
+.MA-zone70_0B-13 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 15%;
+  left: 41%;
+}
+
+.MA-zone70_0B-14 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 18%;
+  right: 13%;
+}
+
+.MA-zone70_0B-15 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 8%;
+  left: 17%;
+}
+
+.MA-zone70_0B-16 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 11%;
+  right: 13%;
+}
+
+.MA-zone70_0B-17 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 2%;
+  right: 46%;
+}
+
+.MA-zone40_0A-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 12%;
+  right: 31%;
+}
+
+.MA-zone40_0A-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 33%;
+  right: 33%;
+}
+
+.MA-zone40_0A-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 33%;
+  right: 10%;
+}
+
+.MA-zone40_0A-4 {
+  position: absolute;
+  z-index: 9999;
+  top: 54%;
+  right: 42%;
+}
+
+.MA-zone40_0A-5 {
+  position: absolute;
+  z-index: 9999;
+  top: 58%;
+  right: 10%;
+}
+
+.MA-zone40_0A-6 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 20%;
+  left: 14%;
+}
+
+.MA-zone40_0A-7 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 13%;
+  right: 10%;
+}
+
+.MA-zone40_0C-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 20%;
+  left: 30%;
+}
+
+.MA-zone40_0C-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 40%;
+  left: 33%;
+}
+
+.MA-zone40_0C-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 9%;
+  left: 38%;
+}
+
+.MA-zone40_0C-4 {
+  position: absolute;
+  z-index: 9999;
+  top: 7%;
+  left: 78.5%;
+}
+
+.MA-zone40_0C-5 {
+  position: absolute;
+  z-index: 9999;
+  top: 7%;
+  right: -44.5%;
+}
+
+.MA-zone40_0D-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 15%;
+  left: 8%;
+}
+
+.MA-zone40_0D-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 31%;
+  left: 33%;
+}
+
+.MA-zone40_0D-3 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 26%;
+  right: 8%;
+}
+
+.MA-zone40_0D-4 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 15%;
+  right: 32%;
+}
+
+.MA-zone40_0D-5 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 5%;
+  left: 12%;
+}
+
+.MA-zone40_0E-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 42%;
+  left: 5%;
+}
+
+.MA-zone40_0E-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 45%;
+  left: 50%;
+}
+
+.MA-zone40_0F-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 19%;
+  left: 10%;
+}
+
+.MA-zone40_0F-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 29%;
+  right: 27%;
+}
+
+.MA-zone40_0F-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 29%;
+  right: 8%;
+}
+
+.MA-zone40_0F-4 {
+  position: absolute;
+  z-index: 9999;
+  top: 50%;
+  left: 17%;
+}
+
+.MA-zone40_0F-5 {
+  position: absolute;
+  z-index: 9999;
+  top: 51%;
+  left: 39%;
+}
+
+.MA-zone40_0F-6 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 8%;
+  left: 39%;
+}
+
+.MA-zone40_0G-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 22%;
+  left: 35%;
+}
+
+.MA-zone40_0G-2 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 8%;
+  left: 15%;
+}
+
+.MA-zone40_0G-3 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 29%;
+  left: 44%;
+}
+
+.MA-zone40_0G-4 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 7%;
+  right: 38%;
+}
+
+.MA-zone40_0J-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 16%;
+  left: 15%;
+}
+
+.MA-zone40_0J-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 5%;
+  left: 6%;
+}
+
+.MA-zone40_0J-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 13%;
+  left: 6%;
+}
+
+.MA-zone40_0J-4 {
+  position: absolute;
+  z-index: 9999;
+  top: 21%;
+  left: 6%;
+}
+
+.MA-zone40_0J-5 {
+  position: absolute;
+  z-index: 9999;
+  top: 32%;
+  left: 6%;
+}
+
+.MA-zone40_0J-6 {
+  position: absolute;
+  z-index: 9999;
+  top: 29%;
+  left: 40%;
+}
+
+.MA-zone40_0J-7 {
+  position: absolute;
+  z-index: 9999;
+  top: 16%;
+  left: 26%;
+}
+
+.MA-zone40_0J-8 {
+  position: absolute;
+  z-index: 9999;
+  top: 25%;
+  right: 13%;
+}
+
+.MA-zone40_0J-9 {
+  position: absolute;
+  z-index: 9999;
+  top: 56%;
+  right: 13%;
+}
+
+.MA-zone40_0J-10 {
+  position: absolute;
+  z-index: 9999;
+  top: 42%;
+  right: 2%;
+}
+
+.MA-zone40_0J-11 {
+  position: absolute;
+  z-index: 9999;
+  top: 52%;
+  left: 6%;
+}
+
+.MA-zone40_0J-12 {
+  position: absolute;
+  z-index: 9999;
+  top: 52%;
+  left: 32%;
+}
+
+.MA-zone40_0J-13 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 11%;
+  right: 29%;
+}
+
+.MA-zone40_0J-14 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 11%;
+  right: 6%;
+}
+
+.MA-zone40_0K-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 11%;
+  left: 36%;
+}
+
+.MA-zone40_0K-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 12%;
+  right: 9%;
+}
+
+.MA-zone40_0K-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 24%;
+  left: 29%;
+}
+
+.MA-zone40_0K-4 {
+  position: absolute;
+  z-index: 9999;
+  top: 23%;
+  right: 28%;
+}
+
+.MA-zone40_0K-5 {
+  position: absolute;
+  z-index: 9999;
+  top: 34%;
+  left: 45%;
+}
+
+.MA-zone40_0K-6 {
+  position: absolute;
+  z-index: 9999;
+  top: 32%;
+  right: 9%;
+}
+
+.MA-zone40_0K-7 {
+  position: absolute;
+  z-index: 9999;
+  top: 45%;
+  left: 45%;
+}
+
+.MA-zone40_0K-8 {
+  position: absolute;
+  z-index: 9999;
+  top: 54%;
+  left: 13%;
+}
+
+.MA-zone40_0K-9 {
+  position: absolute;
+  z-index: 9999;
+  top: 65%;
+  left: 30%;
+}
+
+.MA-zone40_0K-10 {
+  position: absolute;
+  z-index: 9999;
+  top: 65%;
+  left: 47%;
+}
+
+.MA-zone40_0K-11 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 19%;
+  right: 27%;
+}
+
+.MA-zone40_0K-12 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 3%;
+  right: 54%;
+}
+
+.MA-zone40_0K-13 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 3%;
+  right: 54%;
+}
+
+.MA-zone40_0K-14 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 3%;
+  right: 20%;
+}
+
+.MA-zone40_0K-15 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 17%;
+  right: 9%;
+}
+
+.MA-zone40_0L-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 5%;
+  left: 9%;
+}
+
+.MA-zone40_0L-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 20%;
+  left: 11%;
+}
+
+.MA-zone40_0L-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 14%;
+  left: 36%;
+}
+
+.MA-zone40_0L-4 {
+  position: absolute;
+  z-index: 9999;
+  top: 19%;
+  right: 22%;
+}
+
+.MA-zone40_0L-5 {
+  position: absolute;
+  z-index: 9999;
+  top: 3%;
+  right: 22%;
+}
+
+.MA-zone40_0L-6 {
+  position: absolute;
+  z-index: 9999;
+  top: 58%;
+  left: 43%;
+}
+
+.MA-zone40_0L-7 {
+  position: absolute;
+  z-index: 9999;
+  top: 55%;
+  left: 9%;
+}
+
+.MA-zone40_0L-8 {
+  position: absolute;
+  z-index: 9999;
+  top: 65%;
+  left: 9%;
+}
+
+.MA-zone40_0M-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 27%;
+  left: 12%;
+}
+
+.MA-zone40_0M-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 27%;
+  left: 29%;
+}
+
+.MA-zone40_0M-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 27%;
+  right: 34%;
+}
+
+.MA-zone40_0M-4 {
+  position: absolute;
+  z-index: 9999;
+  top: 44%;
+  left: 15%;
+}
+
+.MA-zone40_0M-5 {
+  position: absolute;
+  z-index: 9999;
+  top: 56%;
+  left: 32%;
+}
+
+.MA-zone40_0M-6 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 29%;
+  right: 40%;
+}
+
+.MA-zone40_0M-7 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 42%;
+  right: 40%;
+}
+
+.MA-zone40_0M-8 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 52%;
+  right: 40%;
+}
+
+.MA-zone40_0M-9 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 44%;
+  right: 28%;
+}
+
+.MA-zone40_0M-10 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 44%;
+  right: 11%;
+}
+
+.MA-zone40_0M-11 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 20%;
+  left: 15%;
+}
+
+.MA-zone40_0M-12 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 5%;
+  left: 11%;
+}
+
+.MA-zone40_0M-13 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 20%;
+  left: 33%;
+}
+
+.MA-zone40_0M-14 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 4%;
+  left: 22%;
+}
+
+.MA-zone40_0M-15 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 4%;
+  left: 33%;
+}
+
+.MA-zone40_0M-16 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 4%;
+  left: 52%;
+}
+
+.MA-zone40_0M-17 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 14%;
+  left: 46%;
+}
+
+.MA-zone40_0M-18 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 19%;
+  left: 52%;
+}
+
+.MA-zone40_0M-19 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 16%;
+  left: 60%;
+}
+
+.MA-zone40_0M-20 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 23%;
+  right: 23%;
+}
+
+.MA-zone40_0Q-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 41%;
+  left: 20%;
+}
+
+.MA-zone40_0R-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 30%;
+  left: 27%;
+}
+
+.MA-zone40_0R-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 18%;
+  right: 19%;
+}
+
+.MA-zone40_0R-3 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 29%;
+  left: 9%;
+}
+
+.MA-zone40_0R-4 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 14%;
+  left: 20%;
+}
+
+.MA-zone40_0R-5 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 5%;
+  left: 49%;
+}
+
+.MA-zone40_0R-6 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 27%;
+  left: 49%;
+}
+
+.MA-zone40_0R-7 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 5%;
+  right: 20%;
+}
+
+.MA-zone40_0R-8 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 16%;
+  right: 5%;
+}
+
+.MA-zone40_0R-9 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 33%;
+  right: 17%;
+}
+
+.MA-zone40_0R-10 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 43%;
+  right: 6%;
+}
+
+.MA-zone40_0S-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 46%;
+  left: 39%;
+}
+
+.MA-zone40_0U-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 63%;
+  left: 21%;
+}
+
+/* ground floor ends */
+
+
+
+/* start of MAPurification 1st floor */
+
+.MA-zone10_1F_Backstage-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 50%;
+  left: 46%;
+}
+
+.MA-zone10_1F_Corridor-N-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 35%;
+  left: 33%;
+}
+
+.MA-zone10_1F_Frontstage-E-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 3%;
+  left: 14%;
+}
+
+.MA-zone10_1F_Frontstage-E-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 38%;
+  right: 10%;
+}
+
+.MA-zone10_1F_Frontstage-E-3 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 43%;
+  right: 47%;
+}
+
+.MA-zone10_1F_Frontstage-W-1 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 45%;
+  right: 24%;
+}
+
+.MA-zone10_1F_IT-1 {
+  position: absolute;
+  z-index: 9999;
+  left: 27%;
+  top: 50%;
+}
+
+.MA-zone10_1F_IT-2 {
+  position: absolute;
+  z-index: 9999;
+  right: 20%;
+  top: 50%;
+}
+
+.MA-zone70_1A-1 {
+  position: absolute;
+  z-index: 9999;
+  left: 4%;
+  top: 6%;
+}
+
+.MA-zone70_1A-2 {
+  position: absolute;
+  z-index: 9999;
+  left: 28%;
+  top: 4%;
+}
+
+.MA-zone70_1A-3 {
+  position: absolute;
+  z-index: 9999;
+  left: 35%;
+  top: 4%;
+}
+
+.MA-zone70_1A-4 {
+  position: absolute;
+  z-index: 9999;
+  left: 15%;
+  top: 22%;
+}
+
+.MA-zone70_1A-5 {
+  position: absolute;
+  z-index: 9999;
+  left: 15%;
+  top: 28%;
+}
+
+.MA-zone70_1A-6 {
+  position: absolute;
+  z-index: 9999;
+  left: 6%;
+  top: 27%;
+}
+
+.MA-zone70_1A-7 {
+  position: absolute;
+  z-index: 9999;
+  left: 21%;
+  top: 26%;
+}
+
+.MA-zone70_1A-8 {
+  position: absolute;
+  z-index: 9999;
+  left: 15%;
+  top: 37%;
+}
+
+.MA-zone70_1A-9 {
+  position: absolute;
+  z-index: 9999;
+  right: 19%;
+  top: 37%;
+}
+
+.MA-zone70_1A-10 {
+  position: absolute;
+  z-index: 9999;
+  right: 11%;
+  bottom: 48%;
+}
+
+.MA-zone70_1A-11 {
+  position: absolute;
+  z-index: 9999;
+  left: 38%;
+  bottom: 25%;
+}
+
+.MA-zone70_1B-1 {
+  position: absolute;
+  z-index: 9999;
+  left: 30%;
+  top: 5%;
+}
+
+.MA-zone70_1B-2 {
+  position: absolute;
+  z-index: 9999;
+  right: 23%;
+  top: 2%;
+}
+
+.MA-zone70_1B-3 {
+  position: absolute;
+  z-index: 9999;
+  right: 24%;
+  top: 8%;
+}
+
+.MA-zone70_1B-4 {
+  position: absolute;
+  z-index: 9999;
+  right: 7%;
+  top: 7%;
+}
+
+.MA-zone70_1B-5 {
+  position: absolute;
+  z-index: 9999;
+  right: 24%;
+  top: 14%;
+}
+
+.MA-zone70_1B-6 {
+  position: absolute;
+  z-index: 9999;
+  right: 6%;
+  top: 14%;
+}
+
+.MA-zone70_1B-7 {
+  position: absolute;
+  z-index: 9999;
+  left: 12%;
+  top: 32%;
+}
+
+.MA-zone70_1B-8 {
+  position: absolute;
+  z-index: 9999;
+  right: 10%;
+  top: 33%;
+}
+
+.MA-zone70_1B-9 {
+  position: absolute;
+  z-index: 9999;
+  right: 10%;
+  top: 43%;
+}
+
+.MA-zone70_1B-10 {
+  position: absolute;
+  z-index: 9999;
+  left: 45%;
+  top: 49%;
+}
+
+.MA-zone70_1B-11 {
+  position: absolute;
+  z-index: 9999;
+  right: 10%;
+  bottom: 41%;
+}
+
+.MA-zone70_1B-12 {
+  position: absolute;
+  z-index: 9999;
+  right: 11%;
+  bottom: 28%;
+}
+
+.MA-zone70_1C-1 {
+  position: absolute;
+  z-index: 9999;
+  left: 25%;
+  top: 8%;
+}
+
+.MA-zone70_1C-2 {
+  position: absolute;
+  z-index: 9999;
+  left: 16%;
+  top: 26%;
+}
+
+.MA-zone70_1C-3 {
+  position: absolute;
+  z-index: 9999;
+  left: 29%;
+  top: 28%;
+}
+
+.MA-zone70_1C-4 {
+  position: absolute;
+  z-index: 9999;
+  left: 41%;
+  top: 19%;
+}
+
+.MA-zone70_1C-5 {
+  position: absolute;
+  z-index: 9999;
+  right: 24%;
+  top: 16%;
+}
+
+.MA-zone70_1C-6 {
+  position: absolute;
+  z-index: 9999;
+  right: 2%;
+  top: 6%;
+}
+
+.MA-zone70_1C-7 {
+  position: absolute;
+  z-index: 9999;
+  right: 5%;
+  top: 25%;
+}
+
+.MA-zone70_1C-8 {
+  position: absolute;
+  z-index: 9999;
+  left: 21%;
+  bottom: 34%;
+}
+
+.MA-zone70_1C-9 {
+  position: absolute;
+  z-index: 9999;
+  right: 31%;
+  bottom: 39%;
+}
+
+.MA-zone70_1C-10 {
+  position: absolute;
+  z-index: 9999;
+  right: 9%;
+  bottom: 37%;
+}
+
+.MA-zone70_1C-11 {
+  position: absolute;
+  z-index: 9999;
+  left: 10%;
+  bottom: 8%;
+}
+
+.MA-zone70_1C-12 {
+  position: absolute;
+  z-index: 9999;
+  right: 3%;
+  bottom: 10%;
+}
+
+.MA-zone40_1A-1 {
+  position: absolute;
+  z-index: 9999;
+  left: 25%;
+  top: 21%;
+}
+
+.MA-zone40_1A-2 {
+  position: absolute;
+  z-index: 9999;
+  left: 43%;
+  top: 42%;
+}
+
+.MA-zone40_1A-3 {
+  position: absolute;
+  z-index: 9999;
+  right: 28%;
+  bottom: 37%;
+}
+
+.MA-zone40_1A-4 {
+  position: absolute;
+  z-index: 9999;
+  right: 28%;
+  bottom: 21%;
+}
+
+.MA-zone40_1A-5 {
+  position: absolute;
+  z-index: 9999;
+  right: 28%;
+  bottom: 7%;
+}
+
+.MA-zone40_1B-1 {
+  position: absolute;
+  z-index: 9999;
+  right: 32%;
+  top: 21%;
+}
+
+.MA-zone40_1B-2 {
+  position: absolute;
+  z-index: 9999;
+  left: 15%;
+  top: 32%;
+}
+
+.MA-zone40_1C-1 {
+  position: absolute;
+  z-index: 9999;
+  left: 26%;
+  top: 6%;
+}
+
+.MA-zone40_1C-2 {
+  position: absolute;
+  z-index: 9999;
+  left: 29%;
+  top: 31%;
+}
+
+.MA-zone40_1C-3 {
+  position: absolute;
+  z-index: 9999;
+  left: 29%;
+  top: 42%;
+}
+
+.MA-zone40_1C-4 {
+  position: absolute;
+  z-index: 9999;
+  left: 53%;
+  top: 29%;
+}
+
+.MA-zone40_1C-5 {
+  position: absolute;
+  z-index: 9999;
+  left: 51%;
+  top: 43%;
+}
+
+.MA-zone40_1C-6 {
+  position: absolute;
+  z-index: 9999;
+  left: 52%;
+  bottom: 4%;
+}
+
+.MA-zone40_1C-7 {
+  position: absolute;
+  z-index: 9999;
+  right: 23%;
+  top: 19%;
+}
+
+.MA-zone40_1C-8 {
+  position: absolute;
+  z-index: 9999;
+  right: 19%;
+  top: 19%;
+}
+
+.MA-zone40_1C-9 {
+  position: absolute;
+  z-index: 9999;
+  right: -13%;
+  top: 6%;
+}
+
+.MA-zone40_1D-1 {
+  position: absolute;
+  z-index: 9999;
+  right: 36%;
+  top: 21%;
+}
+
+.MA-zone40_1D-2 {
+  position: absolute;
+  z-index: 9999;
+  right: 36%;
+  bottom: 30%;
+}
+
+.MA-zone40_1D-3 {
+  position: absolute;
+  z-index: 9999;
+  right: 38%;
+  bottom: 9%;
+}
+
+.MA-zone40_1E-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 35%;
+  left: 30%;
+}
+
+.MA-zone40_1F-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 29%;
+  left: 30%;
+}
+
+.MA-zone40_1F-2 {
+  position: absolute;
+  z-index: 9999;
+  bottom: -2%;
+  left: 21%;
+}
+
+.MA-zone40_1G-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 18%;
+  left: 34%;
+}
+
+.MA-zone40_1G-2 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 28%;
+  left: 44%;
+}
+
+.MA-zone40_1G-3 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 6%;
+  right: 24%;
+}
+
+.MA-zone40_1I-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 10%;
+  right: 35%;
+}
+
+.MA-zone40_1I-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 25%;
+  left: 26%;
+}
+
+.MA-zone40_1I-3 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 35%;
+  left: 44%;
+}
+
+.MA-zone40_1I-4 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 26%;
+  left: 20%;
+}
+
+.MA-zone40_1I-5 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 16%;
+  right: 27%;
+}
+
+.MA-zone40_1G-6 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 11%;
+  left: 45%;
+}
+
+.MA-zone40_1J-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 20%;
+  left: 20%;
+}
+
+.MA-zone40_1J-2 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 25%;
+  right: 31%;
+}
+
+.MA-zone40_1K-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 8%;
+  left: 31%;
+}
+
+.MA-zone40_1K-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 10%;
+  right: 13%;
+}
+
+.MA-zone40_1K-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 17%;
+  left: 11%;
+}
+
+.MA-zone40_1K-4 {
+  position: absolute;
+  z-index: 9999;
+  top: 15%;
+  right: 36%;
+}
+
+.MA-zone40_1K-5 {
+  position: absolute;
+  z-index: 9999;
+  top: 29%;
+  left: 31%;
+}
+
+.MA-zone40_1K-6 {
+  position: absolute;
+  z-index: 9999;
+  top: 29%;
+  right: 13%;
+}
+
+.MA-zone40_1K-7 {
+  position: absolute;
+  z-index: 9999;
+  top: 41%;
+  left: 31%;
+}
+
+.MA-zone40_1K-8 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 33%;
+  right: 12%;
+}
+
+.MA-zone40_1K-9 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 26%;
+  left: 11%;
+}
+
+.MA-zone40_1K-10 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 26%;
+  left: 31%;
+}
+
+.MA-zone40_1K-11 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 20%;
+  right: 35%;
+}
+
+.MA-zone40_1K-12 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 6%;
+  left: 13%;
+}
+
+.MA-zone40_1K-13 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 6%;
+  right: 39%;
+}
+
+.MA-zone40_1K-14 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 6%;
+  right: 13%;
+}
+
+.MA-zone40_1L-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 17%;
+  right: 22%;
+}
+
+.MA-zone40_1L-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 34%;
+  left: 30%;
+}
+
+.MA-zone40_1M-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 16%;
+  left: 7%;
+}
+
+.MA-zone40_1M-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 16%;
+  left: 20%;
+}
+
+.MA-zone40_1M-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 27%;
+  left: 14%;
+}
+
+.MA-zone40_1M-4 {
+  position: absolute;
+  z-index: 9999;
+  top: 7%;
+  left: 41%;
+}
+
+.MA-zone40_1M-5 {
+  position: absolute;
+  z-index: 9999;
+  top: 18%;
+  left: 41%;
+}
+
+.MA-zone40_1M-6 {
+  position: absolute;
+  z-index: 9999;
+  top: 29%;
+  left: 41%;
+}
+
+.MA-zone40_1M-7 {
+  position: absolute;
+  z-index: 9999;
+  top: 43%;
+  left: 14%;
+}
+
+.MA-zone40_1M-8 {
+  position: absolute;
+  z-index: 9999;
+  top: 45%;
+  left: 43%;
+}
+
+.MA-zone40_1M-9 {
+  position: absolute;
+  z-index: 9999;
+  top: 62%;
+  left: 43%;
+}
+
+.MA-zone40_1M-10 {
+  position: absolute;
+  z-index: 9999;
+  top: 62%;
+  left: 7%;
+}
+
+.MA-zone40_1M-11 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 2%;
+  left: 9%;
+}
+
+.MA-zone40_1M-12 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 2%;
+  left: 20%;
+}
+
+.MA-zone40_1M-13 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 12%;
+  left: 37%;
+}
+
+.MA-zone40_1M-14 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 17%;
+  left: 44%;
+}
+
+.MA-zone40_1M-15 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 13%;
+  left: 50%;
+}
+
+.MA-zone40_1M-16 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 1%;
+  left: 44%;
+}
+
+.MA-zone40_1M-17 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 18%;
+  right: 19%;
+}
+
+/* end of MAPurification 1st floor */
+
+/* second floor start */
+.MA-zone10_2F_Backstage-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 47%;
+  left: 36%;
+}
+
+.MA-zone10_2F_Backstage-2 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 16%;
+  left: 32%;
+}
+
+.MA-zone10_2F_Corridor-S-1 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 25%;
+  left: 36%;
+}
+
+.MA-zone10_2F_Distribution-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 37%;
+  left: 34%;
+}
+
+.MA-zone10_2F_Frontstage-E-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 7%;
+  right: 17%;
+}
+
+.MA-zone10_2F_Frontstage-E-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 53%;
+  right: 27%;
+}
+
+.MA-zone10_2F_Frontstage-E-3 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 2%;
+  right: 6%;
+}
+
+.MA-zone10_2F_Frontstage-W-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 8%;
+  left: 12%;
+}
+
+.MA-zone10_2F_Frontstage-W-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 53%;
+  left: 29%;
+}
+
+.MA-zone10_2F_Frontstage-W-3 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 2%;
+  left: 17%;
+}
+
+.MA-zone70_2A-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 10%;
+  left: 4%;
+}
+
+.MA-zone70_2A-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 7%;
+  left: 27%;
+}
+
+.MA-zone70_2A-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 7%;
+  right: 58%;
+}
+
+.MA-zone70_2A-4 {
+  position: absolute;
+  z-index: 9999;
+  top: 17%;
+  left: 10%;
+}
+
+.MA-zone70_2A-5 {
+  position: absolute;
+  z-index: 9999;
+  top: 23%;
+  left: 15%;
+}
+
+.MA-zone70_2A-6 {
+  position: absolute;
+  z-index: 9999;
+  top: 30%;
+  left: 15%;
+}
+
+.MA-zone70_2A-7 {
+  position: absolute;
+  z-index: 9999;
+  top: 30%;
+  left: 6%;
+}
+
+.MA-zone70_2A-8 {
+  position: absolute;
+  z-index: 9999;
+  top: 30%;
+  left: 21%;
+}
+
+.MA-zone70_2A-9 {
+  position: absolute;
+  z-index: 9999;
+  top: 40%;
+  left: 9%;
+}
+
+.MA-zone70_2A-10 {
+  position: absolute;
+  z-index: 9999;
+  top: 40%;
+  left: 21%;
+}
+
+.MA-zone70_2A-11 {
+  position: absolute;
+  z-index: 9999;
+  top: 40%;
+  right: 29%;
+}
+
+.MA-zone70_2A-12 {
+  position: absolute;
+  z-index: 9999;
+  top: 38%;
+  right: 2%;
+}
+
+.MA-zone70_2A-13 {
+  position: absolute;
+  z-index: 9999;
+  top: 46%;
+  right: 16%;
+}
+
+.MA-zone70_2A-14 {
+  position: absolute;
+  z-index: 9999;
+  top: 55%;
+  left: 10%;
+}
+
+.MA-zone70_2A-15 {
+  position: absolute;
+  z-index: 9999;
+  top: 57%;
+  left: 21%;
+}
+
+.MA-zone70_2A-16 {
+  position: absolute;
+  z-index: 9999;
+  top: 50%;
+  left: 21%;
+}
+
+.MA-zone70_2A-17 {
+  position: absolute;
+  z-index: 9999;
+  top: 57%;
+  left: 44%;
+}
+
+.MA-zone70_2A-18 {
+  position: absolute;
+  z-index: 9999;
+  top: 57%;
+  right: 31%;
+}
+
+.MA-zone70_2A-19 {
+  position: absolute;
+  z-index: 9999;
+  top: 50%;
+  right: 31%;
+}
+
+.MA-zone70_2A-20 {
+  position: absolute;
+  z-index: 9999;
+  top: 58%;
+  right: 19%;
+}
+
+.MA-zone70_2A-21 {
+  position: absolute;
+  z-index: 9999;
+  top: 53%;
+  right: 12%;
+}
+
+.MA-zone70_2A-22 {
+  position: absolute;
+  z-index: 9999;
+  top: 58%;
+  right: 12%;
+}
+
+.MA-zone70_2A-23 {
+  position: absolute;
+  z-index: 9999;
+  top: 58%;
+  right: 3%;
+}
+
+.MA-zone70_2A-24 {
+  position: absolute;
+  z-index: 9999;
+  top: 66%;
+  right: 61%;
+}
+
+.MA-zone70_2B-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 47%;
+  left: 17%;
+}
+
+.MA-zone70_2B-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 49%;
+  left: 50%;
+}
+
+.MA-zone70_2B-3 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 14%;
+  left: 50%;
+}
+
+.MA-zone70_2B-4 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 14%;
+  right: 13%;
+}
+
+.MA-zone70_2B-5 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 5%;
+  right: 7%;
+}
+
+.MA-zone40_2A_1-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 11%;
+  left: 33%;
+}
+
+.MA-zone40_2A_1-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 14%;
+  right: -5%;
+}
+
+.MA-zone40_2A_1-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 23%;
+  right: -20%;
+}
+
+.MA-zone40_2A_1-4 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 16%;
+  right: 23%;
+}
+
+.MA-zone40_2A_2-1 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 9%;
+  left: 8%;
+}
+
+.MA-zone40_2A_3-1 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 6%;
+  left: 23%;
+}
+
+.MA-zone40_2A_3-2 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 2%;
+  right: 5%;
+}
+
+.MA-zone40_2B-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 12%;
+  left: 16%;
+}
+
+.MA-zone40_2B-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 55%;
+  left: 55%;
+}
+
+.MA-zone40_2B-3 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 4%;
+  left: 16%;
+}
+
+.MA-zone40_2C-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 19%;
+  left: 37%;
+}
+
+.MA-zone40_2C-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 52%;
+  right: 9%;
+}
+
+.MA-zone40_2C-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 59%;
+  left: 19%;
+}
+
+.MA-zone40_2D-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 19%;
+  left: 12%;
+}
+
+.MA-zone40_2D-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 13%;
+  left: 37%;
+}
+
+.MA-zone40_2D-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 19%;
+  left: 62%;
+}
+
+.MA-zone40_2D-4 {
+  position: absolute;
+  z-index: 9999;
+  top: 60%;
+  left: 43%;
+}
+
+.MA-zone40_2E-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 14%;
+  left: 16%;
+}
+
+.MA-zone40_2E-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 12%;
+  left: 42%;
+}
+
+.MA-zone40_2E-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 14%;
+  right: 13%;
+}
+
+.MA-zone40_2E-4 {
+  position: absolute;
+  z-index: 9999;
+  top: 29%;
+  left: 16%;
+}
+
+.MA-zone40_2E-5 {
+  position: absolute;
+  z-index: 9999;
+  top: 29%;
+  right: 10%;
+}
+
+.MA-zone40_2E-6 {
+  position: absolute;
+  z-index: 9999;
+  top: 36%;
+  left: 48%;
+}
+
+.MA-zone40_2E-7 {
+  position: absolute;
+  z-index: 9999;
+  top: 42%;
+  left: 22%;
+}
+
+.MA-zone40_2E-8 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 25%;
+  left: 13%;
+}
+
+.MA-zone40_2E-9 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 25%;
+  left: 32%;
+}
+
+.MA-zone40_2E-10 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 32%;
+  left: 50%;
+}
+
+.MA-zone40_2E-11 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 32%;
+  right: 12%;
+}
+
+.MA-zone40_2E-12 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 19%;
+  right: 37%;
+}
+
+.MA-zone40_2E-13 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 6%;
+  left: 19%;
+}
+
+.MA-zone40_2E-14 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 6%;
+  right: 37%;
+}
+
+.MA-zone40_2E-15 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 6%;
+  right: 8%;
+}
+
+
+.MA-zone40_2F-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 46%;
+  left: 16%;
+}
+
+.MA-zone40_2F-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 29%;
+  left: 27%;
+}
+
+.MA-zone40_2F-3 {
+  position: absolute;
+  z-index: 9999;
+  top: 45%;
+  right: 41%;
+}
+
+.MA-zone40_2F-4 {
+  position: absolute;
+  z-index: 9999;
+  top: 45%;
+  right: 24%;
+}
+
+/* ends second floor */
+
+.MA-zone40_3B-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 53%;
+  left: 35%;
+}
+
+.MA-zone40_3B-2 {
+  position: absolute;
+  z-index: 9999;
+  top: 60%;
+  left: 50%;
+}
+
+.MA-zone40_MA40_3A-1 {
+  position: absolute;
+  z-index: 9999;
+  top: 58%;
+  left: 23%;
+}
+
+.MA-zone40_MA40_3A-2 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 31%;
+  left: 26%;
+}
+
+.MA-zone40_MA40_3A-3 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 24%;
+  left: 23%;
+}
+
+.MA-zone40_RA_1 {
+  position: absolute;
+  z-index: 9999;
+  top: 20%;
+  left: 50%;
+}
+
+.MA-zone40_RB_1 {
+  position: absolute;
+  z-index: 9999;
+  top: 21%;
+  left: 16%;
+}
+
+.MA-zone40_11R_1 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 32%;
+  left: 18%;
+}
+
+.MA-zone40_10R_1 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 36%;
+  left: 34%;
+}
+
+.MA-zone40_70R_1 {
+  position: absolute;
+  z-index: 9999;
+  bottom: 36%;
+  right: 30%;
+}
+
+/* Ends MA Section */

@@ -27,6 +27,22 @@ import MU901MPdf from "../assets/drawings/m3north/plans/MU90/MU90.1/Zones/MU90.1
 import MU902Pdf from "../assets/drawings/m3north/plans/MU90/MU90.2/MU90.2.pdf";
 import MU90RPdf from "../assets/drawings/m3north/plans/MU90/MU90.R/MU90.R.pdf";
 
+
+import CP_EGEPdf from "../assets/drawings/m3north/plans/external/external-zones/CP_EGE.pdf";
+import CT_DarkPdf from "../assets/drawings/m3north/plans/external/external-zones/CT_Dark.pdf";
+import Laydown20Pdf from "../assets/drawings/m3north/plans/external/external-zones/Laydown_20.pdf";
+import Laydown30Pdf from "../assets/drawings/m3north/plans/external/external-zones/Laydown_30.pdf";
+import Laydown40Pdf from "../assets/drawings/m3north/plans/external/external-zones/Laydown_40.pdf";
+import M3MAExternalZonesPdf from "../assets/drawings/m3north/plans/external/external-zones/M3MA External Zones.pdf";
+import MA_IPdf from "../assets/drawings/m3north/plans/external/external-zones/MA_I.pdf";
+import MA_IIPdf from "../assets/drawings/m3north/plans/external/external-zones/MA_II.pdf";
+import MA_IIIPdf from "../assets/drawings/m3north/plans/external/external-zones/MA_III.pdf";
+import MBPdf from "../assets/drawings/m3north/plans/external/external-zones/MB.pdf";
+import MT_MSPdf from "../assets/drawings/m3north/plans/external/external-zones/MT-MS.pdf";
+import MUPdf from "../assets/drawings/m3north/plans/external/external-zones/MU.pdf";
+import RoadsPdf from "../assets/drawings/m3north/plans/external/external-zones/Roads.pdf";
+import WelfarePdf from "../assets/drawings/m3north/plans/external/external-zones/Welfare_zones.pdf";
+
 export const ZONE_MAPPING = {
   "MU90.0": [
     {
@@ -345,5 +361,252 @@ export const ZONE_MAPPING = {
         { name: "90.R.BE", className: "MU90_1_VB-ZoneMU90_R_BE-1" }
       ]
     }
+  ],
+
+  "CP EGE": [
+    {
+      id: 1,
+      name: "CP_EGE",
+      className: "CP_EGE",
+      pdf: CP_EGEPdf,
+      rooms: [{ name: "CP EGE", className: "CP_EGE_Red_Zones-1" },]
+    },
   ]
 };
+
+export const EXTERNAL_ZONE_MAPPING = [
+
+  {
+    id: 2,
+    name: "CT Dark",
+    className: "CT_Dark",
+    pdf: CT_DarkPdf,
+    floorName: "Area CT",
+    rooms: [
+      { name: "CT.E1", className: "CT_Dark_Red_Zones-1" },
+      { name: "CT.E2", className: "CT_Dark_Red_Zones-2" },
+      { name: "CT.S", className: "CT_Dark_Red_Zones-3" },
+      { name: "CT.E", className: "CT_Dark_Red_Zones-4" },
+      { name: "Cooling Tower", className: "CT_Dark_Cool_tower" }
+    ]
+  },
+  {
+    id: 3,
+    name: "Area MA-I",
+    className: "area-ma-1",
+    pdf: MA_IPdf,
+    floorName: "Area MA-I",
+    rooms: [
+      { name: "MA40.N1", className: "MA_I_Blue_Zones-1" },
+      { name: "MA40.N2", className: "MA_I_Blue_Zones-2" },
+      { name: "MA10.E", className: "MA_I_Blue_Zones-3" },
+      { name: "MA40", className: "MA_I_Blue_Zones-4" },
+      { name: "MA70.N", className: "MA_I_Blue_Zones-5" },
+      { name: "MA11.N", className: "MA_I_Blue_Zones-6" },
+      { name: "MA11", className: "MA_I_Blue_Zones-7" },
+      { name: "MA10", className: "MA_I_Blue_Zones-8" },
+      { name: "MA70", className: "MA_I_Blue_Zones-9" },
+      { name: "MA11.S", className: "MA_I_Blue_Zones-10" },
+      { name: "MA10.S", className: "MA_I_Blue_Zones-11" },
+      { name: "MA70.S", className: "MA_I_Blue_Zones-12" }
+    ]
+  },
+  {
+    id: 4,
+    name: "Area MA-II",
+    className: "area-ma-2",
+    pdf: MA_IIPdf,
+    floorName: "Area MA-II",
+    rooms: [
+      { name: "MA50.N1", className: "MA_II_Red_Zones-1" },
+      { name: "MA50.N2", className: "MA_II_Red_Zones-2" },
+      { name: "MA50", className: "MA_II_Red_Zones-3" },
+      { name: "MA80.N", className: "MA_II_Red_Zones-4" },
+      { name: "MA80", className: "MA_II_Red_Zones-5" },
+      { name: "MA20", className: "MA_II_Red_Zones-6" },
+      { name: "MA80.S", className: "MA_II_Red_Zones-7" },
+      { name: "MA20.S", className: "MA_II_Red_Zones-8" }
+    ]
+  },
+  {
+    id: 5,
+    name: "Area MA-III",
+    className: "area-ma-3",
+    pdf: MA_IIIPdf,
+    floorName: "Area MA-III",
+    rooms: [
+      { name: "MA60.N1", className: "MA_III_Yellow_Zones-1" },
+      { name: "MA60.2", className: "MA_III_Yellow_Zones-2" },
+      { name: "MA60.E1", className: "MA_III_Yellow_Zones-3" },
+      { name: "MA60.E2", className: "MA_III_Yellow_Zones-4" },
+      { name: "MA31.E", className: "MA_III_Yellow_Zones-5" },
+      { name: "MA31.N", className: "MA_III_Yellow_Zones-6" },
+      { name: "MA31", className: "MA_III_Yellow_Zones-7" },
+      { name: "MA31.S", className: "MA_III_Yellow_Zones-8" },
+      { name: "MA30.S", className: "MA_III_Yellow_Zones-9" },
+      { name: "MA60", className: "MA_III_Yellow_Zones-10" },
+      { name: "MA30", className: "MA_III_Yellow_Zones-11" }
+    ]
+  },
+  {
+    id: 6,
+    name: "Area MB",
+    className: "area-mb",
+    pdf: MBPdf,
+    floorName: "Area MB",
+    rooms: [
+      { name: "MX.N", className: "MB_LT_Blue_Zones-1" },
+      { name: "MX", className: "MB_LT_Blue_Zones-2" },
+      { name: "N2", className: "MB_LT_Blue_Zones-3" },
+      { name: "Road MB North", className: "MB_LT_Blue_Zones-4" },
+      { name: "MB.N", className: "MB_LT_Blue_Zones-5" },
+      { name: "MB.N", className: "MB_LT_Blue_Zones-6" },
+      { name: "MB.S", className: "MB_LT_Blue_Zones-7" },
+      { name: "MB.W", className: "MB_LT_Blue_Zones-8" }
+    ]
+  },
+  {
+    id: 7,
+    name: "Area MU",
+    className: "area-mu",
+    pdf: MUPdf,
+    floorName: "Area MU",
+    rooms: [
+      { name: "MU.N", className: "MU90_Purple_Zones-1" },
+      { name: "MU.E1", className: "MU90_Purple_Zones-2" },
+      { name: "MU.W1", className: "MU90_Purple_Zones-3" },
+      { name: "MU", className: "MU90_Purple_Zones-4" },
+      { name: "MU.E2", className: "MU90_Purple_Zones-5" },
+      { name: "MU.S", className: "MU90_Purple_Zones-6" },
+      { name: "MU/W2", className: "MU90_Purple_Zones-7" }
+    ]
+  },
+  {
+    id: 8,
+    name: "Area MT-MS",
+    className: "area-mt-ms",
+    pdf: MT_MSPdf,
+    floorName: "Area MT-MS",
+    rooms: [
+      { name: "MS.TF.N", className: "MU91_Green_Zones-1" },
+      { name: "MS.N", className: "MU91_Green_Zones-2" },
+      { name: "MS.E", className: "MU91_Green_Zones-3" },
+      { name: "MT.W", className: "MU91_Green_Zones-4" },
+      { name: "MS.S", className: "MU91_Green_Zones-5" },
+      { name: "MT.N", className: "MU91_Green_Zones-6" },
+      { name: "MT.W", className: "MU91_Green_Zones-7" },
+      { name: "MT", className: "MU91_Green_Zones-8" },
+      { name: "MT.E", className: "MU91_Green_Zones-9" },
+      { name: "MT.S", className: "MU91_Green_Zones-10" },
+      { name: "MS.TF.S", className: "MU91_Green_Zones-11" },
+      { name: "MS.TF.W", className: "MU91_Green_Zones-12" }
+    ]
+  },
+  {
+    id: 9,
+    name: "Welfare",
+    className: "Welfare_zones",
+    pdf: WelfarePdf,
+    floorName: "Welfare",
+    rooms: [
+      { name: "Parking Area", className: "Welfare_Grey_Zones-1" },
+      { name: "4B", className: "Welfare_Grey_Zones-2" },
+      { name: "4A", className: "Welfare_Grey_Zones-3" },
+      { name: "2", className: "Welfare_Grey_Zones-4" },
+      { name: "1+3", className: "Welfare_Grey_Zones-5" },
+      { name: "5", className: "Welfare_Grey_Zones-6" },
+      { name: "MAT 01", className: "Welfare_Grey_Zones-7" },
+      { name: "MAT01.S", className: "Welfare_Grey_Zones-8" },
+      { name: "Foodtruck", className: "Welfare_Grey_Zones-9" },
+      { name: "MAT 02.W", className: "Welfare_Grey_Zones-10" },
+      { name: "MAT 02", className: "Welfare_Grey_Zones-11" },
+      { name: "MAT 03", className: "Welfare_Grey_Zones-12" },
+      { name: "MAT 02.E", className: "Welfare_Grey_Zones-13" },
+      { name: "MAT 02.S", className: "Welfare_Grey_Zones-14" }
+    ]
+  },
+  {
+    id: 10,
+    name: "Roads",
+    className: "Roads",
+    pdf: RoadsPdf,
+    floorName: "Roads",
+    rooms: [
+      { name: "Junction 24", className: "M3MA_Roads_Zones-1" },
+      { name: "Road MS North", className: "M3MA_Roads_Zones-2" },
+      { name: "Junction MS North", className: "M3MA_Roads_Zones-3" },
+      { name: "Road MU North", className: "M3MA_Roads_Zones-4" },
+      { name: "Junction MU North", className: "M3MA_Roads_Zones-5" },
+      { name: "Road MX North", className: "M3MA_Roads_Zones-6" },
+      { name: "Junction MX", className: "M3MA_Roads_Zones-7" },
+      { name: "Road WF North", className: "M3MA_Roads_Zones-8" },
+      { name: "Junction WF North", className: "M3MA_Roads_Zones-9" },
+      { name: "Road MS East", className: "M3MA_Roads_Zones-10" },
+      { name: "Road MT East", className: "M3MA_Roads_Zones-11" },
+      { name: "Road MS West", className: "M3MA_Roads_Zones-12" },
+      { name: "Road MX West", className: "M3MA_Roads_Zones-13" },
+      { name: "Road MB North", className: "M3MA_Roads_Zones-14" },
+      { name: "Road MX East", className: "M3MA_Roads_Zones-15" },
+      { name: "Road MB West", className: "M3MA_Roads_Zones-16" },
+      { name: "Road MB East", className: "M3MA_Roads_Zones-17" },
+      { name: "Road WF East", className: "M3MA_Roads_Zones-18" },
+      { name: "Junction TF", className: "M3MA_Roads_Zones-19" },
+      { name: "Road MS South", className: "M3MA_Roads_Zones-20" },
+      { name: "Junction MS South", className: "M3MA_Roads_Zones-21" },
+      { name: "Road MU South", className: "M3MA_Roads_Zones-22" },
+      { name: "Junction MU South", className: "M3MA_Roads_Zones-23" },
+      { name: "Road MB South", className: "M3MA_Roads_Zones-24" },
+      { name: "Junction MB", className: "M3MA_Roads_Zones-25" },
+      { name: "Road MA North", className: "M3MA_Roads_Zones-26" },
+      { name: "Junction MA", className: "M3MA_Roads_Zones-27" },
+      { name: "Road MA East", className: "M3MA_Roads_Zones-28" },
+      { name: "Junction 22", className: "M3MA_Roads_Zones-29" },
+      { name: "Road 22", className: "M3MA_Roads_Zones-30" },
+      { name: "Road MA South", className: "M3MA_Roads_Zones-31" },
+      { name: "Junction 23", className: "M3MA_Roads_Zones-32" },
+      { name: "Road MA West", className: "M3MA_Roads_Zones-33" }
+    ]
+  },
+  {
+    id: 11,
+    name: "Laydown 20",
+    className: "Laydown20",
+    pdf: Laydown20Pdf,
+    floorName: "Laydown20",
+    rooms: [
+      { name: "Laydown 20", className: "Laydown-20-1" }
+    ]
+  },
+  {
+    id: 12,
+    name: "Laydown 30",
+    className: "Laydown30",
+    pdf: Laydown30Pdf,
+    floorName: "Laydown30",
+    rooms: [
+      { name: "Laydown 30", className: "Laydown-30-1" }
+    ]
+  },
+  {
+    id: 13,
+    name: "Laydown 40",
+    className: "Laydown40",
+    pdf: Laydown40Pdf,
+    floorName: "Laydown40",
+    rooms: [
+      { name: "Laydown 40.1", className: "Laydown-40-1" },
+      { name: "Laydown 40.2", className: "Laydown-40-2" },
+      { name: "Laydown 40.3", className: "Laydown-40-3" },
+      { name: "Laydown 40.4", className: "Laydown-40-4" },
+      { name: "Laydown 40.5", className: "Laydown-40-5" },
+      { name: "Laydown 40.6", className: "Laydown-40-6" },
+      { name: "Laydown 40.7", className: "Laydown-40-7" },
+      { name: "Laydown 40.8", className: "Laydown-40-8" },
+      { name: "Laydown 40.9", className: "Laydown-40-9" },
+      { name: "Laydown 40.10", className: "Laydown-40-10" },
+      { name: "Laydown 40.11", className: "Laydown-40-11" },
+      { name: "Laydown 40.12", className: "Laydown-40-12" },
+      { name: "Laydown 40.13", className: "Laydown-40-13" }
+    ]
+  }
+];
