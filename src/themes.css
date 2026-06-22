@@ -241,6 +241,120 @@ html[data-theme="light"] .section-heading-white { color: var(--text-main) !impor
 html[data-theme="light"] .btn-nav-custom       { background: var(--bg-dark) !important; color: var(--text-main) !important; border-color: var(--border-light) !important; }
 html[data-theme="light"] .btn-nav-custom:hover { background: var(--accent-primary) !important; color: #fff !important; }
 
+/* Light: Floor Drawing & Zones Directory */
+html[data-theme="light"] .floor-drawing-viewer-card,
+html[data-theme="light"] .floor-drawing-sidebar-card {
+  background: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: var(--shadow-soft) !important;
+}
+html[data-theme="light"] .floor-viewer-header,
+html[data-theme="light"] .floor-sidebar-header {
+  background: var(--bg-dark) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+html[data-theme="light"] .floor-viewer-header h4,
+html[data-theme="light"] .floor-sidebar-header h4 {
+  color: var(--text-main) !important;
+}
+html[data-theme="light"] .floor-sidebar-header p {
+  color: var(--text-muted) !important;
+}
+html[data-theme="light"] .zones-list-container::-webkit-scrollbar-thumb {
+  background: var(--border-light) !important;
+}
+html[data-theme="light"] .zone-card {
+  background: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+  border-left-color: var(--border-light) !important;
+}
+html[data-theme="light"] .zone-card:hover,
+html[data-theme="light"] .zone-card.hovered {
+  background: var(--bg-card-hover) !important;
+  border-color: var(--accent-primary) !important;
+  border-left-color: var(--accent-primary) !important;
+}
+html[data-theme="light"] .zone-card-name {
+  color: var(--text-main) !important;
+}
+html[data-theme="light"] .zone-card-rooms-count {
+  color: var(--text-muted) !important;
+  background: var(--bg-dark) !important;
+}
+html[data-theme="light"] .zone-card-room-tag {
+  color: var(--text-main) !important;
+  background: var(--bg-card-hover) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Light: Zone Modal */
+html[data-theme="light"] .zone-modal-content {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+html[data-theme="light"] .zone-modal-header {
+  background-color: var(--bg-dark) !important;
+  border-bottom-color: var(--border-color) !important;
+  color: var(--text-main) !important;
+}
+html[data-theme="light"] .zone-modal-header h3 {
+  color: var(--text-main) !important;
+}
+html[data-theme="light"] .zone-modal-header .close-btn {
+  color: var(--text-muted) !important;
+}
+html[data-theme="light"] .zone-modal-header .close-btn:hover {
+  color: var(--text-main) !important;
+}
+html[data-theme="light"] .zone-pdf-container {
+  background-color: var(--bg-dark) !important;
+  border-right-color: var(--border-color) !important;
+}
+html[data-theme="light"] .zone-pdf-container + div {
+  background-color: var(--bg-card) !important;
+}
+html[data-theme="light"] .zone-pdf-container + div > div:first-child {
+  background-color: var(--bg-dark) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+html[data-theme="light"] .zone-pdf-container + div > div:first-child h4 {
+  color: var(--text-main) !important;
+}
+html[data-theme="light"] .zone-pdf-container + div > div:first-child p {
+  color: var(--text-muted) !important;
+}
+html[data-theme="light"] .zone-pdf-container + div > div:first-child input {
+  background: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-main) !important;
+}
+html[data-theme="light"] .modal-room-list {
+  background-color: var(--bg-card) !important;
+}
+html[data-theme="light"] .room-item {
+  background: var(--bg-card-hover) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-main) !important;
+}
+html[data-theme="light"] .room-item.checked {
+  background: var(--color-safe-bg) !important;
+  border-color: var(--color-safe) !important;
+  color: var(--color-safe) !important;
+}
+html[data-theme="light"] .zone-modal-footer {
+  background-color: var(--bg-dark) !important;
+  border-top-color: var(--border-color) !important;
+}
+html[data-theme="light"] .zone-modal-footer button.df-btn-secondary {
+  background: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-main) !important;
+}
+html[data-theme="light"] .zone-modal-footer button.df-btn-secondary:hover {
+  background: var(--bg-card-hover) !important;
+}
+
 
 /* ════════════════════════════════════════════════════════
    3. MIDNIGHT BLUE
