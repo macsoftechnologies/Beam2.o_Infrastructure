@@ -86,9 +86,7 @@ export const FLOOR_PDFS = {
   },
 
   // MA Basement (Building 18)
-  "18": {
-    "Basement": MABasementPdf,
-  },
+  "18": { "MA Basement": MABasementPdf },
 
   // MA.II (Building 19)
   "19": {

@@ -33,7 +33,7 @@ export const FLOOR_MAPPING = {
   ],
 
   18: [
-    "Basement",
+    "MA Basement",
   ],
 
   19: [
