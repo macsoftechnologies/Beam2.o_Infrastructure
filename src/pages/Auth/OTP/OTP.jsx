@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from "react";
+import { verifyOtp } from "../../../services/authService";
+import { showSuccess, showError } from "../../../components/common/Toast/Toast";
 import "./OTP.css";
 
 // ─── DIVISION CONFIG (must match Login.jsx) ─────────────────────────
@@ -86,20 +88,71 @@ export default function OTP() {
     inputRefs.current[nextFocus]?.focus();
   };
 
-  const handleVerify = () => {
-  const code = digits.join("");
-  if (code.length < OTP_LENGTH) {
-    setError("Please enter the full 6-digit code.");
-    inputRefs.current[digits.findIndex(d => !d)]?.focus();
-    return;
-  }
-  setLoading(true);
-  setError("");
-  setTimeout(() => {
-    setLoading(false);
-    window.location.href = "/dashboard"; 
-  }, 1500);
-};
+  const handleVerify = async () => {
+    const code = digits.join("");
+    if (code.length < OTP_LENGTH) {
+      setError("Please enter the full 6-digit code.");
+      showError("Please enter the full 6-digit code.");
+      inputRefs.current[digits.findIndex(d => !d)]?.focus();
+      return;
+    }
+    
+    setLoading(true);
+    setError("");
+
+    try {
+      const tempUserStr = localStorage.getItem("tempUser");
+      const tempUser = tempUserStr ? JSON.parse(tempUserStr) : null;
+      
+      if (!tempUser || tempUser.user_id === undefined || tempUser.user_id === null) {
+        setLoading(false);
+        showError("Session expired. Please log in again.");
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 1500);
+        return;
+      }
+
+      const response = await verifyOtp({
+        otp: code,
+        user_id: tempUser.user_id
+      });
+
+      if (response && (response.statusCode === 200 || response.status === true)) {
+        // Save token and user details to localStorage
+        localStorage.setItem("token", response.access_token);
+        
+        const activeUser = {
+          id: response.id,
+          username: response.username,
+          role: response.userType, // UserType is the role
+          name: response.username
+        };
+        localStorage.setItem("user", JSON.stringify(activeUser));
+        localStorage.setItem("UserType", response.userType);
+        
+        // Clean up tempUser
+        localStorage.removeItem("tempUser");
+
+        showSuccess("Authentication successful!");
+
+        setTimeout(() => {
+          setLoading(false);
+          window.location.href = "/dashboard";
+        }, 1500);
+      } else {
+        setLoading(false);
+        const errMsg = response?.message || "Invalid OTP code";
+        setError(errMsg);
+        showError(errMsg);
+      }
+    } catch (err) {
+      setLoading(false);
+      const errMsg = err.response?.data?.message || err.message || "An error occurred during verification";
+      setError(errMsg);
+      showError(errMsg);
+    }
+  };
 
   const handleResend = () => {
     if (!canResend) return;
@@ -113,11 +166,8 @@ export default function OTP() {
 
   const filled = digits.filter(Boolean).length;
 
-     const navigate = (url) => {
-    setOverlayActive(true);
-    setTimeout(() => {
-      window.location.href = url;
-    }, 1200);
+  const navigate = (url) => {
+    window.location.href = url;
   };
 
   return (

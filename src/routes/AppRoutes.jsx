@@ -27,7 +27,7 @@ import LogsReports from "../pages/LogsReports/LogsReports";
 import LogHistory from "../pages/LogHistroy/LogHistroy";
 
 
-// import ProtectedRoute from "../components/common/ProtectedRoute";
+import ProtectedRoute from "../components/common/ProtectedRoute";
 
 function AppRoutes() {
   return (
@@ -41,20 +41,110 @@ function AppRoutes() {
 
         {/* Protected Layout */}
 
-        <Route element={<Layout />}>
+        <Route
+          element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }
+        >
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/departments" element={<Departments />} />
-          <Route path="/contractors" element={<Contractors />} />
-          <Route path="/employees" element={<Employees />} />
-          <Route path="/zone-status" element={<ZoneStatus />} />
-          <Route path="/mechanical-works" element={<MechanicalWorks />} />
-          <Route path="/electrical-works" element={<ElectricalWorks />} />
-          <Route path="/new-request" element={<NewRequest />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/settings/activity" element={<Activity />} />
-          <Route path="/settings/safety/precaution" element={<SafetyPrecaution />} />
-          <Route path="/logs-reports" element={<LogsReports />} />
-          <Route path="/log-history" element={<LogHistory />} />
+          <Route
+            path="/departments"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <Departments />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/contractors"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <Contractors />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/employees"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <Employees />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/zone-status"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <ZoneStatus />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mechanical-works"
+            element={
+              <ProtectedRoute allowedRoles={["Admin", "Department1"]}>
+                <MechanicalWorks />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/electrical-works"
+            element={
+              <ProtectedRoute allowedRoles={["Admin", "Department1"]}>
+                <ElectricalWorks />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/new-request"
+            element={
+              <ProtectedRoute allowedRoles={["Admin", "Subcontractor", "Department", "Department1"]}>
+                <NewRequest />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute allowedRoles={["Admin", "Department", "Department1"]}>
+                <Reports />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings/activity"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <Activity />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings/safety/precaution"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <SafetyPrecaution />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/logs-reports"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <LogsReports />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/log-history"
+            element={
+              <ProtectedRoute allowedRoles={["Admin", "Department", "Department1"]}>
+                <LogHistory />
+              </ProtectedRoute>
+            }
+          />
         </Route>
 
         {/* <Route

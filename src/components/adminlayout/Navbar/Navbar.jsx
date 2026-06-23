@@ -91,6 +91,28 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
 
+  const [currentUser, setCurrentUser] = useState({
+    username: "Alex Mercer",
+    role: "Site Manager",
+    name: "Alex Mercer"
+  });
+
+  useEffect(() => {
+    try {
+      const u = localStorage.getItem("user");
+      if (u) {
+        const parsed = JSON.parse(u);
+        setCurrentUser({
+          username: parsed.username || "Alex Mercer",
+          role: parsed.role || "Site Manager",
+          name: parsed.username || "Alex Mercer"
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
   useEffect(() => {
     const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -102,8 +124,22 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
   }, [])
 
   const handleLogout = () => {
-    console.log('Logout clicked')
-  }
+    localStorage.removeItem("user");
+    localStorage.removeItem("UserType");
+    localStorage.removeItem("token");
+    localStorage.removeItem("tempUser");
+    localStorage.removeItem("secretkey");
+    window.location.href = "/login";
+  };
+
+  const getInitials = (name) => {
+    if (!name) return "US";
+    const parts = name.trim().split(/\s+/);
+    if (parts.length > 1) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
 
   return (
     <nav className="top-navbar">
@@ -151,10 +187,10 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
             aria-expanded={dropdownOpen}
             aria-haspopup="true"
           >
-            <div className="navbar-avatar-img">AM</div>
+            <div className="navbar-avatar-img">{getInitials(currentUser.name)}</div>
             <div className="navbar-user-info">
-              <span className="navbar-user-name">Alex Mercer</span>
-              <span className="navbar-user-role">Site Manager</span>
+              <span className="navbar-user-name">{currentUser.name}</span>
+              <span className="navbar-user-role">{currentUser.role}</span>
             </div>
           </button>
 
@@ -163,10 +199,10 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
 
               {/* Header */}
               <div className="pd-head">
-                <div className="pd-avatar">AM</div>
+                <div className="pd-avatar">{getInitials(currentUser.name)}</div>
                 <div>
-                  <div className="pd-name">Alex Mercer</div>
-                  <div className="pd-role">Site Manager · M3 Infrastructure</div>
+                  <div className="pd-name">{currentUser.name}</div>
+                  <div className="pd-role">{currentUser.role} · M3 Infrastructure</div>
                 </div>
               </div>
 

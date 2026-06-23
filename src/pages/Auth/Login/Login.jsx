@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { login } from "../../../services/authService";
+import { showSuccess, showError } from "../../../components/common/Toast/Toast";
 import "./Login.css";
 
 export default function Login() {
@@ -9,29 +11,54 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
     if (!username.trim() || !password) {
       setError("Please fill in all fields.");
+      showError("Please fill in all fields.");
       return;
     }
 
     setLoading(true);
 
-    // Simulate login → redirect to OTP page
-    setTimeout(() => {
+    try {
+      const response = await login({ username, password });
+      
+      if (response && (response.statusCode === 200 || response.status === true)) {
+        // Save tempUser details in localStorage
+        const tempUser = {
+          user_id: response.id,
+          username: response.username,
+          userType: response.userType,
+          phonenumber: response.phonenumber,
+          auth_token: response.auth_token
+        };
+        localStorage.setItem("tempUser", JSON.stringify(tempUser));
+        
+        showSuccess("Login successful. OTP sent.");
+        
+        setTimeout(() => {
+          setLoading(false);
+          window.location.href = "/otp";
+        }, 1500);
+      } else {
+        setLoading(false);
+        const errMsg = response?.message || "Invalid credentials";
+        setError(errMsg);
+        showError(errMsg);
+      }
+    } catch (err) {
       setLoading(false);
-      window.location.href = "/otp";
-    }, 1500);
+      const errMsg = err.response?.data?.message || err.message || "An error occurred during login";
+      setError(errMsg);
+      showError(errMsg);
+    }
   };
 
    const navigate = (url) => {
-    setOverlayActive(true);
-    setTimeout(() => {
-      window.location.href = url;
-    }, 1200);
+    window.location.href = url;
   };
 
   return (
@@ -145,7 +172,6 @@ export default function Login() {
                     type="button"
                     className="toggle-pass"
                     onClick={() => setShowPassword(!showPassword)}
-                    onClick={() => navigate("/otp")}
                     aria-label="Show/hide password"
                   >
                     {showPassword ? (

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import "./Sidebar.css";
 
@@ -65,6 +65,20 @@ function SubItem({ href, label, subChildren }) {
 function Sidebar({ sidebarOpen }) {
   const { pathname } = useLocation()
 
+  const [userRole, setUserRole] = useState("")
+
+  useEffect(() => {
+    try {
+      const u = localStorage.getItem("user")
+      if (u) {
+        const parsed = JSON.parse(u)
+        setUserRole(parsed.role || "")
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }, [])
+
   // Helper: exact match or starts-with for parent routes
   const isActive = (path) => pathname === path || pathname.startsWith(path + '/')
 
@@ -97,64 +111,77 @@ function Sidebar({ sidebarOpen }) {
           </a>
 
           {/* Department — single link, NO dropdown */}
-          <a
-            href="/departments"
-            className={`nav-link ${isActive('/departments') ? 'active' : ''}`}
-          >
-            <span className="nav-icon-box">
-              <i className="ti ti-sitemap" aria-hidden="true" />
-            </span>
-            <span className="nav-label">Departments</span>
-          </a>
+          {userRole === "Admin" && (
+            <a
+              href="/departments"
+              className={`nav-link ${isActive('/departments') ? 'active' : ''}`}
+            >
+              <span className="nav-icon-box">
+                <i className="ti ti-sitemap" aria-hidden="true" />
+              </span>
+              <span className="nav-label">Departments</span>
+            </a>
+          )}
 
-          <a
-            href="/contractors"
-            className={`nav-link ${isActive('/contractors') ? 'active' : ''}`}
-          >
-            <span className="nav-icon-box">
-              <i className="ti ti-briefcase" aria-hidden="true" />
-            </span>
-            <span className="nav-label">Contractors</span>
-          </a>
+          {userRole === "Admin" && (
+            <a
+              href="/contractors"
+              className={`nav-link ${isActive('/contractors') ? 'active' : ''}`}
+            >
+              <span className="nav-icon-box">
+                <i className="ti ti-briefcase" aria-hidden="true" />
+              </span>
+              <span className="nav-label">Contractors</span>
+            </a>
+          )}
 
-          <a
-            href="/employees"
-            className={`nav-link ${isActive('/employees') ? 'active' : ''}`}
-          >
-            <span className="nav-icon-box">
-              <i className="ti ti-users-group" aria-hidden="true" />
-            </span>
-            <span className="nav-label">Employees</span>
-          </a>
-          <a
-            href="/zone-status"
-            className={`nav-link ${isActive('/zone-status') ? 'active' : ''}`}
-          >
-            <span className="nav-icon-box">
-              <i className="ti ti-map-pin" aria-hidden="true" />
-            </span>
-            <span className="nav-label">Zone Status</span>
-          </a>
+          {userRole === "Admin" && (
+            <a
+              href="/employees"
+              className={`nav-link ${isActive('/employees') ? 'active' : ''}`}
+            >
+              <span className="nav-icon-box">
+                <i className="ti ti-users-group" aria-hidden="true" />
+              </span>
+              <span className="nav-label">Employees</span>
+            </a>
+          )}
 
-          <a
-            href="/electrical-works"
-            className={`nav-link ${isActive('/electrical-works') ? 'active' : ''}`}
-          >
-            <span className="nav-icon-box">
-              <i className="ti ti-bolt" aria-hidden="true" />
-            </span>
-            <span className="nav-label">Electrical Works</span>
-          </a>
+          {userRole === "Admin" && (
+            <a
+              href="/zone-status"
+              className={`nav-link ${isActive('/zone-status') ? 'active' : ''}`}
+            >
+              <span className="nav-icon-box">
+                <i className="ti ti-map-pin" aria-hidden="true" />
+              </span>
+              <span className="nav-label">Zone Status</span>
+            </a>
+          )}
 
-          <a
-            href="/mechanical-works"
-            className={`nav-link ${isActive('/mechanical-works') ? 'active' : ''}`}
-          >
-            <span className="nav-icon-box">
-              <i className="ti ti-settings" aria-hidden="true" />
-            </span>
-            <span className="nav-label">Mechanical Works</span>
-          </a>
+          {(userRole === "Admin" || userRole === "Department1") && (
+            <a
+              href="/electrical-works"
+              className={`nav-link ${isActive('/electrical-works') ? 'active' : ''}`}
+            >
+              <span className="nav-icon-box">
+                <i className="ti ti-bolt" aria-hidden="true" />
+              </span>
+              <span className="nav-label">Electrical Works</span>
+            </a>
+          )}
+
+          {(userRole === "Admin" || userRole === "Department1") && (
+            <a
+              href="/mechanical-works"
+              className={`nav-link ${isActive('/mechanical-works') ? 'active' : ''}`}
+            >
+              <span className="nav-icon-box">
+                <i className="ti ti-settings" aria-hidden="true" />
+              </span>
+              <span className="nav-label">Mechanical Works</span>
+            </a>
+          )}
 
           {/* <NavItem icon="ti-briefcase" label="Contractors"
             paths={['/contractor-new', '/contractor-list']}>
@@ -188,44 +215,50 @@ function Sidebar({ sidebarOpen }) {
 
           <NavItem icon="ti-file-description" label="Request"
             paths={['/request-new', '/request-list']}>
-            <SubItem href="/new-request" label="New Request" />
+            {userRole !== "Observer" && <SubItem href="/new-request" label="New Request" />}
             <SubItem href="/request-list" label="List Request" />
           </NavItem>
 
-          <div className="nav-section-label">Reports &amp; Settings</div>
+          {(userRole === "Admin" || userRole === "Department" || userRole === "Department1") && (
+            <div className="nav-section-label">Reports &amp; Settings</div>
+          )}
 
-          <a href="/reports" className={`nav-link ${isActive('/reports') ? 'active' : ''}`}>
-            <span className="nav-icon-box">
-              <i className="ti ti-chart-line" aria-hidden="true" />
-            </span>
-            <span className="nav-label">Reports</span>
-          </a>
+          {(userRole === "Admin" || userRole === "Department" || userRole === "Department1") && (
+            <a href="/reports" className={`nav-link ${isActive('/reports') ? 'active' : ''}`}>
+              <span className="nav-icon-box">
+                <i className="ti ti-chart-line" aria-hidden="true" />
+              </span>
+              <span className="nav-label">Reports</span>
+            </a>
+          )}
 
-          <NavItem
-            icon="ti-adjustments-horizontal"
-            label="Settings"
-            paths={['/settings/activity', '/settings-safety-new']}
-          >
-            <li>
-              <a
-                href="/settings/activity"
-                className={`nav-sub-link ${pathname === '/settings/activity' ? 'sub-active' : ''
-                  }`}
-              >
-                <span className="sub-dot" />Activity
-              </a>
-            </li>
+          {userRole === "Admin" && (
+            <NavItem
+              icon="ti-adjustments-horizontal"
+              label="Settings"
+              paths={['/settings/activity', '/settings-safety-new']}
+            >
+              <li>
+                <a
+                  href="/settings/activity"
+                  className={`nav-sub-link ${pathname === '/settings/activity' ? 'sub-active' : ''
+                    }`}
+                >
+                  <span className="sub-dot" />Activity
+                </a>
+              </li>
 
-            <li>
-              <a
-                href="/settings/safety/precaution"
-                className={`nav-sub-link ${pathname === '/settings/safety/precaution' ? 'sub-active' : ''
-                  }`}
-              >
-                <span className="sub-dot" />Precaution
-              </a>
-            </li>
-          </NavItem>
+              <li>
+                <a
+                  href="/settings/safety/precaution"
+                  className={`nav-sub-link ${pathname === '/settings/safety/precaution' ? 'sub-active' : ''
+                    }`}
+                >
+                  <span className="sub-dot" />Precaution
+                </a>
+              </li>
+            </NavItem>
+          )}
 
           {/* <NavItem icon="ti-adjustments-horizontal" label="Settings"
             paths={['/settings-activity-new', '/settings-activity-list', '/settings-safety-new', '/settings-safety-list']}>
@@ -263,19 +296,23 @@ function Sidebar({ sidebarOpen }) {
             } />
           </NavItem> */}
 
-          <a href="/log-history" className={`nav-link ${isActive('/log-history') ? 'active' : ''}`}>
-            <span className="nav-icon-box">
-              <i className="ti ti-clock" aria-hidden="true" />
-            </span>
-            <span className="nav-label">Log-History</span>
-          </a>
+          {(userRole === "Admin" || userRole === "Department" || userRole === "Department1") && (
+            <a href="/log-history" className={`nav-link ${isActive('/log-history') ? 'active' : ''}`}>
+              <span className="nav-icon-box">
+                <i className="ti ti-clock" aria-hidden="true" />
+              </span>
+              <span className="nav-label">Log-History</span>
+            </a>
+          )}
 
-          <a href="/logs-reports" className={`nav-link ${isActive('/logs-reports') ? 'active' : ''}`}>
-            <span className="nav-icon-box">
-              <i className="ti ti-chart-bar" aria-hidden="true" />
-            </span>
-            <span className="nav-label">Logs-Reports</span>
-          </a>
+          {userRole === "Admin" && (
+            <a href="/logs-reports" className={`nav-link ${isActive('/logs-reports') ? 'active' : ''}`}>
+              <span className="nav-icon-box">
+                <i className="ti ti-chart-bar" aria-hidden="true" />
+              </span>
+              <span className="nav-label">Logs-Reports</span>
+            </a>
+          )}
         </nav>
 
       </div>
