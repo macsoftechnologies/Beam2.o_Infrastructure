@@ -80,7 +80,7 @@ function Sidebar({ sidebarOpen }) {
             </svg>
           </div>
           <div className="brand-text-wrap">
-            <span className="brand-name">M3 NORTH</span>
+            <span className="brand-name">M3 INFRASTRUCTURE</span>
             <span className="brand-sub">MANAGEMENT</span>
           </div>
         </div>
@@ -97,64 +97,64 @@ function Sidebar({ sidebarOpen }) {
           </a>
 
           {/* Department — single link, NO dropdown */}
-        <a
-          href="/departments"
-          className={`nav-link ${isActive('/departments') ? 'active' : ''}`}
-        >
-          <span className="nav-icon-box">
-            <i className="ti ti-sitemap" aria-hidden="true" />
-          </span>
-          <span className="nav-label">Departments</span>
-        </a>
+          <a
+            href="/departments"
+            className={`nav-link ${isActive('/departments') ? 'active' : ''}`}
+          >
+            <span className="nav-icon-box">
+              <i className="ti ti-sitemap" aria-hidden="true" />
+            </span>
+            <span className="nav-label">Departments</span>
+          </a>
 
-        <a
-          href="/contractors"
-          className={`nav-link ${isActive('/contractors') ? 'active' : ''}`}
-        >
-          <span className="nav-icon-box">
-            <i className="ti ti-briefcase" aria-hidden="true" />
-          </span>
-          <span className="nav-label">Contractors</span>
-        </a>
+          <a
+            href="/contractors"
+            className={`nav-link ${isActive('/contractors') ? 'active' : ''}`}
+          >
+            <span className="nav-icon-box">
+              <i className="ti ti-briefcase" aria-hidden="true" />
+            </span>
+            <span className="nav-label">Contractors</span>
+          </a>
 
-        <a
-          href="/employees"
-          className={`nav-link ${isActive('/employees') ? 'active' : ''}`}
-        >
-          <span className="nav-icon-box">
-            <i className="ti ti-users-group" aria-hidden="true" />
-          </span>
-          <span className="nav-label">Employees</span>
-        </a>
-        <a
-          href="/zone-status"
-          className={`nav-link ${isActive('/zone-status') ? 'active' : ''}`}
-        >
-          <span className="nav-icon-box">
-            <i className="ti ti-map-pin" aria-hidden="true" />
-          </span>
-          <span className="nav-label">Zone Status</span>
-        </a>
+          <a
+            href="/employees"
+            className={`nav-link ${isActive('/employees') ? 'active' : ''}`}
+          >
+            <span className="nav-icon-box">
+              <i className="ti ti-users-group" aria-hidden="true" />
+            </span>
+            <span className="nav-label">Employees</span>
+          </a>
+          <a
+            href="/zone-status"
+            className={`nav-link ${isActive('/zone-status') ? 'active' : ''}`}
+          >
+            <span className="nav-icon-box">
+              <i className="ti ti-map-pin" aria-hidden="true" />
+            </span>
+            <span className="nav-label">Zone Status</span>
+          </a>
 
-        <a
-          href="/electrical-works"
-          className={`nav-link ${isActive('/electrical-works') ? 'active' : ''}`}
-        >
-          <span className="nav-icon-box">
-            <i className="ti ti-bolt" aria-hidden="true" />
-          </span>
-          <span className="nav-label">Electrical Works</span>
-        </a>
+          <a
+            href="/electrical-works"
+            className={`nav-link ${isActive('/electrical-works') ? 'active' : ''}`}
+          >
+            <span className="nav-icon-box">
+              <i className="ti ti-bolt" aria-hidden="true" />
+            </span>
+            <span className="nav-label">Electrical Works</span>
+          </a>
 
-        <a
-          href="/mechanical-works"
-          className={`nav-link ${isActive('/mechanical-works') ? 'active' : ''}`}
-        >
-          <span className="nav-icon-box">
-            <i className="ti ti-settings" aria-hidden="true" />
-          </span>
-          <span className="nav-label">Mechanical Works</span>
-        </a>
+          <a
+            href="/mechanical-works"
+            className={`nav-link ${isActive('/mechanical-works') ? 'active' : ''}`}
+          >
+            <span className="nav-icon-box">
+              <i className="ti ti-settings" aria-hidden="true" />
+            </span>
+            <span className="nav-label">Mechanical Works</span>
+          </a>
 
           {/* <NavItem icon="ti-briefcase" label="Contractors"
             paths={['/contractor-new', '/contractor-list']}>
@@ -188,7 +188,7 @@ function Sidebar({ sidebarOpen }) {
 
           <NavItem icon="ti-file-description" label="Request"
             paths={['/request-new', '/request-list']}>
-            <SubItem href="/new-request"  label="New Request"  />
+            <SubItem href="/new-request" label="New Request" />
             <SubItem href="/request-list" label="List Request" />
           </NavItem>
 
@@ -202,32 +202,30 @@ function Sidebar({ sidebarOpen }) {
           </a>
 
           <NavItem
-              icon="ti-adjustments-horizontal"
-              label="Settings"
-              paths={['/settings/activity', '/settings-safety-new']}
-            >
-              <li>
-                <a
-                  href="/settings/activity"
-                  className={`nav-sub-link ${
-                    pathname === '/settings/activity' ? 'sub-active' : ''
+            icon="ti-adjustments-horizontal"
+            label="Settings"
+            paths={['/settings/activity', '/settings-safety-new']}
+          >
+            <li>
+              <a
+                href="/settings/activity"
+                className={`nav-sub-link ${pathname === '/settings/activity' ? 'sub-active' : ''
                   }`}
-                >
-                  <span className="sub-dot" />Activity
-                </a>
-              </li>
+              >
+                <span className="sub-dot" />Activity
+              </a>
+            </li>
 
-              <li>
-                <a
-                  href="/settings/safety/precaution"
-                  className={`nav-sub-link ${
-                    pathname === '/settings/safety/precaution' ? 'sub-active' : ''
+            <li>
+              <a
+                href="/settings/safety/precaution"
+                className={`nav-sub-link ${pathname === '/settings/safety/precaution' ? 'sub-active' : ''
                   }`}
-                >
-                  <span className="sub-dot" />Precaution
-                </a>
-              </li>
-            </NavItem>
+              >
+                <span className="sub-dot" />Precaution
+              </a>
+            </li>
+          </NavItem>
 
           {/* <NavItem icon="ti-adjustments-horizontal" label="Settings"
             paths={['/settings-activity-new', '/settings-activity-list', '/settings-safety-new', '/settings-safety-list']}>

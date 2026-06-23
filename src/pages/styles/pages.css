@@ -517,7 +517,7 @@
 .nr-modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 10000010;
   background: rgba(0, 0, 0, 0.65);
   display: flex;
   align-items: center;

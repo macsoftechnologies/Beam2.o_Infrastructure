@@ -112,7 +112,7 @@ function NewRequest() {
 
   const [formData, setFormData] = useState({
     Requestdate: new Date().toLocaleDateString("en-GB"),
-    Companyname: "M3 North",
+    Companyname: "M3 Infrastructure",
     SubContractor: "",
     newSubContractor: "",
     Foreman: "",
@@ -128,7 +128,7 @@ function NewRequest() {
     night_shift: false,
     newWorkDate: "",
     new_end_time: "",
-    Site: "M3 North",
+    Site: "M3 Infrastructure",
     Tools: "",
     Machinery: "",
     work_type: "",

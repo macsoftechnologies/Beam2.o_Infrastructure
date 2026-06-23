@@ -41,9 +41,9 @@ function SyncLabel() {
 /* ── Theme Switcher — controlled, synced with Layout state ── */
 const THEMES = [
   { value: 'default-dark', label: 'Dark' },
-  { value: 'light',        label: 'Light' },
+  { value: 'light', label: 'Light' },
   { value: 'midnight-blue', label: 'Midnight' },
-  { value: 'steel-gray',  label: 'Steel Gray' },
+  { value: 'steel-gray', label: 'Steel Gray' },
 ]
 
 function ThemeSwitcher({ theme, onThemeChange }) {
@@ -87,7 +87,7 @@ function ThemeSwitcher({ theme, onThemeChange }) {
 }
 
 /* ════════════════════════════════════════════ */
-function Navbar({ toggleSidebar, theme,   onThemeChange }) {
+function Navbar({ toggleSidebar, theme, onThemeChange }) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
 
@@ -114,7 +114,7 @@ function Navbar({ toggleSidebar, theme,   onThemeChange }) {
           <i className="ti ti-menu-2" />
         </button>
         <div className="navbar-title">
-          <h4>M3 North Dashboard</h4>
+          <h4>M3 Infrastructure Dashboard</h4>
           <p>Operational Overview &amp; System Analytics</p>
         </div>
       </div>
@@ -166,7 +166,7 @@ function Navbar({ toggleSidebar, theme,   onThemeChange }) {
                 <div className="pd-avatar">AM</div>
                 <div>
                   <div className="pd-name">Alex Mercer</div>
-                  <div className="pd-role">Site Manager · M3 North</div>
+                  <div className="pd-role">Site Manager · M3 Infrastructure</div>
                 </div>
               </div>
 

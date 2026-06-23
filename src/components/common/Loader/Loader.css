@@ -18,7 +18,7 @@
   background: rgba(8, 11, 18, 0.88);   /* matches --bg-dark */
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  z-index: 9999;
+  z-index: 10000040;
 }
 
 /* ── Spinner container ───────────────────────────────────── */

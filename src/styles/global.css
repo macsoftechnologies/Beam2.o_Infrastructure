@@ -39,3 +39,8 @@
   /* Transition */
   --transition: all 0.3s ease;
 }
+
+/* SweetAlert2 container override to display on top of navbar, sidebar, and modals */
+.swal2-container {
+  z-index: 10000030 !important;
+}

@@ -1,34 +1,42 @@
 export const BUILDINGS = [
   {
     id: "13",
-    name: "External Areas",
+    name: "APM Terminal",
   },
   {
     id: "14",
-    name: "MA",
+    name: "EH Lake West",
   },
   {
     id: "15",
-    name: "MU90",
+    name: "EH Lake East",
   },
   {
     id: "16",
-    name: "MU91",
+    name: "Rendsborg Park",
   },
   {
     id: "17",
-    name: "MB",
+    name: "P-hus",
   },
   {
     id: "18",
-    name: "MA Basement",
+    name: "NN East",
   },
   {
     id: "19",
-    name: "MA.II",
+    name: "HovvejWest",
   },
   {
     id: "20",
-    name: "MA.III",
+    name: "HovvejEast",
+  },
+  {
+    id: "21",
+    name: "EC-JCP1 Hallas Alle",
+  },
+  {
+    id: "22",
+    name: "BA-DD Hallas Alle",
   },
 ];

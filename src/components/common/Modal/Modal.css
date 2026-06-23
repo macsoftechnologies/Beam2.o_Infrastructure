@@ -11,7 +11,7 @@
   background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  z-index: 1050;
+  z-index: 10000010;
   animation: beamBackdropIn 0.25s ease forwards;
 }
 
@@ -24,7 +24,7 @@
 .beam-modal-positioner {
   position: fixed;
   inset: 0;
-  z-index: 1060;
+  z-index: 10000020;
   display: flex;
   justify-content: center;
   align-items: flex-start;
