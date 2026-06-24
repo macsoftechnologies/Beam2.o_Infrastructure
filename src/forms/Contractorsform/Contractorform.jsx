@@ -1,35 +1,45 @@
 import React, { useState, useEffect, useRef } from "react";
+import { getDepartments } from "../../services/authService";
+import { API_BASE_URL } from "../../services/api";
 import "../../forms/styles/forms.css";
-
-// ─── Department options ──────────────────────────────────────────────────────
-const DEPARTMENT_OPTIONS = [
-  "Human Resources",
-  "Finance",
-  "Information Tech",
-  "Marketing",
-  "Operations",
-  "Legal",
-  "Research & Dev",
-  "Customer Support",
-  "Sales",
-  "Administration",
-];
 
 function Contractorform({ onClose, initialData, isEdit, onSubmit }) {
   const [name, setName] = useState("");
-  const [department, setDepartment] = useState("");
-  const [status, setStatus] = useState("active");
-  const [logo, setLogo] = useState(null);
-  const [logoFile, setLogoFile] = useState(null);
+  const [department, setDepartment] = useState(""); // Stores departId
+  const [logo, setLogo] = useState(null); // Preview URL
+  const [logoFile, setLogoFile] = useState(null); // File object
+  const [departmentsList, setDepartmentsList] = useState([]);
 
   const fileInputRef = useRef(null);
 
+  // Fetch departments dynamically
+  useEffect(() => {
+    const fetchDepts = async () => {
+      try {
+        const res = await getDepartments(1, 100);
+        const rows = res?.data?.rows ?? res?.data ?? res ?? [];
+        setDepartmentsList(rows);
+      } catch (err) {
+        console.error("Failed to load departments", err);
+      }
+    };
+    fetchDepts();
+  }, []);
+
   useEffect(() => {
     if (isEdit && initialData) {
-      setName(initialData.name || "");
-      setDepartment(initialData.department || "");
-      setStatus(initialData.status || "active");
-      setLogo(initialData.logo || null);
+      setName(initialData.subContractorName || initialData.name || "");
+      setDepartment(initialData.departId || "");
+      
+      if (initialData.logo) {
+        if (initialData.logo.startsWith("data:") || initialData.logo.startsWith("http")) {
+          setLogo(initialData.logo);
+        } else {
+          setLogo(`${API_BASE_URL}/subcontractors/${initialData.logo}`);
+        }
+      } else {
+        setLogo(null);
+      }
     }
   }, [initialData, isEdit]);
 
@@ -59,18 +69,12 @@ function Contractorform({ onClose, initialData, isEdit, onSubmit }) {
     e.preventDefault();
 
     const payload = {
-      name,
-      department,
-      status,
-      logo,
+      subContractorName: name,
+      departId: department,
+      logoFile,
     };
 
-    if (isEdit && initialData?.contractorId) {
-      payload.contractorId = initialData.contractorId;
-    }
-
     onSubmit && onSubmit(payload);
-    onClose && onClose();
   };
 
   return (
@@ -104,29 +108,15 @@ function Contractorform({ onClose, initialData, isEdit, onSubmit }) {
             required
           >
             <option value="">Select Department</option>
-            {DEPARTMENT_OPTIONS.map((dept) => (
-              <option key={dept} value={dept}>
-                {dept}
+            {departmentsList.map((dept) => (
+              <option key={dept.id} value={dept.id}>
+                {dept.departmentName}
               </option>
             ))}
           </select>
         </div>
 
-        {/* Status */}
-        <div className="df-field">
-          <label className="df-label">
-            Status <span className="df-required">*</span>
-          </label>
-          <select
-            className="df-select"
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            required
-          >
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </div>
+        {/* Status field removed */}
 
         {/* Upload Logo */}
         <div className="df-field df-field--full">

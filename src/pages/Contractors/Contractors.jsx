@@ -1,31 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { showSuccess, showError, showDeleteConfirm, showDeleteSuccess } from "../../components/common/Toast/Toast";
 import Table from "../../components/common/Table/Table";
 import Modal from "../../components/common/Modal/Modal";
 import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
 import ContractorForm from "../../forms/Contractorsform/Contractorform";
+import { getContractors, addContractor, updateContractor, deleteContractor, getDepartments } from "../../services/authService";
+import { API_BASE_URL } from "../../services/api";
 import "../styles/pages.css";
-
-const STATIC_CONTRACTORS = [
-  { contractorId: 1,  name: "Alpha Build Co.",      department: "Human Resources",  logo: null, status: "active"   },
-  { contractorId: 2,  name: "BrightWave Infra",      department: "Finance",          logo: null, status: "active"   },
-  { contractorId: 3,  name: "CoreTech Solutions",    department: "Information Tech", logo: null, status: "inactive" },
-  { contractorId: 4,  name: "Delta Constructions",   department: "Marketing",        logo: null, status: "active"   },
-  { contractorId: 5,  name: "EagleEye Services",     department: "Operations",       logo: null, status: "active"   },
-  { contractorId: 6,  name: "FlexBuild Partners",    department: "Legal",            logo: null, status: "inactive" },
-  { contractorId: 7,  name: "GreenMark Contractors", department: "Research & Dev",   logo: null, status: "active"   },
-  { contractorId: 8,  name: "HighRise Corp.",         department: "Customer Support", logo: null, status: "active"   },
-  { contractorId: 9,  name: "IronClad Works",        department: "Sales",            logo: null, status: "inactive" },
-  { contractorId: 10, name: "JetStream Builders",    department: "Administration",   logo: null, status: "active"   },
-];
 
 const PAGE_LIMIT_DEFAULT = 10;
 
 const ActionButtons = ({ onView, onEdit, onDelete }) => (
   <div className="dept-action-btns">
-    <button className="dept-action-btn dept-action-btn--view" title="View" onClick={onView}>
+    {/* <button className="dept-action-btn dept-action-btn--view" title="View" onClick={onView}>
       <FaEye />
-    </button>
+    </button> */}
     <button className="dept-action-btn dept-action-btn--edit" title="Edit" onClick={onEdit}>
       <FaEdit />
     </button>
@@ -35,24 +24,56 @@ const ActionButtons = ({ onView, onEdit, onDelete }) => (
   </div>
 );
 
-const StatusBadge = ({ status }) => (
-  <span className={`dept-status-badge dept-status-badge--${status}`}>
-    {status === "active" ? "● Active" : "● Inactive"}
-  </span>
-);
+const getLogoUrl = (logoVal) => {
+  if (!logoVal) return null;
+  if (logoVal.startsWith("data:") || logoVal.startsWith("http")) return logoVal;
+  return `${API_BASE_URL}/subcontractors/${logoVal}`;
+};
 
 const Contractors = () => {
-  const [open, setOpen]                             = useState(false);
-  const [editOpen, setEditOpen]                     = useState(false);
-  const [viewOpen, setViewOpen]                     = useState(false);
+  const [open, setOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [viewOpen, setViewOpen] = useState(false);
   const [selectedContractor, setSelectedContractor] = useState(null);
-  const [contractorList, setContractorList]         = useState(STATIC_CONTRACTORS);
-  const [currentPage, setCurrentPage]               = useState(1);
-  const [pageLimit]                                 = useState(PAGE_LIMIT_DEFAULT);
+  const [contractorList, setContractorList] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageLimit] = useState(PAGE_LIMIT_DEFAULT);
+  const [totalCount, setTotalCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [departments, setDepartments] = useState([]);
 
-  const totalPages = Math.ceil(contractorList.length / pageLimit);
-  const startIndex = (currentPage - 1) * pageLimit;
-  const paginated  = contractorList.slice(startIndex, startIndex + pageLimit);
+  // Fetch subcontractors and departments
+  const fetchContractors = useCallback(async (page = 1) => {
+    setIsLoading(true);
+    try {
+      const res = await getContractors(page, pageLimit);
+      const rows = res?.data?.rows ?? res?.data ?? res ?? [];
+      const count = res?.data?.count ?? res?.total ?? rows.length;
+      setContractorList(rows);
+      setTotalCount(count);
+    } catch {
+      showError("Failed to load contractors");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [pageLimit]);
+
+  useEffect(() => {
+    const fetchDepts = async () => {
+      try {
+        const res = await getDepartments(1, 100);
+        const rows = res?.data?.rows ?? res?.data ?? res ?? [];
+        setDepartments(rows);
+      } catch (err) {
+        console.error("Failed to load departments", err);
+      }
+    };
+    fetchDepts();
+  }, []);
+
+  useEffect(() => {
+    fetchContractors(currentPage);
+  }, [currentPage, fetchContractors]);
 
   const handleView = (item, index) => {
     setSelectedContractor({ ...item, serial: startIndex + index + 1 });
@@ -67,60 +88,79 @@ const Contractors = () => {
   const handleDelete = async (item) => {
     const result = await showDeleteConfirm();
     if (!result.isConfirmed) return;
-    setContractorList((prev) => prev.filter((c) => c.contractorId !== item.contractorId));
-    showDeleteSuccess();
+    try {
+      await deleteContractor(item.id);
+      showDeleteSuccess();
+      const newPage = contractorList.length === 1 && currentPage > 1
+        ? currentPage - 1
+        : currentPage;
+      setCurrentPage(newPage);
+      fetchContractors(newPage);
+    } catch {
+      showError("Failed to delete contractor");
+    }
   };
 
-  const handleSubmit = (formData) => {
+  const handleSubmit = async (formData) => {
     try {
+      const formDataObj = new FormData();
+      formDataObj.append("subContractorName", formData.subContractorName);
+      formDataObj.append("departId", formData.departId);
+      // Status field removed
+      if (formData.logoFile) {
+        formDataObj.append("logo", formData.logoFile);
+      }
+
       if (selectedContractor && editOpen) {
-        setContractorList((prev) =>
-          prev.map((c) =>
-            c.contractorId === selectedContractor.contractorId ? { ...c, ...formData } : c
-          )
-        );
+        await updateContractor(selectedContractor.id, formDataObj);
+        showSuccess("Contractor updated successfully");
         setEditOpen(false);
         setSelectedContractor(null);
-        showSuccess("Contractor updated successfully");
-        return;
+      } else {
+        await addContractor(formDataObj);
+        showSuccess("Contractor added successfully");
+        setOpen(false);
       }
-      setContractorList((prev) => [...prev, { ...formData, contractorId: Date.now() }]);
-      setOpen(false);
-      showSuccess("Contractor added successfully");
+      fetchContractors(currentPage);
     } catch {
       showError("Operation failed");
     }
   };
 
+  const totalPages = Math.ceil((totalCount || contractorList.length) / pageLimit);
+  const startIndex = (currentPage - 1) * pageLimit;
+
   const columns = [
-    { header: "S.No",       accessor: "serial"      },
-    { header: "Name",       accessor: "name"        },
-    { header: "Department", accessor: "department"  },
-    { header: "Logo",       accessor: "logoCell"    },
-    { header: "Status",     accessor: "statusBadge" },
-    { header: "Actions",    accessor: "actions"     },
+    { header: "S.No", accessor: "serial" },
+    { header: "Name", accessor: "name" },
+    { header: "Department", accessor: "department" },
+    { header: "Logo", accessor: "logoCell" },
+    { header: "Actions", accessor: "actions" },
   ];
 
-  const tableData = paginated.map((item, index) => ({
-    ...item,
-    serial: startIndex + index + 1,
-
-    logoCell: item.logo ? (
-      <img src={item.logo} alt={`${item.name} logo`} className="dept-logo-thumb" />
-    ) : (
-      <span className="dept-no-logo">—</span>
-    ),
-
-    statusBadge: <StatusBadge status={item.status} />,
-
-    actions: (
-      <ActionButtons
-        onView={() => handleView(item, index)}
-        onEdit={() => handleEdit(item, index)}
-        onDelete={() => handleDelete(item)}
-      />
-    ),
-  }));
+  const tableData = contractorList.map((item, index) => {
+    const matchedDept = departments.find(d => String(d.id) === String(item.departId));
+    const deptName = matchedDept ? matchedDept.departmentName : "—";
+    const logoUrl = getLogoUrl(item.logo);
+    return {
+      ...item,
+      serial: startIndex + index + 1,
+      name: item.subContractorName,
+      department: deptName,
+      logoCell: logoUrl ? (
+        <img src={logoUrl} alt={`${item.subContractorName} logo`} className="dept-logo-thumb" />
+      ) : (
+        <span className="dept-no-logo">—</span>
+      ),
+      actions: (
+        <ActionButtons
+          onView={() => handleView(item, index)}
+          onEdit={() => handleEdit(item, index)}
+          onDelete={() => handleDelete(item)}
+        />
+      ),
+    };
+  });
 
   return (
     <div className="dept-page">
@@ -131,8 +171,8 @@ const Contractors = () => {
           <p className="dept-page-subtitle">Manage and configure all contractor records</p>
         </div>
         <div className="dept-page-header__right">
-          <span className="dept-count-badge">{contractorList.length} Total</span>
-          <button className="dept-add-btn" onClick={() => setOpen(true)}>
+          <span className="dept-count-badge">{(totalCount || contractorList.length)} Total</span>
+          <button className="dept-add-btn" onClick={() => { setSelectedContractor(null); setOpen(true); }}>
             <span className="dept-add-btn__icon">＋</span>
             Add Contractor
           </button>
@@ -146,7 +186,7 @@ const Contractors = () => {
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
-          isLoading={false}
+          isLoading={isLoading}
         />
       </div>
 
@@ -163,24 +203,23 @@ const Contractors = () => {
           <div className="dept-view-grid">
             <div className="dept-view-item">
               <span className="dept-view-label">Contractor Name</span>
-              <span className="dept-view-value">{selectedContractor.name}</span>
+              <span className="dept-view-value">{selectedContractor.subContractorName}</span>
             </div>
             <div className="dept-view-item">
               <span className="dept-view-label">Department</span>
-              <span className="dept-view-value dept-view-value--code">{selectedContractor.department}</span>
+              <span className="dept-view-value dept-view-value--code">
+                {departments.find(d => String(d.id) === String(selectedContractor.departId))?.departmentName || "—"}
+              </span>
             </div>
             <div className="dept-view-item">
               <span className="dept-view-label">Logo</span>
-              {selectedContractor.logo ? (
-                <img src={selectedContractor.logo} alt="logo" className="dept-view-logo" />
+              {getLogoUrl(selectedContractor.logo) ? (
+                <img src={getLogoUrl(selectedContractor.logo)} alt="logo" className="dept-view-logo" />
               ) : (
                 <span className="dept-view-value">No logo uploaded</span>
               )}
             </div>
-            <div className="dept-view-item">
-              <span className="dept-view-label">Status</span>
-              <StatusBadge status={selectedContractor.status} />
-            </div>
+            {/* Status removed */}
             <div className="dept-view-item">
               <span className="dept-view-label">Serial No.</span>
               <span className="dept-view-value">#{selectedContractor.serial}</span>

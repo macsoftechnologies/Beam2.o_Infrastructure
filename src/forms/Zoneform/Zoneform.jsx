@@ -2,36 +2,20 @@ import React, { useState, useEffect } from "react";
 import { getBuildings, getFloors } from "../../services/authService";
 import "../../forms/styles/forms.css";
 
-// ─── Zone options ─────────────────────────────────────────────────────────────
-const ZONE_OPTIONS = [
-  "50.1L",
-  "MU91.0R",
-  "MU91.0S",
-  "MU91.1A",
-  "MU91.1F",
-  "MU91.1G",
-  "MU91.1H",
-  "MU91.1M",
-  "MU91.1N",
-  "MU91.1P",
-];
-
-// ─── Status options ───────────────────────────────────────────────────────────
 const STATUS_OPTIONS = [
-  "Construction",
+  "Under Construction",
   "Commissioning",
-  "Completed",
-  "On Hold",
+  "Hand Over",
 ];
 
-function ZoneStatusform({ onClose, initialData, isEdit, onSubmit }) {
-  const [building, setBuilding] = useState(""); // Stores building_id
-  const [level, setLevel]       = useState(""); // Stores floor_id
-  const [zone, setZone]         = useState("");
-  const [status, setStatus]     = useState("");
+function ZoneForm({ onClose, initialData, isEdit, onSubmit }) {
+  const [building, setBuilding] = useState(""); // building_id
+  const [level, setLevel] = useState(""); // floor_id
+  const [zone, setZone] = useState("");
+  const [status, setStatus] = useState("Under Construction");
 
   const [buildingsList, setBuildingsList] = useState([]);
-  const [floorsList, setFloorsList]       = useState([]);
+  const [floorsList, setFloorsList] = useState([]);
   const [filteredFloorsList, setFilteredFloorsList] = useState([]);
 
   // Fetch buildings and floors
@@ -39,8 +23,8 @@ function ZoneStatusform({ onClose, initialData, isEdit, onSubmit }) {
     const fetchBuildingsAndFloors = async () => {
       try {
         const [buildingsRes, floorsRes] = await Promise.all([
-          getBuildings(1, 100),
-          getFloors(1, 100)
+          getBuildings(1, 1000),
+          getFloors(1, 1000)
         ]);
         setBuildingsList(buildingsRes?.data ?? []);
         setFloorsList(floorsRes?.data ?? []);
@@ -56,7 +40,7 @@ function ZoneStatusform({ onClose, initialData, isEdit, onSubmit }) {
       setBuilding(initialData.building_id || "");
       setLevel(initialData.floor_id || "");
       setZone(initialData.zone || "");
-      setStatus(initialData.status || "");
+      setStatus(initialData.status || "Under Construction");
     }
   }, [initialData, isEdit]);
 
@@ -76,9 +60,9 @@ function ZoneStatusform({ onClose, initialData, isEdit, onSubmit }) {
     setLevel(""); // Reset floor when building changes
   };
 
-  // ── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!building || !level || !zone.trim()) return;
 
     const matchedFloor = floorsList.find(f => String(f.fl_id) === String(level));
     const levelName = matchedFloor ? matchedFloor.floor_name : "";
@@ -87,23 +71,20 @@ function ZoneStatusform({ onClose, initialData, isEdit, onSubmit }) {
       building_id: building ? Number(building) : null,
       floor_id: level ? Number(level) : null,
       level: levelName,
-      zone,
+      zone: zone.trim(),
       status
     };
 
-    if (isEdit && (initialData?.id !== undefined ? initialData.id : initialData?.zoneStatusId)) {
-      payload.id = initialData.id !== undefined ? initialData.id : initialData.zoneStatusId;
-    }
-
     onSubmit && onSubmit(payload);
+    onClose && onClose();
   };
 
   return (
     <form className="df-form" onSubmit={handleSubmit} noValidate>
       <div className="df-grid">
 
-        {/* Building */}
-        <div className="df-field">
+        {/* Building Select */}
+        <div className="df-field df-field--full">
           <label className="df-label">
             Building <span className="df-required">*</span>
           </label>
@@ -113,7 +94,7 @@ function ZoneStatusform({ onClose, initialData, isEdit, onSubmit }) {
             onChange={handleBuildingChange}
             required
           >
-            <option value="">Building</option>
+            <option value="">Select Building</option>
             {buildingsList.map((b) => (
               <option key={b.build_id} value={b.build_id}>{b.building_name}</option>
             ))}
@@ -121,9 +102,9 @@ function ZoneStatusform({ onClose, initialData, isEdit, onSubmit }) {
         </div>
 
         {/* Level / Floor */}
-        <div className="df-field">
+        <div className="df-field df-field--full">
           <label className="df-label">
-            Level <span className="df-required">*</span>
+            Level / Floor <span className="df-required">*</span>
           </label>
           <select
             className="df-select"
@@ -132,33 +113,30 @@ function ZoneStatusform({ onClose, initialData, isEdit, onSubmit }) {
             required
             disabled={!building}
           >
-            <option value="">Level</option>
+            <option value="">Select Level</option>
             {filteredFloorsList.map((l) => (
               <option key={l.fl_id} value={l.fl_id}>{l.floor_name}</option>
             ))}
           </select>
         </div>
 
-        {/* Zone */}
-        <div className="df-field">
+        {/* Zone Name */}
+        <div className="df-field df-field--full">
           <label className="df-label">
-            Zone <span className="df-required">*</span>
+            Zone Name <span className="df-required">*</span>
           </label>
-          <select
-            className="df-select"
+          <input
+            type="text"
+            className="df-input"
             value={zone}
             onChange={(e) => setZone(e.target.value)}
+            placeholder="e.g. Restricted Lab B"
             required
-          >
-            <option value="">Zone</option>
-            {ZONE_OPTIONS.map((z) => (
-              <option key={z} value={z}>{z}</option>
-            ))}
-          </select>
+          />
         </div>
 
         {/* Status */}
-        <div className="df-field">
+        <div className="df-field df-field--full">
           <label className="df-label">
             Status <span className="df-required">*</span>
           </label>
@@ -168,7 +146,6 @@ function ZoneStatusform({ onClose, initialData, isEdit, onSubmit }) {
             onChange={(e) => setStatus(e.target.value)}
             required
           >
-            <option value="">Status</option>
             {STATUS_OPTIONS.map((s) => (
               <option key={s} value={s}>{s}</option>
             ))}
@@ -179,23 +156,15 @@ function ZoneStatusform({ onClose, initialData, isEdit, onSubmit }) {
 
       {/* Footer */}
       <div className="df-footer">
-        <button
-          type="button"
-          className="df-btn df-btn--cancel"
-          onClick={onClose}
-        >
+        <button type="button" className="df-btn df-btn--cancel" onClick={onClose}>
           Cancel
         </button>
-
-        <button
-          type="submit"
-          className="df-btn df-btn--submit"
-        >
-          {isEdit ? "Update Zone Status" : "Create"}
+        <button type="submit" className="df-btn df-btn--submit" disabled={!building || !level || !zone.trim()}>
+          {isEdit ? "Update Zone" : "Add Zone"}
         </button>
       </div>
     </form>
   );
 }
 
-export default ZoneStatusform;
+export default ZoneForm;

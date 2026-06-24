@@ -1,51 +1,72 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { showSuccess, showError, showDeleteConfirm, showDeleteSuccess } from "../../../components/common/Toast/Toast";
-import Table from "../../../components/common/Table/Table";
-import Modal from "../../../components/common/Modal/Modal";
+import { showSuccess, showError, showDeleteConfirm, showDeleteSuccess } from "../../components/common/Toast/Toast";
+import Table from "../../components/common/Table/Table";
+import Modal from "../../components/common/Modal/Modal";
 import { FaEdit, FaTrash } from "react-icons/fa";
-import SafetyPrecautionform from "../../../forms/SafetyPrecautionform/SafetyPrecautionform";
-import { getPrecautions, addPrecaution, updatePrecaution, deletePrecaution } from "../../../services/authService";
-import "../../styles/pages.css";
+import FloorForm from "../../forms/Floorform/Floorform";
+import { addFloor, getFloors, updateFloor, deleteFloor, getBuildings } from "../../services/authService";
+import "../styles/pages.css";
 
 const PAGE_LIMIT_DEFAULT = 10;
 
-const SafetyPrecaution = () => {
+const Floors = () => {
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [selectedSafety, setSelectedSafety] = useState(null);
-  const [safetyList, setSafetyList] = useState([]);
+  const [selectedFloor, setSelectedFloor] = useState(null);
+  const [floorList, setFloorList] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageLimit] = useState(PAGE_LIMIT_DEFAULT);
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [buildings, setBuildings] = useState([]);
+
+  // ─── Fetch building mapping ───────────────────────────────────────────────
+  useEffect(() => {
+    const fetchB = async () => {
+      try {
+        const res = await getBuildings(1, 1000);
+        const rows = res?.data ?? res ?? [];
+        setBuildings(rows);
+      } catch (err) {
+        console.error("Failed to load buildings map", err);
+      }
+    };
+    fetchB();
+  }, []);
+
+  // Build building lookup map
+  const buildingMap = {};
+  buildings.forEach((b) => {
+    buildingMap[b.build_id] = b.building_name;
+  });
 
   // ─── Pagination ───────────────────────────────────────────────────────────
-  const totalPages = Math.ceil((totalCount || safetyList.length) / pageLimit);
+  const totalPages = Math.ceil((totalCount || floorList.length) / pageLimit);
   const startIndex = (currentPage - 1) * pageLimit;
 
   // ─── Fetch list ───────────────────────────────────────────────────────────
-  const fetchPrecautions = useCallback(async (page = 1) => {
+  const fetchFloorsList = useCallback(async (page = 1) => {
     setIsLoading(true);
     try {
-      const res = await getPrecautions(page, pageLimit);
+      const res = await getFloors(page, pageLimit);
       const rows = res?.data?.rows ?? res?.data ?? res ?? [];
       const count = res?.data?.count ?? res?.total ?? rows.length;
-      setSafetyList(rows);
+      setFloorList(rows);
       setTotalCount(count);
-    } catch {
-      showError("Failed to load safety precautions");
+    } catch (err) {
+      showError("Failed to load floors");
     } finally {
       setIsLoading(false);
     }
   }, [pageLimit]);
 
   useEffect(() => {
-    fetchPrecautions(currentPage);
-  }, [currentPage, fetchPrecautions]);
+    fetchFloorsList(currentPage);
+  }, [currentPage, fetchFloorsList]);
 
   // ─── Handlers ─────────────────────────────────────────────────────────────
   const handleEdit = (item, index) => {
-    setSelectedSafety({ ...item, serial: startIndex + index + 1 });
+    setSelectedFloor({ ...item, serial: startIndex + index + 1 });
     setEditOpen(true);
   };
 
@@ -53,32 +74,32 @@ const SafetyPrecaution = () => {
     const result = await showDeleteConfirm();
     if (!result.isConfirmed) return;
     try {
-      await deletePrecaution(item.id);
+      await deleteFloor(item.fl_id ?? item.id);
       showDeleteSuccess();
-      const newPage = safetyList.length === 1 && currentPage > 1
+      const newPage = floorList.length === 1 && currentPage > 1
         ? currentPage - 1
         : currentPage;
       setCurrentPage(newPage);
-      fetchPrecautions(newPage);
-    } catch {
-      showError("Failed to delete safety precaution");
+      fetchFloorsList(newPage);
+    } catch (err) {
+      showError("Failed to delete floor");
     }
   };
 
   const handleSubmit = async (formData) => {
     try {
-      if (selectedSafety && editOpen) {
-        await updatePrecaution(selectedSafety.id, formData);
-        showSuccess("Safety Precaution updated successfully");
+      if (selectedFloor && editOpen) {
+        await updateFloor(selectedFloor.fl_id ?? selectedFloor.id, formData);
+        showSuccess("Floor updated successfully");
         setEditOpen(false);
-        setSelectedSafety(null);
+        setSelectedFloor(null);
       } else {
-        await addPrecaution(formData);
-        showSuccess("Safety Precaution added successfully");
+        await addFloor(formData);
+        showSuccess("Floor added successfully");
         setOpen(false);
       }
-      fetchPrecautions(currentPage);
-    } catch {
+      fetchFloorsList(currentPage);
+    } catch (err) {
       showError("Operation failed");
     }
   };
@@ -86,13 +107,16 @@ const SafetyPrecaution = () => {
   // ─── Table columns ────────────────────────────────────────────────────────
   const columns = [
     { header: "S.No", accessor: "serial" },
-    { header: "Precaution", accessor: "precaution" },
+    { header: "Building", accessor: "buildingName" },
+    { header: "Floor Name", accessor: "floor_name" },
+    { header: "Status", accessor: "floor_status" },
     { header: "Actions", accessor: "actions" },
   ];
 
-  const tableData = safetyList.map((item, index) => ({
+  const tableData = floorList.map((item, index) => ({
     ...item,
     serial: startIndex + index + 1,
+    buildingName: buildingMap[item.build_id] || "—",
     actions: (
       <div className="dept-action-btns">
         <button
@@ -120,21 +144,21 @@ const SafetyPrecaution = () => {
       {/* ── Page Header ── */}
       <div className="dept-page-header">
         <div className="dept-page-header__left">
-          <h1 className="dept-page-title">Safety Precaution</h1>
+          <h1 className="dept-page-title">Floors</h1>
           <p className="dept-page-subtitle">
-            Manage and configure all safety precaution records
+            Manage and configure all floor records
           </p>
         </div>
         <div className="dept-page-header__right">
           <span className="dept-count-badge">
-            {totalCount || safetyList.length} Total
+            {totalCount || floorList.length} Total
           </span>
           <button
             className="dept-add-btn"
-            onClick={() => { setSelectedSafety(null); setOpen(true); }}
+            onClick={() => { setSelectedFloor(null); setOpen(true); }}
           >
             <span className="dept-add-btn__icon">＋</span>
-            Add Safety Precaution
+            Add Floor
           </button>
         </div>
       </div>
@@ -155,11 +179,11 @@ const SafetyPrecaution = () => {
       <Modal
         open={open}
         onClose={() => setOpen(false)}
-        title="Add Safety Precaution"
+        title="Add Floor"
         size="md"
         type="default"
       >
-        <SafetyPrecautionform
+        <FloorForm
           onClose={() => setOpen(false)}
           onSubmit={handleSubmit}
         />
@@ -168,15 +192,15 @@ const SafetyPrecaution = () => {
       {/* ── Edit Modal ── */}
       <Modal
         open={editOpen}
-        onClose={() => { setEditOpen(false); setSelectedSafety(null); }}
-        title="Edit Safety Precaution"
+        onClose={() => { setEditOpen(false); setSelectedFloor(null); }}
+        title="Edit Floor"
         size="md"
         type="warning"
       >
-        <SafetyPrecautionform
+        <FloorForm
           isEdit
-          initialData={selectedSafety}
-          onClose={() => { setEditOpen(false); setSelectedSafety(null); }}
+          initialData={selectedFloor}
+          onClose={() => { setEditOpen(false); setSelectedFloor(null); }}
           onSubmit={handleSubmit}
         />
       </Modal>
@@ -185,4 +209,4 @@ const SafetyPrecaution = () => {
   );
 };
 
-export default SafetyPrecaution;
+export default Floors;

@@ -16,7 +16,10 @@ import Dashboard from "../pages/Dashboard/Dashboard";
 import Departments from "../pages/Departments/Departments";
 import Contractors from "../pages/Contractors/Contractors";
 import Employees from "../pages/Employees/Employees";
-import ZoneStatus from "../pages/ZoneStatus/ZoneStatus";
+import Buildings from "../pages/Buildings/Buildings";
+import Floors from "../pages/Floors/Floors";
+import Zones from "../pages/Zones/Zones";
+import Rooms from "../pages/Rooms/Rooms";
 import MechanicalWorks from "../pages/MechanicalWorks/MechanicalWorks";
 import ElectricalWorks from "../pages/ElectricalWorks/ElectricalWorks";
 import NewRequest from "../pages/Request/NewRequest/NewRequest";
@@ -74,10 +77,34 @@ function AppRoutes() {
             }
           />
           <Route
-            path="/zone-status"
+            path="/location/buildings"
             element={
               <ProtectedRoute allowedRoles={["Admin"]}>
-                <ZoneStatus />
+                <Buildings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/location/floors"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <Floors />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/location/zones"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <Zones />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/location/rooms"
+            element={
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <Rooms />
               </ProtectedRoute>
             }
           />

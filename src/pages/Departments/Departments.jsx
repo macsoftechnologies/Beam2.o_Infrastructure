@@ -102,13 +102,13 @@ const Departments = () => {
 
     actions: (
       <div className="dept-action-btns">
-        <button
+        {/* <button
           className="dept-action-btn dept-action-btn--view"
           title="View"
           onClick={() => handleView(item, index)}
         >
           <FaEye />
-        </button>
+        </button> */}
         <button
           className="dept-action-btn dept-action-btn--edit"
           title="Edit"

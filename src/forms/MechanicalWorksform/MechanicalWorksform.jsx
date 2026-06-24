@@ -6,7 +6,7 @@ function MechanicalWorksform({ onClose, initialData, isEdit, onSubmit }) {
 
   useEffect(() => {
     if (isEdit && initialData) {
-      setMechanicalWork(initialData.mechanicalWork || "");
+      setMechanicalWork(initialData.mechanical_works || initialData.mechanicalWork || "");
     }
   }, [initialData, isEdit]);
 
@@ -14,10 +14,12 @@ function MechanicalWorksform({ onClose, initialData, isEdit, onSubmit }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const payload = { mechanicalWork };
+    const payload = {
+      mechanical_works: mechanicalWork
+    };
 
-    if (isEdit && initialData?.mechanicalWorkId) {
-      payload.mechanicalWorkId = initialData.mechanicalWorkId;
+    if (isEdit && (initialData?.id !== undefined ? initialData.id : initialData?.mechanicalWorkId)) {
+      payload.id = initialData.id !== undefined ? initialData.id : initialData.mechanicalWorkId;
     }
 
     onSubmit && onSubmit(payload);

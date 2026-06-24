@@ -148,15 +148,44 @@ function Sidebar({ sidebarOpen }) {
           )}
 
           {userRole === "Admin" && (
-            <a
-              href="/zone-status"
-              className={`nav-link ${isActive('/zone-status') ? 'active' : ''}`}
+            <NavItem
+              icon="ti-map-pin"
+              label="Location"
+              paths={['/location/buildings', '/location/floors', '/location/zones', '/location/rooms']}
             >
-              <span className="nav-icon-box">
-                <i className="ti ti-map-pin" aria-hidden="true" />
-              </span>
-              <span className="nav-label">Zone Status</span>
-            </a>
+              <li>
+                <a
+                  href="/location/buildings"
+                  className={`nav-sub-link ${pathname === '/location/buildings' ? 'sub-active' : ''}`}
+                >
+                  <span className="sub-dot" />Buildings
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/location/floors"
+                  className={`nav-sub-link ${pathname === '/location/floors' ? 'sub-active' : ''}`}
+                >
+                  <span className="sub-dot" />Floors
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/location/zones"
+                  className={`nav-sub-link ${pathname === '/location/zones' ? 'sub-active' : ''}`}
+                >
+                  <span className="sub-dot" />Zones
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/location/rooms"
+                  className={`nav-sub-link ${pathname === '/location/rooms' ? 'sub-active' : ''}`}
+                >
+                  <span className="sub-dot" />Rooms
+                </a>
+              </li>
+            </NavItem>
           )}
 
           {(userRole === "Admin" || userRole === "Department1") && (
@@ -236,7 +265,7 @@ function Sidebar({ sidebarOpen }) {
             <NavItem
               icon="ti-adjustments-horizontal"
               label="Settings"
-              paths={['/settings/activity', '/settings-safety-new']}
+              paths={['/settings/activity', '/settings/safety/precaution']}
             >
               <li>
                 <a

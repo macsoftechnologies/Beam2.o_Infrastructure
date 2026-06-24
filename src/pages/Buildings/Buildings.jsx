@@ -1,51 +1,52 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { showSuccess, showError, showDeleteConfirm, showDeleteSuccess } from "../../../components/common/Toast/Toast";
-import Table from "../../../components/common/Table/Table";
-import Modal from "../../../components/common/Modal/Modal";
+import { showSuccess, showError, showDeleteConfirm, showDeleteSuccess } from "../../components/common/Toast/Toast";
+import Table from "../../components/common/Table/Table";
+import Modal from "../../components/common/Modal/Modal";
 import { FaEdit, FaTrash } from "react-icons/fa";
-import SafetyPrecautionform from "../../../forms/SafetyPrecautionform/SafetyPrecautionform";
-import { getPrecautions, addPrecaution, updatePrecaution, deletePrecaution } from "../../../services/authService";
-import "../../styles/pages.css";
+import BuildingForm from "../../forms/Buildingform/Buildingform";
+import { addBuilding, getBuildings, updateBuilding, deleteBuilding } from "../../services/authService";
+import "../styles/pages.css";
 
 const PAGE_LIMIT_DEFAULT = 10;
 
-const SafetyPrecaution = () => {
+const Buildings = () => {
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [selectedSafety, setSelectedSafety] = useState(null);
-  const [safetyList, setSafetyList] = useState([]);
+  const [viewOpen, setViewOpen] = useState(false);
+  const [selectedBuilding, setSelectedBuilding] = useState(null);
+  const [buildingList, setBuildingList] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageLimit] = useState(PAGE_LIMIT_DEFAULT);
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
   // ─── Pagination ───────────────────────────────────────────────────────────
-  const totalPages = Math.ceil((totalCount || safetyList.length) / pageLimit);
+  const totalPages = Math.ceil((totalCount || buildingList.length) / pageLimit);
   const startIndex = (currentPage - 1) * pageLimit;
 
   // ─── Fetch list ───────────────────────────────────────────────────────────
-  const fetchPrecautions = useCallback(async (page = 1) => {
+  const fetchBuildingsList = useCallback(async (page = 1) => {
     setIsLoading(true);
     try {
-      const res = await getPrecautions(page, pageLimit);
+      const res = await getBuildings(page, pageLimit);
       const rows = res?.data?.rows ?? res?.data ?? res ?? [];
       const count = res?.data?.count ?? res?.total ?? rows.length;
-      setSafetyList(rows);
+      setBuildingList(rows);
       setTotalCount(count);
-    } catch {
-      showError("Failed to load safety precautions");
+    } catch (err) {
+      showError("Failed to load buildings");
     } finally {
       setIsLoading(false);
     }
   }, [pageLimit]);
 
   useEffect(() => {
-    fetchPrecautions(currentPage);
-  }, [currentPage, fetchPrecautions]);
+    fetchBuildingsList(currentPage);
+  }, [currentPage, fetchBuildingsList]);
 
   // ─── Handlers ─────────────────────────────────────────────────────────────
   const handleEdit = (item, index) => {
-    setSelectedSafety({ ...item, serial: startIndex + index + 1 });
+    setSelectedBuilding({ ...item, serial: startIndex + index + 1 });
     setEditOpen(true);
   };
 
@@ -53,32 +54,32 @@ const SafetyPrecaution = () => {
     const result = await showDeleteConfirm();
     if (!result.isConfirmed) return;
     try {
-      await deletePrecaution(item.id);
+      await deleteBuilding(item.build_id ?? item.id);
       showDeleteSuccess();
-      const newPage = safetyList.length === 1 && currentPage > 1
+      const newPage = buildingList.length === 1 && currentPage > 1
         ? currentPage - 1
         : currentPage;
       setCurrentPage(newPage);
-      fetchPrecautions(newPage);
-    } catch {
-      showError("Failed to delete safety precaution");
+      fetchBuildingsList(newPage);
+    } catch (err) {
+      showError("Failed to delete building");
     }
   };
 
   const handleSubmit = async (formData) => {
     try {
-      if (selectedSafety && editOpen) {
-        await updatePrecaution(selectedSafety.id, formData);
-        showSuccess("Safety Precaution updated successfully");
+      if (selectedBuilding && editOpen) {
+        await updateBuilding(selectedBuilding.build_id ?? selectedBuilding.id, formData);
+        showSuccess("Building updated successfully");
         setEditOpen(false);
-        setSelectedSafety(null);
+        setSelectedBuilding(null);
       } else {
-        await addPrecaution(formData);
-        showSuccess("Safety Precaution added successfully");
+        await addBuilding(formData);
+        showSuccess("Building added successfully");
         setOpen(false);
       }
-      fetchPrecautions(currentPage);
-    } catch {
+      fetchBuildingsList(currentPage);
+    } catch (err) {
       showError("Operation failed");
     }
   };
@@ -86,11 +87,12 @@ const SafetyPrecaution = () => {
   // ─── Table columns ────────────────────────────────────────────────────────
   const columns = [
     { header: "S.No", accessor: "serial" },
-    { header: "Precaution", accessor: "precaution" },
+    { header: "Building Name", accessor: "building_name" },
+    { header: "Status", accessor: "building_status" },
     { header: "Actions", accessor: "actions" },
   ];
 
-  const tableData = safetyList.map((item, index) => ({
+  const tableData = buildingList.map((item, index) => ({
     ...item,
     serial: startIndex + index + 1,
     actions: (
@@ -120,21 +122,21 @@ const SafetyPrecaution = () => {
       {/* ── Page Header ── */}
       <div className="dept-page-header">
         <div className="dept-page-header__left">
-          <h1 className="dept-page-title">Safety Precaution</h1>
+          <h1 className="dept-page-title">Buildings</h1>
           <p className="dept-page-subtitle">
-            Manage and configure all safety precaution records
+            Manage and configure all building records
           </p>
         </div>
         <div className="dept-page-header__right">
           <span className="dept-count-badge">
-            {totalCount || safetyList.length} Total
+            {totalCount || buildingList.length} Total
           </span>
           <button
             className="dept-add-btn"
-            onClick={() => { setSelectedSafety(null); setOpen(true); }}
+            onClick={() => { setSelectedBuilding(null); setOpen(true); }}
           >
             <span className="dept-add-btn__icon">＋</span>
-            Add Safety Precaution
+            Add Building
           </button>
         </div>
       </div>
@@ -155,11 +157,11 @@ const SafetyPrecaution = () => {
       <Modal
         open={open}
         onClose={() => setOpen(false)}
-        title="Add Safety Precaution"
+        title="Add Building"
         size="md"
         type="default"
       >
-        <SafetyPrecautionform
+        <BuildingForm
           onClose={() => setOpen(false)}
           onSubmit={handleSubmit}
         />
@@ -168,15 +170,15 @@ const SafetyPrecaution = () => {
       {/* ── Edit Modal ── */}
       <Modal
         open={editOpen}
-        onClose={() => { setEditOpen(false); setSelectedSafety(null); }}
-        title="Edit Safety Precaution"
+        onClose={() => { setEditOpen(false); setSelectedBuilding(null); }}
+        title="Edit Building"
         size="md"
         type="warning"
       >
-        <SafetyPrecautionform
+        <BuildingForm
           isEdit
-          initialData={selectedSafety}
-          onClose={() => { setEditOpen(false); setSelectedSafety(null); }}
+          initialData={selectedBuilding}
+          onClose={() => { setEditOpen(false); setSelectedBuilding(null); }}
           onSubmit={handleSubmit}
         />
       </Modal>
@@ -185,4 +187,4 @@ const SafetyPrecaution = () => {
   );
 };
 
-export default SafetyPrecaution;
+export default Buildings;

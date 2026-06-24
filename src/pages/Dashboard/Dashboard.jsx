@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from 'react'
-import { Chart, registerables } from 'chart.js'
-import './Dashboard.css'
+import React, { useEffect, useRef, useState } from 'react';
+import { Chart, registerables } from 'chart.js';
+import { getRequestCounts, getPlans, getGraphCountsPerDay, getGraphSummary } from '../../services/authService';
+import './Dashboard.css';
 // import {
 //   showSuccessToast,
 //   showErrorToast,
@@ -184,21 +185,193 @@ function Dashboard() {
   const barChartInst   = useRef(null)
   const donutChartInst = useRef(null)
 
-  /* ── INIT CHARTS ──────────────────────── */
+  // ─── STATE VARIABLES ────────────────────────
+  const [counts, setCounts] = useState({ approved: 1696, open: 4625, closed: 96942, rejected: 8448, total: 111711 });
+  const [todaySummary, setTodaySummary] = useState({ total: 42, approved: 28, rejected: 2, nightShift: 5 });
+  const [recentRequestsList, setRecentRequestsList] = useState(recentRequests);
+  const [pendingApprovalsList, setPendingApprovalsList] = useState(pendingApprovals);
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [weekLabel, setWeekLabel] = useState("");
+  const [graphData, setGraphData] = useState(null);
+
+  // Helper: calculate first/last day of the week
+  const getWeekRange = (offset = 0) => {
+    const today = new Date();
+    const currentDay = today.getDay(); // 0 is Sunday
+    const first = new Date(today);
+    first.setDate(today.getDate() - currentDay + (offset * 7));
+    const last = new Date(first);
+    last.setDate(first.getDate() + 6);
+
+    const formatDate = (d) => d.toISOString().split('T')[0];
+    return {
+      firstDay: formatDate(first),
+      lastDay: formatDate(last),
+      label: `${first.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${last.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+    };
+  };
+
+  // ─── LOAD WEEKLY GRAPH DATA ─────────────────
   useEffect(() => {
-    // Bar chart (dark)
+    const { firstDay, lastDay, label } = getWeekRange(weekOffset);
+    setWeekLabel(label);
+
+    const fetchGraphData = async () => {
+      try {
+        const res = await getGraphCountsPerDay(firstDay, lastDay);
+        const raw = res?.data ?? res ?? null;
+        setGraphData(raw);
+      } catch (err) {
+        console.error("Failed to load daily graph data", err);
+      }
+    };
+    fetchGraphData();
+  }, [weekOffset]);
+
+  // ─── LOAD OVERALL COUNTS, SUMMARY & PLANS ───
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const res = await getRequestCounts();
+        const raw = res?.data ?? res ?? null;
+        if (raw) {
+          let approved = 0, open = 0, closed = 0, rejected = 0, total = 0;
+          if (Array.isArray(raw)) {
+            raw.forEach(item => {
+              const status = (item.Request_status || item.status || "").toLowerCase();
+              const count = Number(item.count || item.total || 0);
+              if (status === "approved") approved = count;
+              else if (status === "open" || status === "draft") open += count;
+              else if (status === "closed" || status === "completed") closed = count;
+              else if (status === "rejected") rejected = count;
+            });
+            total = approved + open + closed + rejected;
+          } else if (typeof raw === "object") {
+            Object.keys(raw).forEach(key => {
+              const val = Number(raw[key]);
+              const k = key.toLowerCase();
+              if (k === "approved") approved = val;
+              else if (k === "open") open = val;
+              else if (k === "closed") closed = val;
+              else if (k === "rejected") rejected = val;
+              else if (k === "total") total = val;
+            });
+            if (!total) total = approved + open + closed + rejected;
+          }
+          setCounts({ approved, open, closed, rejected, total });
+        }
+      } catch (err) {
+        console.error("Failed to load overall status counts", err);
+      }
+    };
+
+    const fetchSummary = async () => {
+      try {
+        const res = await getGraphSummary();
+        const raw = res?.data ?? res ?? null;
+        if (raw) {
+          const target = raw.today || raw;
+          setTodaySummary({
+            total: Number(target.total_requests || target.total || target.Total || 42),
+            approved: Number(target.approved || target.Approved || 28),
+            rejected: Number(target.rejected || target.Rejected || 2),
+            nightShift: Number(target.night_shift || target.nightShift || target.NightShift || 5)
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load today's summary counts", err);
+      }
+    };
+
+    const fetchPlansList = async () => {
+      try {
+        const res = await getPlans(1, 10);
+        const rows = res?.data?.rows ?? res?.data ?? res ?? [];
+        if (Array.isArray(rows) && rows.length > 0) {
+          const mapped = rows.map(item => {
+            const status = item.Request_status || item.status || "Open";
+            let badgeClass = "badge-primary";
+            if (status.toLowerCase() === "approved") badgeClass = "badge-success";
+            else if (status.toLowerCase() === "hold") badgeClass = "badge-warning";
+            else if (status.toLowerCase() === "rejected") badgeClass = "badge-danger";
+
+            return {
+              permit: item.PermitNo || item.permit_no || String(item.id),
+              activity: item.Activity || "General Work",
+              contractor: item.Company_Name || item.contractor_name || "Contractor",
+              status,
+              badgeClass
+            };
+          });
+
+          setRecentRequestsList(mapped.slice(0, 5));
+          
+          const pending = mapped.filter(item => 
+            ["pending", "draft", "hold"].includes(item.status.toLowerCase())
+          );
+          if (pending.length > 0) {
+            setPendingApprovalsList(pending.slice(0, 5));
+          } else {
+            setPendingApprovalsList(mapped.slice(5, 10));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load plans list", err);
+      }
+    };
+
+    fetchCounts();
+    fetchSummary();
+    fetchPlansList();
+  }, []);
+
+  // ─── RENDER BAR CHART ──────────────────────
+  useEffect(() => {
+    let labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    let approvedData = [45, 55, 58, 56, 62, 59, 64];
+    let openData = [35, 42, 36, 26, 45, 48, 52];
+    let closedData = [78, 87, 102, 99, 88, 106, 93];
+    let rejectedData = [12, 18, 15, 20, 10, 22, 14];
+
+    if (graphData) {
+      if (Array.isArray(graphData)) {
+        graphData.forEach((dayObj, index) => {
+          let label = dayObj.date || dayObj.day || labels[index] || "";
+          if (dayObj.date) {
+            const d = new Date(dayObj.date);
+            const weekday = d.toLocaleDateString('en-US', { weekday: 'short' });
+            const dayMonth = `${d.getDate()}/${d.getMonth() + 1}`;
+            label = `${weekday} ${dayMonth}`;
+          }
+          if (index < 7) {
+            labels[index] = label;
+            approvedData[index] = Number(dayObj.Approved ?? dayObj.approved ?? 0);
+            openData[index] = Number(dayObj.Open ?? dayObj.open ?? dayObj.draft ?? 0);
+            closedData[index] = Number(dayObj.Closed ?? dayObj.closed ?? dayObj.completed ?? 0);
+            rejectedData[index] = Number(dayObj.Rejected ?? dayObj.rejected ?? 0);
+          }
+        });
+      } else if (typeof graphData === "object") {
+        if (graphData.labels) labels = graphData.labels;
+        if (graphData.Approved) approvedData = graphData.Approved;
+        if (graphData.Open) openData = graphData.Open;
+        if (graphData.Closed) closedData = graphData.Closed;
+        if (graphData.Rejected) rejectedData = graphData.Rejected;
+      }
+    }
+
     if (barChartRef.current) {
-      if (barChartInst.current) barChartInst.current.destroy()
-      const ctx = barChartRef.current.getContext('2d')
+      if (barChartInst.current) barChartInst.current.destroy();
+      const ctx = barChartRef.current.getContext('2d');
       barChartInst.current = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: ['Sun 26/04', 'Mon 27/04', 'Tue 28/04', 'Wed 29/04', 'Thu 30/04', 'Fri 01/05', 'Sat 02/05'],
+          labels,
           datasets: [
-            { label: 'Approved', data: [45, 55, 58, 56, 62, 59, 64], backgroundColor: '#8B5CF6', borderRadius: 5 },
-            { label: 'Open',     data: [35, 42, 36, 26, 45, 48, 52], backgroundColor: '#06B6D4', borderRadius: 5 },
-            { label: 'Closed',   data: [78, 87, 102, 99, 88, 106, 93], backgroundColor: '#10B981', borderRadius: 5 },
-            { label: 'Rejected', data: [12, 18, 15, 20, 10, 22, 14], backgroundColor: '#FB7185', borderRadius: 5 },
+            { label: 'Approved', data: approvedData, backgroundColor: '#8B5CF6', borderRadius: 5 },
+            { label: 'Open',     data: openData,     backgroundColor: '#06B6D4', borderRadius: 5 },
+            { label: 'Closed',   data: closedData,   backgroundColor: '#10B981', borderRadius: 5 },
+            { label: 'Rejected', data: rejectedData, backgroundColor: '#FB7185', borderRadius: 5 },
           ],
         },
         options: {
@@ -213,19 +386,25 @@ function Dashboard() {
             x: { ticks: { color: '#fff' }, grid: { display: false } },
           },
         },
-      })
+      });
     }
 
-    // Donut chart
+    return () => {
+      if (barChartInst.current) barChartInst.current.destroy();
+    };
+  }, [graphData]);
+
+  // ─── RENDER DONUT CHART ────────────────────
+  useEffect(() => {
     if (donutChartRef.current) {
-      if (donutChartInst.current) donutChartInst.current.destroy()
-      const ctx = donutChartRef.current.getContext('2d')
+      if (donutChartInst.current) donutChartInst.current.destroy();
+      const ctx = donutChartRef.current.getContext('2d');
       donutChartInst.current = new Chart(ctx, {
         type: 'doughnut',
         data: {
           labels: ['Approved', 'Open', 'Closed', 'Rejected'],
           datasets: [{
-            data: [1696, 4625, 96942, 8448],
+            data: [counts.approved, counts.open, counts.closed, counts.rejected],
             backgroundColor: ['#8B5CF6', '#06B6D4', '#10B981', '#FB7185'],
             borderWidth: 0,
             hoverOffset: 12,
@@ -237,24 +416,19 @@ function Dashboard() {
           cutout: '80%',
           plugins: { legend: { display: false } },
         },
-      })
+      });
     }
 
     return () => {
-      if (barChartInst.current)   barChartInst.current.destroy()
-      if (donutChartInst.current) donutChartInst.current.destroy()
-    }
-  }, [])
+      if (donutChartInst.current) donutChartInst.current.destroy();
+    };
+  }, [counts]);
 
   /* ── HANDLERS ─────────────────────────── */
-  const handleAdd    = () => showSuccessToast('Added Successfully', '#35a542')
-  const handleUpdate = () => showSuccessToast('Updated Successfully', '#2563eb')
-  const handleDelete = async () => {
-    const confirm = await showDeleteConfirm('This data will be deleted!')
-    if (!confirm.isConfirmed) return
-    showSuccessToast('Deleted Successfully', '#8f1e1e')
-  }
-  const handleError  = () => showErrorToast('Something went wrong')
+  const handleAdd    = () => window.location.href = '/new-request';
+  const handleUpdate = () => window.location.href = '/employees';
+  const handleDelete = () => window.location.href = '/contractors';
+  const handleError  = () => console.log('Action test');
 
   /* ── RENDER ───────────────────────────── */
   return (
@@ -271,18 +445,15 @@ function Dashboard() {
         <button className="btn-action-outline" onClick={handleDelete}>
           <Icons.Briefcase /> New Contractor
         </button>
-        <button className="btn-action-outline" onClick={handleError}>
-          <Icons.ExclamationCircle /> Test Error
-        </button>
       </div>
 
       {/* ── STAT CARDS ── */}
       <div className="stat-cards-row">
-        <StatCard colorClass="card-purple" icon={Icons.Check}    value="1,696"   label="Approved" />
-        <StatCard colorClass="card-cyan"   icon={Icons.DoorOpen} value="4,625"   label="Open"     />
-        <StatCard colorClass="card-green"  icon={Icons.Shield}   value="96,942"  label="Closed"   />
-        <StatCard colorClass="card-rose"   icon={Icons.XCircle}  value="8,448"   label="Rejected" />
-        <StatCard colorClass="card-slate"  icon={Icons.Stack}    value="156,728" label="Total"    />
+        <StatCard colorClass="card-purple" icon={Icons.Check}    value={counts.approved.toLocaleString()}   label="Approved" />
+        <StatCard colorClass="card-cyan"   icon={Icons.DoorOpen} value={counts.open.toLocaleString()}   label="Open"     />
+        <StatCard colorClass="card-green"  icon={Icons.Shield}   value={counts.closed.toLocaleString()}  label="Closed"   />
+        <StatCard colorClass="card-rose"   icon={Icons.XCircle}  value={counts.rejected.toLocaleString()}   label="Rejected" />
+        <StatCard colorClass="card-slate"  icon={Icons.Stack}    value={counts.total.toLocaleString()} label="Total"    />
       </div>
 
       {/* ── WEEKLY BAR CHART ── */}
@@ -290,9 +461,9 @@ function Dashboard() {
         <div className="chart-top-bar">
           <div className="section-heading-white">Weekly Performance Data</div>
           <div className="chart-top-bar-right">
-            <button className="btn-nav-custom">Previous Week</button>
-            <button className="btn-nav-custom">Next Week</button>
-            <span className="week-badge">Feb – Oct 2024</span>
+            <button className="btn-nav-custom" onClick={() => setWeekOffset(w => w - 1)}>Previous Week</button>
+            <button className="btn-nav-custom" onClick={() => setWeekOffset(w => w + 1)}>Next Week</button>
+            <span className="week-badge">{weekLabel}</span>
           </div>
         </div>
         <div className="chart-container-tall">
@@ -308,7 +479,9 @@ function Dashboard() {
           <div className="donut-wrap">
             <canvas ref={donutChartRef} style={{ maxHeight: '220px' }}></canvas>
             <div className="donut-center">
-              <h3 style={{ fontWeight: 700, fontSize: '1.4rem', margin: 0 }}>111k</h3>
+              <h3 style={{ fontWeight: 700, fontSize: '1.4rem', margin: 0 }}>
+                {counts.total >= 1000 ? `${(counts.total / 1000).toFixed(0)}k` : counts.total}
+              </h3>
               <p style={{ color: '#94A3B8', fontSize: '0.72rem', margin: 0 }}>Total Permits</p>
             </div>
           </div>
@@ -334,10 +507,10 @@ function Dashboard() {
             Today's Summary
           </div>
           {[
-            { label: 'Total Requests', value: '42', color: '#fff'    },
-            { label: 'Approved',       value: '28', color: '#34D399' },
-            { label: 'Rejected',       value: '2',  color: '#FB7185' },
-            { label: 'Night Shift',    value: '5',  color: '#FCD34D' },
+            { label: 'Total Requests', value: todaySummary.total, color: '#fff'    },
+            { label: 'Approved',       value: todaySummary.approved, color: '#34D399' },
+            { label: 'Rejected',       value: todaySummary.rejected,  color: '#FB7185' },
+            { label: 'Night Shift',    value: todaySummary.nightShift,  color: '#FCD34D' },
           ].map(({ label, value, color }) => (
             <div key={label} className="today-row">
               <span>{label}</span>
@@ -366,7 +539,7 @@ function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {recentRequests.map(r => (
+                {recentRequestsList.map(r => (
                   <tr key={r.permit}>
                     <td className="td-permit">{r.permit}</td>
                     <td>{r.activity}</td>
@@ -396,13 +569,13 @@ function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {pendingApprovals.map(r => (
+                {pendingApprovalsList.map(r => (
                   <tr key={r.permit}>
                     <td className="td-permit">{r.permit}</td>
                     <td>{r.activity}</td>
                     <td>{r.contractor}</td>
                     <td>
-                      <button className="btn-review">Review</button>
+                      <button className="btn-review" onClick={() => window.location.href = `/new-request?permit=${r.permit}`}>Review</button>
                     </td>
                   </tr>
                 ))}
@@ -411,7 +584,6 @@ function Dashboard() {
           </div>
         </div>
       </div>
-
       {/* ── ZONE STATUS | SYSTEM STATISTICS | RECENT LOGS ── */}
       <div className="bottom-row">
 

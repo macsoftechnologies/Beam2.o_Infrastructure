@@ -1,23 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { showSuccess, showError, showDeleteConfirm, showDeleteSuccess } from "../../components/common/Toast/Toast";
 import Table from "../../components/common/Table/Table";
 import Modal from "../../components/common/Modal/Modal";
 import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
 import ZoneStatusForm from "../../forms/ZoneStatusform/ZoneStatusform";
+import { getZones, addZone, updateZone, deleteZone, getBuildings } from "../../services/authService";
 import "../styles/pages.css";
-
-const STATIC_ZONE_STATUSES = [
-  { zoneStatusId: 1,  building: "MA.II", level: "MA.II 1", zone: "50.1L",   status: "Construction"   },
-  { zoneStatusId: 2,  building: "MU91",  level: "MU91.1",  zone: "MU91.1P", status: "Commissioning"  },
-  { zoneStatusId: 3,  building: "MU91",  level: "MU91.1",  zone: "MU91.1N", status: "Commissioning"  },
-  { zoneStatusId: 4,  building: "MU91",  level: "MU91.1",  zone: "MU91.1M", status: "Commissioning"  },
-  { zoneStatusId: 5,  building: "MU91",  level: "MU91.1",  zone: "MU91.1H", status: "Commissioning"  },
-  { zoneStatusId: 6,  building: "MU91",  level: "MU91.1",  zone: "MU91.1G", status: "Construction"   },
-  { zoneStatusId: 7,  building: "MU91",  level: "MU91.1",  zone: "MU91.1F", status: "Construction"   },
-  { zoneStatusId: 8,  building: "MU91",  level: "MU91.1",  zone: "MU91.1A", status: "Commissioning"  },
-  { zoneStatusId: 9,  building: "MU91",  level: "MU91.0",  zone: "MU91.0S", status: "Construction"   },
-  { zoneStatusId: 10, building: "MU91",  level: "MU91.0",  zone: "MU91.0R", status: "Construction"   },
-];
 
 const PAGE_LIMIT_DEFAULT = 10;
 
@@ -36,23 +24,55 @@ const ActionButtons = ({ onView, onEdit, onDelete }) => (
 );
 
 const StatusBadge = ({ status }) => (
-  <span className={`dept-status-badge dept-status-badge--${status === "active" ? "active" : "inactive"}`}>
+  <span className={`dept-status-badge dept-status-badge--inactive`}>
     {status}
   </span>
 );
 
 const ZoneStatus = () => {
-  const [open, setOpen]                           = useState(false);
-  const [editOpen, setEditOpen]                   = useState(false);
-  const [viewOpen, setViewOpen]                   = useState(false);
+  const [open, setOpen]                             = useState(false);
+  const [editOpen, setEditOpen]                     = useState(false);
+  const [viewOpen, setViewOpen]                     = useState(false);
   const [selectedZoneStatus, setSelectedZoneStatus] = useState(null);
-  const [zoneStatusList, setZoneStatusList]       = useState(STATIC_ZONE_STATUSES);
+  const [zoneStatusList, setZoneStatusList]       = useState([]);
   const [currentPage, setCurrentPage]             = useState(1);
   const [pageLimit]                               = useState(PAGE_LIMIT_DEFAULT);
+  const [totalCount, setTotalCount]               = useState(0);
+  const [isLoading, setIsLoading]                 = useState(false);
+  const [buildings, setBuildings]                 = useState([]);
 
-  const totalPages = Math.ceil(zoneStatusList.length / pageLimit);
-  const startIndex = (currentPage - 1) * pageLimit;
-  const paginated  = zoneStatusList.slice(startIndex, startIndex + pageLimit);
+  // Fetch zone statuses
+  const fetchZoneStatuses = useCallback(async (page = 1) => {
+    setIsLoading(true);
+    try {
+      const res = await getZones(page, pageLimit);
+      const rows = res?.data ?? res ?? [];
+      const count = res?.total ?? rows.length;
+      setZoneStatusList(rows);
+      setTotalCount(count);
+    } catch {
+      showError("Failed to load zone status records");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [pageLimit]);
+
+  // Fetch buildings list for mapping
+  useEffect(() => {
+    const fetchB = async () => {
+      try {
+        const res = await getBuildings(1, 100);
+        setBuildings(res?.data ?? []);
+      } catch (err) {
+        console.error("Failed to load buildings", err);
+      }
+    };
+    fetchB();
+  }, []);
+
+  useEffect(() => {
+    fetchZoneStatuses(currentPage);
+  }, [currentPage, fetchZoneStatuses]);
 
   const handleView = (item, index) => {
     setSelectedZoneStatus({ ...item, serial: startIndex + index + 1 });
@@ -67,30 +87,45 @@ const ZoneStatus = () => {
   const handleDelete = async (item) => {
     const result = await showDeleteConfirm();
     if (!result.isConfirmed) return;
-    setZoneStatusList((prev) => prev.filter((z) => z.zoneStatusId !== item.zoneStatusId));
-    showDeleteSuccess();
+    try {
+      await deleteZone(item.id);
+      showDeleteSuccess();
+      const newPage = zoneStatusList.length === 1 && currentPage > 1
+        ? currentPage - 1
+        : currentPage;
+      setCurrentPage(newPage);
+      fetchZoneStatuses(newPage);
+    } catch {
+      showError("Failed to delete zone status");
+    }
   };
 
-  const handleSubmit = (formData) => {
+  const handleSubmit = async (formData) => {
     try {
       if (selectedZoneStatus && editOpen) {
-        setZoneStatusList((prev) =>
-          prev.map((z) =>
-            z.zoneStatusId === selectedZoneStatus.zoneStatusId ? { ...z, ...formData } : z
-          )
-        );
+        await updateZone(selectedZoneStatus.id, formData);
+        showSuccess("Zone Status updated successfully");
         setEditOpen(false);
         setSelectedZoneStatus(null);
-        showSuccess("Zone Status updated successfully");
-        return;
+      } else {
+        await addZone(formData);
+        showSuccess("Zone Status added successfully");
+        setOpen(false);
       }
-      setZoneStatusList((prev) => [...prev, { ...formData, zoneStatusId: Date.now() }]);
-      setOpen(false);
-      showSuccess("Zone Status added successfully");
+      fetchZoneStatuses(currentPage);
     } catch {
       showError("Operation failed");
     }
   };
+
+  const totalPages = Math.ceil((totalCount || zoneStatusList.length) / pageLimit);
+  const startIndex = (currentPage - 1) * pageLimit;
+
+  // Build building lookup map
+  const buildingMap = {};
+  buildings.forEach(b => {
+    buildingMap[b.build_id] = b.building_name;
+  });
 
   const columns = [
     { header: "S.No",     accessor: "serial"   },
@@ -101,9 +136,10 @@ const ZoneStatus = () => {
     { header: "Actions",  accessor: "actions"  },
   ];
 
-  const tableData = paginated.map((item, index) => ({
+  const tableData = zoneStatusList.map((item, index) => ({
     ...item,
     serial: startIndex + index + 1,
+    building: buildingMap[item.building_id] || "—",
     actions: (
       <ActionButtons
         onView={() => handleView(item, index)}
@@ -122,8 +158,8 @@ const ZoneStatus = () => {
           <p className="dept-page-subtitle">Manage and configure all zone status records</p>
         </div>
         <div className="dept-page-header__right">
-          <span className="dept-count-badge">{zoneStatusList.length} Total</span>
-          <button className="dept-add-btn" onClick={() => setOpen(true)}>
+          <span className="dept-count-badge">{(totalCount || zoneStatusList.length)} Total</span>
+          <button className="dept-add-btn" onClick={() => { setSelectedEmployee(null); setOpen(true); }}>
             <span className="dept-add-btn__icon">＋</span>
             Add Zone Status
           </button>
@@ -137,7 +173,7 @@ const ZoneStatus = () => {
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
-          isLoading={false}
+          isLoading={isLoading}
         />
       </div>
 
@@ -154,19 +190,19 @@ const ZoneStatus = () => {
           <div className="dept-view-grid">
             <div className="dept-view-item">
               <span className="dept-view-label">Building</span>
-              <span className="dept-view-value">{selectedZoneStatus.building}</span>
+              <span className="dept-view-value">{buildingMap[selectedZoneStatus.building_id] || "—"}</span>
             </div>
             <div className="dept-view-item">
               <span className="dept-view-label">Level</span>
-              <span className="dept-view-value dept-view-value--code">{selectedZoneStatus.level}</span>
+              <span className="dept-view-value dept-view-value--code">{selectedZoneStatus.level || "—"}</span>
             </div>
             <div className="dept-view-item">
               <span className="dept-view-label">Zone</span>
-              <span className="dept-view-value dept-view-value--code">{selectedZoneStatus.zone}</span>
+              <span className="dept-view-value dept-view-value--code">{selectedZoneStatus.zone || "—"}</span>
             </div>
             <div className="dept-view-item">
               <span className="dept-view-label">Status</span>
-              <span className="dept-view-value">{selectedZoneStatus.status}</span>
+              <span className="dept-view-value">{selectedZoneStatus.status || "—"}</span>
             </div>
             <div className="dept-view-item">
               <span className="dept-view-label">Serial No.</span>

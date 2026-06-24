@@ -13,8 +13,8 @@ function ElectricalWorksform({ onClose, initialData, isEdit, onSubmit }) {
 
   useEffect(() => {
     if (isEdit && initialData) {
-      setModuleNumber(  initialData.moduleNumber   || "");
-      setElectricalWork(initialData.electricalWork || "");
+      setModuleNumber(  initialData.module || initialData.moduleNumber || "");
+      setElectricalWork(initialData.electrical_works || initialData.electricalWork || "");
     }
   }, [initialData, isEdit]);
 
@@ -22,14 +22,16 @@ function ElectricalWorksform({ onClose, initialData, isEdit, onSubmit }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const payload = { moduleNumber, electricalWork };
+    const payload = {
+      module: moduleNumber,
+      electrical_works: electricalWork
+    };
 
-    if (isEdit && initialData?.electricalWorkId) {
-      payload.electricalWorkId = initialData.electricalWorkId;
+    if (isEdit && (initialData?.id !== undefined ? initialData.id : initialData?.electricalWorkId)) {
+      payload.id = initialData.id !== undefined ? initialData.id : initialData.electricalWorkId;
     }
 
     onSubmit && onSubmit(payload);
-    onClose  && onClose();
   };
 
   return (

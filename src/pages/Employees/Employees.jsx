@@ -1,23 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { showSuccess, showError, showDeleteConfirm, showDeleteSuccess } from "../../components/common/Toast/Toast";
 import Table from "../../components/common/Table/Table";
 import Modal from "../../components/common/Modal/Modal";
 import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
 import EmployeeForm from "../../forms/Employeesform/Employeesform";
+import { getEmployees, addEmployee, updateEmployee, deleteEmployee, getRoles } from "../../services/authService";
 import "../styles/pages.css";
-
-const STATIC_EMPLOYEES = [
-  { employeeId: 1,  name: "Mads Woetmann",       badgeId: "",         designation: "Project Manager",       companyName: "MM Industries ApS", email: "mads@mmindustries.dk",   phoneNumber: "+459185 6000",   role: "Admin",   employeeType: "Full-time", access: true,  username: "mads.w",     password: "" },
-  { employeeId: 2,  name: "Federico Leiva",       badgeId: "",         designation: "C&Q Permit Officer",    companyName: "NNE",               email: "OFLE@nne.com",           phoneNumber: "+4531918825",    role: "User",    employeeType: "Contractor", access: true, username: "federico.l", password: "" },
-  { employeeId: 3,  name: "Morten Marin Gissel",  badgeId: "09282610", designation: "Projektleder",          companyName: "Kim Hvass",         email: "Morten@kim-hvass.dk",   phoneNumber: "+4522999048",    role: "User",    employeeType: "Full-time", access: true,  username: "morten.m",   password: "" },
-  { employeeId: 4,  name: "Rasmus Hulebæk Klint", badgeId: "03614759", designation: "Projektleder",          companyName: "Kim Hvass",         email: "Rasmus@kim-hvass.dk",   phoneNumber: "+4522999018",    role: "User",    employeeType: "Full-time", access: true,  username: "rasmus.h",   password: "" },
-  { employeeId: 5,  name: "Paulius Budrikas",      badgeId: "",         designation: "Site Manager",          companyName: "ITCC",              email: "paulius.budrikas@itcc.lt", phoneNumber: "+370 674 94185", role: "User", employeeType: "Contractor", access: true, username: "paulius.b",  password: "" },
-  { employeeId: 6,  name: "Rolandas Banys",        badgeId: "",         designation: "Project Manager",       companyName: "ITCC",              email: "rolandas.banys@itcc.lt", phoneNumber: "+370 674 94237", role: "User",  employeeType: "Contractor", access: true, username: "rolandas.b", password: "" },
-  { employeeId: 7,  name: "Jesper Ole Hansen",     badgeId: "",         designation: "Automation Specialist", companyName: "NNE",               email: "jpoh@nne.com",           phoneNumber: "+4530750024",    role: "User",    employeeType: "Full-time", access: true,  username: "jesper.h",   password: "" },
-  { employeeId: 8,  name: "Adam",                  badgeId: "8615",     designation: "Electrician",           companyName: "Wicotec Kirkebjerg A/S", email: "adanow@wk.dk",      phoneNumber: "+4555232772",    role: "User",    employeeType: "Full-time", access: true,  username: "adam",       password: "" },
-  { employeeId: 9,  name: "Slawek",                badgeId: "14624",    designation: "Electrician",           companyName: "Wicotec Kirkebjerg A/S", email: "sagora@wk.dk",      phoneNumber: "+4571860440",    role: "User",    employeeType: "Full-time", access: true,  username: "slawek",     password: "" },
-  { employeeId: 10, name: "Lars Eriksen",          badgeId: "10021",    designation: "HSE Officer",           companyName: "Novo Nordisk",      email: "lars.e@novonordisk.com", phoneNumber: "+4588888888",    role: "Manager", employeeType: "Full-time", access: false, username: "lars.e",     password: "" },
-];
 
 const PAGE_LIMIT_DEFAULT = 10;
 
@@ -41,18 +29,58 @@ const StatusBadge = ({ status }) => (
   </span>
 );
 
-const Employees = () => {
-  const [open, setOpen]                         = useState(false);
-  const [editOpen, setEditOpen]                 = useState(false);
-  const [viewOpen, setViewOpen]                 = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [employeeList, setEmployeeList]         = useState(STATIC_EMPLOYEES);
-  const [currentPage, setCurrentPage]           = useState(1);
-  const [pageLimit]                             = useState(PAGE_LIMIT_DEFAULT);
+const EMPLOYEE_TYPE_LABELS = {
+  "Department": "ConM/HSE",
+  "Department1": "C&Q",
+  "Subcontractor": "Contractor",
+  "Observer": "Observer"
+};
 
-  const totalPages = Math.ceil(employeeList.length / pageLimit);
-  const startIndex = (currentPage - 1) * pageLimit;
-  const paginated  = employeeList.slice(startIndex, startIndex + pageLimit);
+const Employees = () => {
+  const [open, setOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [viewOpen, setViewOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [employeeList, setEmployeeList] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageLimit] = useState(PAGE_LIMIT_DEFAULT);
+  const [totalCount, setTotalCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [rolesList, setRolesList] = useState([]);
+
+  // Fetch roles
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const res = await getRoles(1, 100);
+        const rows = res?.data?.rows ?? res?.data ?? res ?? [];
+        setRolesList(rows);
+      } catch (err) {
+        console.error("Failed to load roles", err);
+      }
+    };
+    fetchRoles();
+  }, []);
+
+  // Fetch employees
+  const fetchEmployees = useCallback(async (page = 1) => {
+    setIsLoading(true);
+    try {
+      const res = await getEmployees(page, pageLimit);
+      const rows = res?.data?.rows ?? res?.data ?? res ?? [];
+      const count = res?.data?.count ?? res?.total ?? rows.length;
+      setEmployeeList(rows);
+      setTotalCount(count);
+    } catch {
+      showError("Failed to load employees");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [pageLimit]);
+
+  useEffect(() => {
+    fetchEmployees(currentPage);
+  }, [currentPage, fetchEmployees]);
 
   const handleView = (item, index) => {
     setSelectedEmployee({ ...item, serial: startIndex + index + 1 });
@@ -67,46 +95,56 @@ const Employees = () => {
   const handleDelete = async (item) => {
     const result = await showDeleteConfirm();
     if (!result.isConfirmed) return;
-    setEmployeeList((prev) => prev.filter((e) => e.employeeId !== item.employeeId));
-    showDeleteSuccess();
+    try {
+      await deleteEmployee(item.id);
+      showDeleteSuccess();
+      const newPage = employeeList.length === 1 && currentPage > 1
+        ? currentPage - 1
+        : currentPage;
+      setCurrentPage(newPage);
+      fetchEmployees(newPage);
+    } catch {
+      showError("Failed to delete employee");
+    }
   };
 
-  const handleSubmit = (formData) => {
+  const handleSubmit = async (formData) => {
     try {
       if (selectedEmployee && editOpen) {
-        setEmployeeList((prev) =>
-          prev.map((e) =>
-            e.employeeId === selectedEmployee.employeeId ? { ...e, ...formData } : e
-          )
-        );
+        await updateEmployee(formData);
+        showSuccess("Employee updated successfully");
         setEditOpen(false);
         setSelectedEmployee(null);
-        showSuccess("Employee updated successfully");
-        return;
+      } else {
+        await addEmployee(formData);
+        showSuccess("Employee added successfully");
+        setOpen(false);
       }
-      setEmployeeList((prev) => [...prev, { ...formData, employeeId: Date.now() }]);
-      setOpen(false);
-      showSuccess("Employee added successfully");
+      fetchEmployees(currentPage);
     } catch {
       showError("Operation failed");
     }
   };
 
+  const totalPages = Math.ceil((totalCount || employeeList.length) / pageLimit);
+  const startIndex = (currentPage - 1) * pageLimit;
+
   const columns = [
-    { header: "S.No",        accessor: "serial"       },
-    { header: "Employee Name", accessor: "name"       },
-    { header: "Badge Id",    accessor: "badgeId"      },
-    { header: "Designation", accessor: "designation"  },
+    { header: "S.No", accessor: "serial" },
+    { header: "Employee Name", accessor: "name" },
+    { header: "Badge Id", accessor: "badgeId" },
+    { header: "Designation", accessor: "designation" },
     { header: "Company Name", accessor: "companyName" },
-    { header: "Email ID",    accessor: "email"        },
-    { header: "Phonenumber", accessor: "phoneNumber"  },
-    { header: "Actions",     accessor: "actions"      },
+    { header: "Email ID", accessor: "email" },
+    { header: "Phonenumber", accessor: "phoneNumber" },
+    { header: "Actions", accessor: "actions" },
   ];
 
-  const tableData = paginated.map((item, index) => ({
+  const tableData = employeeList.map((item, index) => ({
     ...item,
     serial: startIndex + index + 1,
-
+    name: item.employeeName,
+    phoneNumber: item.phonenumber,
     actions: (
       <ActionButtons
         onView={() => handleView(item, index)}
@@ -125,8 +163,8 @@ const Employees = () => {
           <p className="dept-page-subtitle">Manage and configure all employee records</p>
         </div>
         <div className="dept-page-header__right">
-          <span className="dept-count-badge">{employeeList.length} Total</span>
-          <button className="dept-add-btn" onClick={() => setOpen(true)}>
+          <span className="dept-count-badge">{(totalCount || employeeList.length)} Total</span>
+          <button className="dept-add-btn" onClick={() => { setSelectedEmployee(null); setOpen(true); }}>
             <span className="dept-add-btn__icon">＋</span>
             Add Employee
           </button>
@@ -140,24 +178,24 @@ const Employees = () => {
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
-          isLoading={false}
+          isLoading={isLoading}
         />
       </div>
 
-      <Modal open={open} onClose={() => setOpen(false)} title="Add Employee" size="lg" type="default">
+      <Modal open={open} onClose={() => setOpen(false)} title="Add Employee" size="xl" type="default" scrollable>
         <EmployeeForm onClose={() => setOpen(false)} onSubmit={handleSubmit} />
       </Modal>
 
-      <Modal open={editOpen} onClose={() => setEditOpen(false)} title="Edit Employee" size="lg" type="warning">
+      <Modal open={editOpen} onClose={() => setEditOpen(false)} title="Edit Employee" size="xl" type="warning" scrollable>
         <EmployeeForm isEdit initialData={selectedEmployee} onClose={() => setEditOpen(false)} onSubmit={handleSubmit} />
       </Modal>
 
-      <Modal open={viewOpen} onClose={() => setViewOpen(false)} title="Employee Details" size="md" type="info">
+      <Modal open={viewOpen} onClose={() => setViewOpen(false)} title="Employee Details" size="md" type="info" scrollable>
         {selectedEmployee && (
           <div className="dept-view-grid">
             <div className="dept-view-item">
               <span className="dept-view-label">Employee Name</span>
-              <span className="dept-view-value">{selectedEmployee.name}</span>
+              <span className="dept-view-value">{selectedEmployee.employeeName}</span>
             </div>
             <div className="dept-view-item">
               <span className="dept-view-label">Badge Id</span>
@@ -165,31 +203,35 @@ const Employees = () => {
             </div>
             <div className="dept-view-item">
               <span className="dept-view-label">Designation</span>
-              <span className="dept-view-value">{selectedEmployee.designation}</span>
+              <span className="dept-view-value">{selectedEmployee.designation || "—"}</span>
             </div>
             <div className="dept-view-item">
               <span className="dept-view-label">Phone Number</span>
-              <span className="dept-view-value">{selectedEmployee.phoneNumber}</span>
+              <span className="dept-view-value">{selectedEmployee.phonenumber || "—"}</span>
             </div>
             <div className="dept-view-item">
               <span className="dept-view-label">Role</span>
-              <span className="dept-view-value dept-view-value--code">{selectedEmployee.role}</span>
+              <span className="dept-view-value dept-view-value--code">
+                {rolesList.find(r => Number(r.id) === Number(selectedEmployee.roleId))?.roleName || (selectedEmployee.roleId === 0 ? "Admin" : selectedEmployee.role || "—")}
+              </span>
             </div>
             <div className="dept-view-item">
               <span className="dept-view-label">Employee Type</span>
-              <span className="dept-view-value">{selectedEmployee.employeeType}</span>
+              <span className="dept-view-value">
+                {EMPLOYEE_TYPE_LABELS[selectedEmployee.userType] || selectedEmployee.userType || "—"}
+              </span>
             </div>
             <div className="dept-view-item">
               <span className="dept-view-label">Company Name</span>
-              <span className="dept-view-value">{selectedEmployee.companyName}</span>
+              <span className="dept-view-value">{selectedEmployee.companyName || "—"}</span>
             </div>
             <div className="dept-view-item">
               <span className="dept-view-label">Access</span>
-              <StatusBadge status={selectedEmployee.access} />
+              <StatusBadge status={selectedEmployee.access === "1" || selectedEmployee.access === true} />
             </div>
             <div className="dept-view-item">
               <span className="dept-view-label">Email</span>
-              <span className="dept-view-value">{selectedEmployee.email}</span>
+              <span className="dept-view-value">{selectedEmployee.email || "—"}</span>
             </div>
             <div className="dept-view-item">
               <span className="dept-view-label">Username</span>

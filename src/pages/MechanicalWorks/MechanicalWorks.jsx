@@ -1,23 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { showSuccess, showError, showDeleteConfirm, showDeleteSuccess } from "../../components/common/Toast/Toast";
 import Table from "../../components/common/Table/Table";
 import Modal from "../../components/common/Modal/Modal";
 import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
 import MechanicalWorksForm from "../../forms/MechanicalWorksform/MechanicalWorksform";
+import { getMechanicalWorks, addMechanicalWork, updateMechanicalWork, deleteMechanicalWork } from "../../services/authService";
 import "../styles/pages.css";
-
-const STATIC_MECHANICAL_WORKS = [
-  { mechanicalWorkId: 1,  mechanicalWork: "9961-A" },
-  { mechanicalWorkId: 2,  mechanicalWork: "9901-A" },
-  { mechanicalWorkId: 3,  mechanicalWork: "9806-A" },
-  { mechanicalWorkId: 4,  mechanicalWork: "9805-A" },
-  { mechanicalWorkId: 5,  mechanicalWork: "9804-A" },
-  { mechanicalWorkId: 6,  mechanicalWork: "9803-A" },
-  { mechanicalWorkId: 7,  mechanicalWork: "9802-A" },
-  { mechanicalWorkId: 8,  mechanicalWork: "9801-A" },
-  { mechanicalWorkId: 9,  mechanicalWork: "9611-A" },
-  { mechanicalWorkId: 10, mechanicalWork: "9497-A" },
-];
 
 const PAGE_LIMIT_DEFAULT = 10;
 
@@ -40,13 +28,31 @@ const MechanicalWorks = () => {
   const [editOpen, setEditOpen]                             = useState(false);
   const [viewOpen, setViewOpen]                             = useState(false);
   const [selectedMechanicalWork, setSelectedMechanicalWork] = useState(null);
-  const [mechanicalWorkList, setMechanicalWorkList]         = useState(STATIC_MECHANICAL_WORKS);
+  const [mechanicalWorkList, setMechanicalWorkList]         = useState([]);
   const [currentPage, setCurrentPage]                       = useState(1);
   const [pageLimit]                                         = useState(PAGE_LIMIT_DEFAULT);
+  const [totalCount, setTotalCount]                       = useState(0);
+  const [isLoading, setIsLoading]                         = useState(false);
 
-  const totalPages = Math.ceil(mechanicalWorkList.length / pageLimit);
-  const startIndex = (currentPage - 1) * pageLimit;
-  const paginated  = mechanicalWorkList.slice(startIndex, startIndex + pageLimit);
+  // Fetch mechanical works
+  const fetchMechanicalWorks = useCallback(async (page = 1) => {
+    setIsLoading(true);
+    try {
+      const res = await getMechanicalWorks(page, pageLimit);
+      const rows = res?.data ?? res ?? [];
+      const count = res?.total ?? rows.length;
+      setMechanicalWorkList(rows);
+      setTotalCount(count);
+    } catch {
+      showError("Failed to load mechanical works");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [pageLimit]);
+
+  useEffect(() => {
+    fetchMechanicalWorks(currentPage);
+  }, [currentPage, fetchMechanicalWorks]);
 
   const handleView = (item, index) => {
     setSelectedMechanicalWork({ ...item, serial: startIndex + index + 1 });
@@ -61,30 +67,39 @@ const MechanicalWorks = () => {
   const handleDelete = async (item) => {
     const result = await showDeleteConfirm();
     if (!result.isConfirmed) return;
-    setMechanicalWorkList((prev) => prev.filter((m) => m.mechanicalWorkId !== item.mechanicalWorkId));
-    showDeleteSuccess();
+    try {
+      await deleteMechanicalWork(item.id);
+      showDeleteSuccess();
+      const newPage = mechanicalWorkList.length === 1 && currentPage > 1
+        ? currentPage - 1
+        : currentPage;
+      setCurrentPage(newPage);
+      fetchMechanicalWorks(newPage);
+    } catch {
+      showError("Failed to delete mechanical work");
+    }
   };
 
-  const handleSubmit = (formData) => {
+  const handleSubmit = async (formData) => {
     try {
       if (selectedMechanicalWork && editOpen) {
-        setMechanicalWorkList((prev) =>
-          prev.map((m) =>
-            m.mechanicalWorkId === selectedMechanicalWork.mechanicalWorkId ? { ...m, ...formData } : m
-          )
-        );
+        await updateMechanicalWork(selectedMechanicalWork.id, formData);
+        showSuccess("Mechanical Work updated successfully");
         setEditOpen(false);
         setSelectedMechanicalWork(null);
-        showSuccess("Mechanical Work updated successfully");
-        return;
+      } else {
+        await addMechanicalWork(formData);
+        showSuccess("Mechanical Work added successfully");
+        setOpen(false);
       }
-      setMechanicalWorkList((prev) => [...prev, { ...formData, mechanicalWorkId: Date.now() }]);
-      setOpen(false);
-      showSuccess("Mechanical Work added successfully");
+      fetchMechanicalWorks(currentPage);
     } catch {
       showError("Operation failed");
     }
   };
+
+  const totalPages = Math.ceil((totalCount || mechanicalWorkList.length) / pageLimit);
+  const startIndex = (currentPage - 1) * pageLimit;
 
   const columns = [
     { header: "S.No",             accessor: "serial"          },
@@ -92,9 +107,10 @@ const MechanicalWorks = () => {
     { header: "Actions",          accessor: "actions"         },
   ];
 
-  const tableData = paginated.map((item, index) => ({
+  const tableData = mechanicalWorkList.map((item, index) => ({
     ...item,
     serial: startIndex + index + 1,
+    mechanicalWork: item.mechanical_works || "—",
     actions: (
       <ActionButtons
         onView={() => handleView(item, index)}
@@ -113,8 +129,8 @@ const MechanicalWorks = () => {
           <p className="dept-page-subtitle">Manage and configure all mechanical work records</p>
         </div>
         <div className="dept-page-header__right">
-          <span className="dept-count-badge">{mechanicalWorkList.length} Total</span>
-          <button className="dept-add-btn" onClick={() => setOpen(true)}>
+          <span className="dept-count-badge">{(totalCount || mechanicalWorkList.length)} Total</span>
+          <button className="dept-add-btn" onClick={() => { setSelectedMechanicalWork(null); setOpen(true); }}>
             <span className="dept-add-btn__icon">＋</span>
             Add Mechanical Work
           </button>
@@ -128,7 +144,7 @@ const MechanicalWorks = () => {
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
-          isLoading={false}
+          isLoading={isLoading}
         />
       </div>
 
@@ -145,7 +161,7 @@ const MechanicalWorks = () => {
           <div className="dept-view-grid">
             <div className="dept-view-item">
               <span className="dept-view-label">Mechanical Work</span>
-              <span className="dept-view-value dept-view-value--code">{selectedMechanicalWork.mechanicalWork}</span>
+              <span className="dept-view-value dept-view-value--code">{selectedMechanicalWork.mechanical_works || "—"}</span>
             </div>
             <div className="dept-view-item">
               <span className="dept-view-label">Serial No.</span>

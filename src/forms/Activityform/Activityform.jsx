@@ -2,23 +2,19 @@ import React, { useState, useEffect } from "react";
 import "../../forms/styles/forms.css";
 
 function Activityform({ onClose, initialData, isEdit, onSubmit }) {
-  const [name, setName] = useState("");
+  const [activityName, setActivityName] = useState("");
 
   useEffect(() => {
     if (isEdit && initialData) {
-      setName(initialData.name || "");
+      setActivityName(initialData.activityName || "");
     }
   }, [initialData, isEdit]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!activityName.trim()) return;
 
-    const payload = { name };
-
-    if (isEdit && initialData?.activityId) {
-      payload.activityId = initialData.activityId;
-    }
-
+    const payload = { activityName: activityName.trim() };
     onSubmit && onSubmit(payload);
     onClose && onClose();
   };
@@ -35,9 +31,9 @@ function Activityform({ onClose, initialData, isEdit, onSubmit }) {
           <input
             type="text"
             className="df-input"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Activity Name"
+            value={activityName}
+            onChange={(e) => setActivityName(e.target.value)}
+            placeholder="e.g. Welding and Cutting"
             required
           />
         </div>
@@ -46,19 +42,11 @@ function Activityform({ onClose, initialData, isEdit, onSubmit }) {
 
       {/* Footer */}
       <div className="df-footer">
-        <button
-          type="button"
-          className="df-btn df-btn--cancel"
-          onClick={onClose}
-        >
+        <button type="button" className="df-btn df-btn--cancel" onClick={onClose}>
           Cancel
         </button>
-
-        <button
-          type="submit"
-          className="df-btn df-btn--submit"
-        >
-          {isEdit ? "Update Activity" : "Create"}
+        <button type="submit" className="df-btn df-btn--submit" disabled={!activityName.trim()}>
+          {isEdit ? "Update Activity" : "Add Activity"}
         </button>
       </div>
     </form>

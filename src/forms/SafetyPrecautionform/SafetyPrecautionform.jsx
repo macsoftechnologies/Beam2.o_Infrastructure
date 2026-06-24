@@ -2,23 +2,19 @@ import React, { useState, useEffect } from "react";
 import "../../forms/styles/forms.css";
 
 function SafetyPrecautionform({ onClose, initialData, isEdit, onSubmit }) {
-  const [name, setName] = useState("");
+  const [precaution, setPrecaution] = useState("");
 
   useEffect(() => {
     if (isEdit && initialData) {
-      setName(initialData.name || "");
+      setPrecaution(initialData.precaution || "");
     }
   }, [initialData, isEdit]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!precaution.trim()) return;
 
-    const payload = { name };
-
-    if (isEdit && initialData?.safetyId) {
-      payload.safetyId = initialData.safetyId;
-    }
-
+    const payload = { precaution: precaution.trim() };
     onSubmit && onSubmit(payload);
     onClose && onClose();
   };
@@ -34,8 +30,8 @@ function SafetyPrecautionform({ onClose, initialData, isEdit, onSubmit }) {
           </label>
           <textarea
             className="df-input"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={precaution}
+            onChange={(e) => setPrecaution(e.target.value)}
             placeholder="Safety Precaution"
             rows={4}
             required
@@ -47,19 +43,11 @@ function SafetyPrecautionform({ onClose, initialData, isEdit, onSubmit }) {
 
       {/* Footer */}
       <div className="df-footer">
-        <button
-          type="button"
-          className="df-btn df-btn--cancel"
-          onClick={onClose}
-        >
+        <button type="button" className="df-btn df-btn--cancel" onClick={onClose}>
           Cancel
         </button>
-
-        <button
-          type="submit"
-          className="df-btn df-btn--submit"
-        >
-          {isEdit ? "Update Safety Precaution" : "Create"}
+        <button type="submit" className="df-btn df-btn--submit" disabled={!precaution.trim()}>
+          {isEdit ? "Update Safety Precaution" : "Add Safety Precaution"}
         </button>
       </div>
     </form>

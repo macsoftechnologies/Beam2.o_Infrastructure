@@ -1,23 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { showSuccess, showError, showDeleteConfirm, showDeleteSuccess } from "../../components/common/Toast/Toast";
 import Table from "../../components/common/Table/Table";
 import Modal from "../../components/common/Modal/Modal";
 import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
 import ElectricalWorksForm from "../../forms/ElectricalWorksform/ElectricalWorksform";
+import { getElectricalWorks, addElectricalWork, updateElectricalWork, deleteElectricalWork } from "../../services/authService";
 import "../styles/pages.css";
-
-const STATIC_ELECTRICAL_WORKS = [
-  { electricalWorkId: 1,  moduleNumber: "System Numbers", electricalWork: "0110F" },
-  { electricalWorkId: 2,  moduleNumber: "System Numbers", electricalWork: "0110E" },
-  { electricalWorkId: 3,  moduleNumber: "System Numbers", electricalWork: "0110D" },
-  { electricalWorkId: 4,  moduleNumber: "System Numbers", electricalWork: "0110C" },
-  { electricalWorkId: 5,  moduleNumber: "System Numbers", electricalWork: "0110B" },
-  { electricalWorkId: 6,  moduleNumber: "System Numbers", electricalWork: "0110A" },
-  { electricalWorkId: 7,  moduleNumber: "System Numbers", electricalWork: "1087X" },
-  { electricalWorkId: 8,  moduleNumber: "System Numbers", electricalWork: "1086X" },
-  { electricalWorkId: 9,  moduleNumber: "System Numbers", electricalWork: "1076X" },
-  { electricalWorkId: 10, moduleNumber: "Panel Numbers",  electricalWork: "1075X" },
-];
 
 const PAGE_LIMIT_DEFAULT = 10;
 
@@ -40,13 +28,31 @@ const ElectricalWorks = () => {
   const [editOpen, setEditOpen]                           = useState(false);
   const [viewOpen, setViewOpen]                           = useState(false);
   const [selectedElectricalWork, setSelectedElectricalWork] = useState(null);
-  const [electricalWorkList, setElectricalWorkList]       = useState(STATIC_ELECTRICAL_WORKS);
+  const [electricalWorkList, setElectricalWorkList]       = useState([]);
   const [currentPage, setCurrentPage]                     = useState(1);
   const [pageLimit]                                       = useState(PAGE_LIMIT_DEFAULT);
+  const [totalCount, setTotalCount]                       = useState(0);
+  const [isLoading, setIsLoading]                         = useState(false);
 
-  const totalPages = Math.ceil(electricalWorkList.length / pageLimit);
-  const startIndex = (currentPage - 1) * pageLimit;
-  const paginated  = electricalWorkList.slice(startIndex, startIndex + pageLimit);
+  // Fetch electrical works
+  const fetchElectricalWorks = useCallback(async (page = 1) => {
+    setIsLoading(true);
+    try {
+      const res = await getElectricalWorks(page, pageLimit);
+      const rows = res?.data ?? res ?? [];
+      const count = res?.total ?? rows.length;
+      setElectricalWorkList(rows);
+      setTotalCount(count);
+    } catch {
+      showError("Failed to load electrical works");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [pageLimit]);
+
+  useEffect(() => {
+    fetchElectricalWorks(currentPage);
+  }, [currentPage, fetchElectricalWorks]);
 
   const handleView = (item, index) => {
     setSelectedElectricalWork({ ...item, serial: startIndex + index + 1 });
@@ -61,30 +67,39 @@ const ElectricalWorks = () => {
   const handleDelete = async (item) => {
     const result = await showDeleteConfirm();
     if (!result.isConfirmed) return;
-    setElectricalWorkList((prev) => prev.filter((e) => e.electricalWorkId !== item.electricalWorkId));
-    showDeleteSuccess();
+    try {
+      await deleteElectricalWork(item.id);
+      showDeleteSuccess();
+      const newPage = electricalWorkList.length === 1 && currentPage > 1
+        ? currentPage - 1
+        : currentPage;
+      setCurrentPage(newPage);
+      fetchElectricalWorks(newPage);
+    } catch {
+      showError("Failed to delete electrical work");
+    }
   };
 
-  const handleSubmit = (formData) => {
+  const handleSubmit = async (formData) => {
     try {
       if (selectedElectricalWork && editOpen) {
-        setElectricalWorkList((prev) =>
-          prev.map((e) =>
-            e.electricalWorkId === selectedElectricalWork.electricalWorkId ? { ...e, ...formData } : e
-          )
-        );
+        await updateElectricalWork(selectedElectricalWork.id, formData);
+        showSuccess("Electrical Work updated successfully");
         setEditOpen(false);
         setSelectedElectricalWork(null);
-        showSuccess("Electrical Work updated successfully");
-        return;
+      } else {
+        await addElectricalWork(formData);
+        showSuccess("Electrical Work added successfully");
+        setOpen(false);
       }
-      setElectricalWorkList((prev) => [...prev, { ...formData, electricalWorkId: Date.now() }]);
-      setOpen(false);
-      showSuccess("Electrical Work added successfully");
+      fetchElectricalWorks(currentPage);
     } catch {
       showError("Operation failed");
     }
   };
+
+  const totalPages = Math.ceil((totalCount || electricalWorkList.length) / pageLimit);
+  const startIndex = (currentPage - 1) * pageLimit;
 
   const columns = [
     { header: "S.No",            accessor: "serial"          },
@@ -93,9 +108,11 @@ const ElectricalWorks = () => {
     { header: "Actions",         accessor: "actions"         },
   ];
 
-  const tableData = paginated.map((item, index) => ({
+  const tableData = electricalWorkList.map((item, index) => ({
     ...item,
     serial: startIndex + index + 1,
+    moduleNumber: item.module || "—",
+    electricalWork: item.electrical_works || "—",
     actions: (
       <ActionButtons
         onView={() => handleView(item, index)}
@@ -114,8 +131,8 @@ const ElectricalWorks = () => {
           <p className="dept-page-subtitle">Manage and configure all electrical work records</p>
         </div>
         <div className="dept-page-header__right">
-          <span className="dept-count-badge">{electricalWorkList.length} Total</span>
-          <button className="dept-add-btn" onClick={() => setOpen(true)}>
+          <span className="dept-count-badge">{(totalCount || electricalWorkList.length)} Total</span>
+          <button className="dept-add-btn" onClick={() => { setSelectedElectricalWork(null); setOpen(true); }}>
             <span className="dept-add-btn__icon">＋</span>
             Add Electrical Work
           </button>
@@ -129,7 +146,7 @@ const ElectricalWorks = () => {
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
-          isLoading={false}
+          isLoading={isLoading}
         />
       </div>
 
@@ -146,11 +163,11 @@ const ElectricalWorks = () => {
           <div className="dept-view-grid">
             <div className="dept-view-item">
               <span className="dept-view-label">Module Number</span>
-              <span className="dept-view-value dept-view-value--code">{selectedElectricalWork.moduleNumber}</span>
+              <span className="dept-view-value dept-view-value--code">{selectedElectricalWork.module || "—"}</span>
             </div>
             <div className="dept-view-item">
               <span className="dept-view-label">Electrical Work</span>
-              <span className="dept-view-value">{selectedElectricalWork.electricalWork}</span>
+              <span className="dept-view-value">{selectedElectricalWork.electrical_works || "—"}</span>
             </div>
             <div className="dept-view-item">
               <span className="dept-view-label">Serial No.</span>
