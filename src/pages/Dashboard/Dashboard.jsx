@@ -185,8 +185,23 @@ function Dashboard() {
   const barChartInst   = useRef(null)
   const donutChartInst = useRef(null)
 
-  // ─── STATE VARIABLES ────────────────────────
-  const [counts, setCounts] = useState({ approved: 1696, open: 4625, closed: 96942, rejected: 8448, total: 111711 });
+  const [counts, setCounts] = useState({
+    totalCount: 0,
+    draftCount: 0,
+    holdCount: 0,
+    preApprovedCount: 0,
+    approvedCount: 0,
+    rejectedCount: 0,
+    openedCount: 0,
+    cancelledCount: 0,
+    autoCancelledCount: 0,
+    closedCount: 0,
+    approved: 0,
+    open: 0,
+    closed: 0,
+    rejected: 0,
+    total: 0
+  });
   const [todaySummary, setTodaySummary] = useState({ total: 42, approved: 28, rejected: 2, nightShift: 5 });
   const [recentRequestsList, setRecentRequestsList] = useState(recentRequests);
   const [pendingApprovalsList, setPendingApprovalsList] = useState(pendingApprovals);
@@ -236,29 +251,88 @@ function Dashboard() {
         const raw = res?.data ?? res ?? null;
         if (raw) {
           let approved = 0, open = 0, closed = 0, rejected = 0, total = 0;
-          if (Array.isArray(raw)) {
-            raw.forEach(item => {
-              const status = (item.Request_status || item.status || "").toLowerCase();
-              const count = Number(item.count || item.total || 0);
-              if (status === "approved") approved = count;
-              else if (status === "open" || status === "draft") open += count;
-              else if (status === "closed" || status === "completed") closed = count;
-              else if (status === "rejected") rejected = count;
+          
+          // Handle format: [ { totalCount: 10418, approvedCount: 71, ... } ] or similar
+          const list = Array.isArray(raw) ? raw : [raw];
+          const dataObj = list[0];
+          
+          if (dataObj && (
+            'approvedCount' in dataObj || 
+            'totalCount' in dataObj || 
+            'draftCount' in dataObj || 
+            'closedCount' in dataObj
+          )) {
+            approved = Number(dataObj.approvedCount ?? 0);
+            open = Number(dataObj.draftCount ?? 0) + 
+                   Number(dataObj.holdCount ?? 0) + 
+                   Number(dataObj.preApprovedCount ?? 0) + 
+                   Number(dataObj.openedCount ?? 0);
+            closed = Number(dataObj.closedCount ?? 0);
+            rejected = Number(dataObj.rejectedCount ?? 0) + 
+                       Number(dataObj.cancelledCount ?? 0) + 
+                       Number(dataObj.autoCancelledCount ?? 0);
+            total = Number(dataObj.totalCount ?? (approved + open + closed + rejected));
+
+            setCounts({
+              totalCount: Number(dataObj.totalCount ?? 0),
+              draftCount: Number(dataObj.draftCount ?? 0),
+              holdCount: Number(dataObj.holdCount ?? 0),
+              preApprovedCount: Number(dataObj.preApprovedCount ?? 0),
+              approvedCount: Number(dataObj.approvedCount ?? 0),
+              rejectedCount: Number(dataObj.rejectedCount ?? 0),
+              openedCount: Number(dataObj.openedCount ?? 0),
+              cancelledCount: Number(dataObj.cancelledCount ?? 0),
+              autoCancelledCount: Number(dataObj.autoCancelledCount ?? 0),
+              closedCount: Number(dataObj.closedCount ?? 0),
+              approved,
+              open,
+              closed,
+              rejected,
+              total
             });
-            total = approved + open + closed + rejected;
-          } else if (typeof raw === "object") {
-            Object.keys(raw).forEach(key => {
-              const val = Number(raw[key]);
-              const k = key.toLowerCase();
-              if (k === "approved") approved = val;
-              else if (k === "open") open = val;
-              else if (k === "closed") closed = val;
-              else if (k === "rejected") rejected = val;
-              else if (k === "total") total = val;
+          } else {
+            // Legacy / alternate format parsing
+            if (Array.isArray(raw)) {
+              raw.forEach(item => {
+                const status = (item.Request_status || item.status || "").toLowerCase();
+                const count = Number(item.count || item.total || 0);
+                if (status === "approved") approved = count;
+                else if (status === "open" || status === "draft") open += count;
+                else if (status === "closed" || status === "completed") closed = count;
+                else if (status === "rejected") rejected = count;
+              });
+              total = approved + open + closed + rejected;
+            } else if (typeof raw === "object") {
+              Object.keys(raw).forEach(key => {
+                const val = Number(raw[key]);
+                const k = key.toLowerCase();
+                if (k === "approved") approved = val;
+                else if (k === "open") open = val;
+                else if (k === "closed") closed = val;
+                else if (k === "rejected") rejected = val;
+                else if (k === "total") total = val;
+              });
+              if (!total) total = approved + open + closed + rejected;
+            }
+
+            setCounts({
+              totalCount: total,
+              draftCount: 0,
+              holdCount: 0,
+              preApprovedCount: 0,
+              approvedCount: approved,
+              rejectedCount: rejected,
+              openedCount: open,
+              cancelledCount: 0,
+              autoCancelledCount: 0,
+              closedCount: closed,
+              approved,
+              open,
+              closed,
+              rejected,
+              total
             });
-            if (!total) total = approved + open + closed + rejected;
           }
-          setCounts({ approved, open, closed, rejected, total });
         }
       } catch (err) {
         console.error("Failed to load overall status counts", err);
@@ -402,10 +476,30 @@ function Dashboard() {
       donutChartInst.current = new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: ['Approved', 'Open', 'Closed', 'Rejected'],
+          labels: ['Approved', 'Closed', 'Opened', 'Pre-Approved', 'Drafts', 'On Hold', 'Rejected', 'Cancelled', 'Auto Cancelled'],
           datasets: [{
-            data: [counts.approved, counts.open, counts.closed, counts.rejected],
-            backgroundColor: ['#8B5CF6', '#06B6D4', '#10B981', '#FB7185'],
+            data: [
+              counts.approvedCount,
+              counts.closedCount,
+              counts.openedCount,
+              counts.preApprovedCount,
+              counts.draftCount,
+              counts.holdCount,
+              counts.rejectedCount,
+              counts.cancelledCount,
+              counts.autoCancelledCount
+            ],
+            backgroundColor: [
+              '#8B5CF6',
+              '#10B981',
+              '#06B6D4',
+              '#6366F1',
+              '#64748B',
+              '#F59E0B',
+              '#EF4444',
+              '#F43F5E',
+              '#EC4899'
+            ],
             borderWidth: 0,
             hoverOffset: 12,
           }],
@@ -449,11 +543,16 @@ function Dashboard() {
 
       {/* ── STAT CARDS ── */}
       <div className="stat-cards-row">
-        <StatCard colorClass="card-purple" icon={Icons.Check}    value={counts.approved.toLocaleString()}   label="Approved" />
-        <StatCard colorClass="card-cyan"   icon={Icons.DoorOpen} value={counts.open.toLocaleString()}   label="Open"     />
-        <StatCard colorClass="card-green"  icon={Icons.Shield}   value={counts.closed.toLocaleString()}  label="Closed"   />
-        <StatCard colorClass="card-rose"   icon={Icons.XCircle}  value={counts.rejected.toLocaleString()}   label="Rejected" />
-        <StatCard colorClass="card-slate"  icon={Icons.Stack}    value={counts.total.toLocaleString()} label="Total"    />
+        <StatCard colorClass="card-slate"  icon={Icons.Stack}    value={counts.totalCount.toLocaleString()} label="Total" />
+        <StatCard colorClass="card-purple" icon={Icons.Check}    value={counts.approvedCount.toLocaleString()} label="Approved" />
+        <StatCard colorClass="card-green"  icon={Icons.Shield}   value={counts.closedCount.toLocaleString()} label="Closed" />
+        <StatCard colorClass="card-cyan"   icon={Icons.DoorOpen} value={counts.openedCount.toLocaleString()} label="Opened" />
+        <StatCard colorClass="card-purple" icon={Icons.Check}    value={counts.preApprovedCount.toLocaleString()} label="Pre-Approved" />
+        <StatCard colorClass="card-slate"  icon={Icons.Clock}    value={counts.draftCount.toLocaleString()} label="Drafts" />
+        <StatCard colorClass="card-cyan"   icon={Icons.Clock}    value={counts.holdCount.toLocaleString()} label="On Hold" />
+        <StatCard colorClass="card-rose"   icon={Icons.XCircle}  value={counts.rejectedCount.toLocaleString()} label="Rejected" />
+        <StatCard colorClass="card-rose"   icon={Icons.XCircle}  value={counts.cancelledCount.toLocaleString()} label="Cancelled" />
+        <StatCard colorClass="card-rose"   icon={Icons.XCircle}  value={counts.autoCancelledCount.toLocaleString()} label="Auto Cancelled" />
       </div>
 
       {/* ── WEEKLY BAR CHART ── */}
@@ -487,14 +586,19 @@ function Dashboard() {
           </div>
           <div className="donut-legend">
             {[
-              { color: '#8B5CF6', label: 'Approved' },
-              { color: '#06B6D4', label: 'Open'     },
-              { color: '#10B981', label: 'Closed'   },
-              { color: '#FB7185', label: 'Rejected' },
-            ].map(({ color, label }) => (
+              { color: '#8B5CF6', label: 'Approved', count: counts.approvedCount },
+              { color: '#10B981', label: 'Closed', count: counts.closedCount },
+              { color: '#06B6D4', label: 'Opened', count: counts.openedCount },
+              { color: '#6366F1', label: 'Pre-Approved', count: counts.preApprovedCount },
+              { color: '#64748B', label: 'Drafts', count: counts.draftCount },
+              { color: '#F59E0B', label: 'On Hold', count: counts.holdCount },
+              { color: '#EF4444', label: 'Rejected', count: counts.rejectedCount },
+              { color: '#F43F5E', label: 'Cancelled', count: counts.cancelledCount },
+              { color: '#EC4899', label: 'Auto Cancelled', count: counts.autoCancelledCount },
+            ].map(({ color, label, count }) => (
               <div key={label} className="donut-legend-item">
                 <span className="legend-dot" style={{ background: color }}></span>
-                {label}
+                {label}: {count.toLocaleString()}
               </div>
             ))}
           </div>

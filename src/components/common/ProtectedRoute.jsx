@@ -12,9 +12,19 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     try {
       const user = localStorage.getItem("user");
       const parsedUser = user ? JSON.parse(user) : null;
-      const userRole = parsedUser ? parsedUser.role : "";
+      const userRole = parsedUser ? (parsedUser.role || parsedUser.userType) : "";
 
-      if (!allowedRoles.includes(userRole)) {
+      let userRoles = [];
+      if (typeof userRole === "string") {
+        userRoles = userRole.split(",").map(r => r.trim());
+      } else if (Array.isArray(userRole)) {
+        userRoles = userRole;
+      } else if (userRole) {
+        userRoles = [userRole];
+      }
+
+      const hasAccess = userRoles.some(r => allowedRoles.includes(r));
+      if (!hasAccess) {
         return <Navigate to="/dashboard" replace />;
       }
     } catch {

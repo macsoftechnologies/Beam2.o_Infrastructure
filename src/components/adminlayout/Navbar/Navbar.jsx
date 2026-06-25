@@ -104,7 +104,7 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
         const parsed = JSON.parse(u);
         setCurrentUser({
           username: parsed.username || "Alex Mercer",
-          role: parsed.role || "Site Manager",
+          role: parsed.role || parsed.userType || "Site Manager",
           name: parsed.username || "Alex Mercer"
         });
       }

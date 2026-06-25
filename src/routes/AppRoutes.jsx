@@ -136,7 +136,7 @@ function AppRoutes() {
           <Route
             path="/list-request"
             element={
-              <ProtectedRoute allowedRoles={["Admin", "Subcontractor", "Department", "Department1"]}>
+              <ProtectedRoute allowedRoles={["Admin", "Subcontractor", "Department", "Department1", "Observer"]}>
                 <ListRequest />
               </ProtectedRoute>
             }
