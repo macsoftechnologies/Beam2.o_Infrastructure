@@ -302,8 +302,9 @@ export const getRequestCountByStatus = async (status) => {
     return res.data;
 };
 
-export const getPlans = async (page = 1, end = 10) => {
-    const res = await api.post("/requests/plans", { Page: page, End: end });
+export const getPlans = async (payload) => {
+    const body = typeof payload === "object" ? payload : {};
+    const res = await api.post("/requests/plans", body);
     return res.data;
 };
 
