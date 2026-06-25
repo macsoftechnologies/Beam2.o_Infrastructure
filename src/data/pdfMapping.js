@@ -11,52 +11,52 @@ import RendsborgParkPdf from "../assets/drawings/m3Infrastructure/plans/Rendsbor
 
 export const FLOOR_PDFS = {
   // Building 13 - APM Terminal
-  "13": {
+  "22": {
     "APM Terminal": APMTerminalPdf,
   },
 
   // Building 14 - EH Lake West
-  "14": {
+  "21": {
     "EH Lake West": EHLakeWestPdf,
   },
 
   // Building 15 - EH Lake East
-  "15": {
+  "20": {
     "EH Lake East": EHLakeEastPdf,
   },
 
   // Building 16 - Rendsborg Park
-  "16": {
+  "19": {
     "Rendsborg Park": RendsborgParkPdf,
   },
 
   // Building 17 - P-hus
-  "17": {
+  "18": {
     "P-hus Site-Plan": PHusPdf,
   },
 
   // Building 18 - NN East
-  "18": {
+  "17": {
     "NN East Site-Plan": NNEastPdf,
   },
 
   // Building 19 - HovvejWest
-  "19": {
+  "16": {
     "HovvejWest Zone 1 - Zone 2": HovvejWestPdf,
   },
 
   // Building 20 - HovvejEast
-  "20": {
+  "15": {
     "HovvejEast Zone 1 - Zone 2": HovvejEastPdf,
   },
 
   // Building 21 - EC-JCP1 Hallas Alle
-  "21": {
+  "14": {
     "EC-JCP1 Zone 1 - Zone 2": ECJCP1Pdf,
   },
 
   // Building 22 - BA-DD Hallas Alle
-  "22": {
+  "13": {
     "BA-DD Zone 1 - Zone 2": BADDPdf,
   },
 };

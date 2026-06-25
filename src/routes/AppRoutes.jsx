@@ -31,6 +31,7 @@ import LogHistory from "../pages/LogHistroy/LogHistroy";
 
 
 import ProtectedRoute from "../components/common/ProtectedRoute";
+import ListRequest from "../pages/Request/ListRequest/ListRequest";
 
 function AppRoutes() {
   return (
@@ -129,6 +130,14 @@ function AppRoutes() {
             element={
               <ProtectedRoute allowedRoles={["Admin", "Subcontractor", "Department", "Department1"]}>
                 <NewRequest />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/list-request"
+            element={
+              <ProtectedRoute allowedRoles={["Admin", "Subcontractor", "Department", "Department1"]}>
+                <ListRequest />
               </ProtectedRoute>
             }
           />

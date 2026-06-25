@@ -1,54 +1,17 @@
-import React, { useMemo, useState, useRef } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import "../../styles/pages.css";
 import "../../../forms/styles/forms.css";
 import "./NewRequest.css";
 
 import FloorDrawing from "../FloorDrawing/FloorDrawing";
 
-import { BUILDINGS } from "../../../data/buildings";
-import { FLOOR_MAPPING } from "../../../data/floors";
 import { FLOOR_PDFS } from "../../../data/pdfMapping";
 import { ZONE_MAPPING } from "../../../data/zones";
-
-// Mock data lists
-const SUB_CONTRACTORS = [
-  { id: "S1", name: "Alpha Construction Ltd" },
-  { id: "S2", name: "Beta Mechanical Systems" },
-  { id: "S3", name: "Delta Electrical Corp" },
-  { id: "S4", name: "Omega Fire & Safety" },
-];
-
-const ACTIVITY_TYPES = [
-  { id: "A1", name: "Cable Pulling" },
-  { id: "A2", name: "Equipment Installation" },
-  { id: "A3", name: "Welding / Hotwork" },
-  { id: "A4", name: "Pressure Testing" },
-  { id: "A5", name: "General Maintenance" },
-];
-
-const ELECTRICAL_WORKS = [
-  {
-    module: "Module 1 - Distribution Boards",
-    items: [
-      { id: "E1", name: "DB-01 installation" },
-      { id: "E2", name: "DB-02 wiring" }
-    ]
-  },
-  {
-    module: "Module 2 - Lighting & Power",
-    items: [
-      { id: "E3", name: "Lighting circuit installation" },
-      { id: "E4", name: "Socket outlet installation" }
-    ]
-  }
-];
-
-const MECHANICAL_WORKS = [
-  { id: "M1", name: "Piping installation" },
-  { id: "M2", name: "Ductwork installation" },
-  { id: "M3", name: "Equipment alignment" },
-  { id: "M4", name: "Valves installation" }
-];
+import { BUILDINGS } from "../../../data/buildings";
+import { getContractors, getActivities, getElectricalWorks, getMechanicalWorks, getBuildings, getFloors, getZones, getRooms, getUser } from "../../../services/authService";
+import { createRequest, updateRequest, addRamsFiles, deleteRamsFile, addListReqstNote } from "../../../services/requestService";
+import { showSuccess, showError } from "../../../components/common/Toast/Toast";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const ELECTRICAL_WORKS_SELECT = [
   { id: "1", ElectricalWorksval: "Yes" },
@@ -81,7 +44,28 @@ const TESTINGS_SELECT = [
 ];
 
 function NewRequest() {
-  const shouldShowElectricianCert = () => false;
+  const navigate = useNavigate();
+  const location = useLocation();
+  const editRequest = location.state?.editRequest;
+
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [existingFiles, setExistingFiles] = useState([]);
+  const [notesHistory, setNotesHistory] = useState([]);
+
+  // Dynamic selector lists
+  const [contractors, setContractors] = useState([]);
+  const [activitiesList, setActivitiesList] = useState([]);
+  const [electricalWorksList, setElectricalWorksList] = useState([]);
+  const [mechanicalWorksList, setMechanicalWorksList] = useState([]);
+  const [buildingsList, setBuildingsList] = useState([]);
+  const [floorsList, setFloorsList] = useState([]);
+  const [zonesList, setZonesList] = useState([]);
+  const [roomsList, setRoomsList] = useState([]);
+  const [isLoadingSelectors, setIsLoadingSelectors] = useState(true);
+
+  const shouldShowElectricianCert = () => {
+    return formData.permit_type !== "Commissioning";
+  };
 
   const [building, setBuilding] = useState("");
   const [level, setLevel] = useState("");
@@ -99,36 +83,68 @@ function NewRequest() {
     }
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     if (e.target.files && e.target.files.length > 0) {
-      const newFiles = Array.from(e.target.files).map(f => ({ name: f.name }));
-      setUploadedFiles(prev => [...prev, ...newFiles]);
+      const newFiles = Array.from(e.target.files);
+      if (isEditMode) {
+        // Upload immediately in edit mode
+        const fd = new FormData();
+        fd.append("id", editRequest.id);
+        const currentUser = getUser();
+        fd.append("userId", currentUser?.id || 1);
+        newFiles.forEach((file) => {
+          fd.append("rams_file[]", file);
+        });
+
+        try {
+          const res = await addRamsFiles(fd);
+          showSuccess("RAMS File uploaded successfully");
+          if (res?.files) {
+            setExistingFiles(res.files.map(f => ({ id: f.id, name: f.file_name, file: f.file })));
+          }
+        } catch (err) {
+          showError("Failed to upload file attachment.");
+        }
+      } else {
+        // In creation mode, store locally
+        setUploadedFiles((prev) => [...prev, ...newFiles]);
+      }
     }
   };
 
-  const handleRemoveFile = (index) => {
-    setUploadedFiles(prev => prev.filter((_, idx) => idx !== index));
+  const handleRemoveFile = async (index, fileId) => {
+    if (isEditMode && fileId) {
+      try {
+        await deleteRamsFile(fileId);
+        showSuccess("RAMS File deleted successfully");
+        setExistingFiles((prev) => prev.filter((_, idx) => idx !== index));
+      } catch (err) {
+        showError("Failed to delete file attachment.");
+      }
+    } else {
+      setUploadedFiles((prev) => prev.filter((_, idx) => idx !== index));
+    }
   };
 
   const [formData, setFormData] = useState({
-    Requestdate: new Date().toLocaleDateString("en-GB"),
-    Companyname: "M3 Infrastructure",
-    SubContractor: "",
-    newSubContractor: "",
+    Request_Date: new Date().toLocaleDateString("en-GB"),
+    Company_Name: "M3 Infrastructure",
+    Sub_Contractor_Id: "",
+    new_sub_contractor: "",
     Foreman: "",
-    ForemanPhone: "",
+    Foreman_Phone_Number: "",
     Activity: "",
-    TypeActivity: "",
-    RAMSNumber: "",
+    Type_Of_Activity_Id: "",
+    rams_number: "",
     permit_type: "Construction",
-    descriptActivity: "",
-    Startdate: "",
-    StartTime: "",
-    EndTime: "",
+    description_of_activity: "",
+    Working_Date: "",
+    Start_Time: "",
+    End_Time: "",
     night_shift: false,
-    newWorkDate: "",
+    new_date: "",
     new_end_time: "",
-    Site: "M3 Infrastructure",
+    Site_Id: "5",
     Tools: "",
     Machinery: "",
     work_type: "",
@@ -143,7 +159,7 @@ function NewRequest() {
     floatLabel15: "",
     floatLabel16: "",
     // Hot Work Section
-    HOTWORK: "0",
+    Hot_work: "0",
     floatLabel1: "",
     floatLabel3: "",
     floatLabel4: "",
@@ -157,14 +173,14 @@ function NewRequest() {
     NEWHOTWORK1: "",
     NEWHOTWORK2: "",
     // Temporary Electrical Systems
-    electricalSystem: "0",
+    working_on_electrical_system: "0",
     floatLabel17: "",
     floatLabel18: "",
     floatLabel19: "",
     floatLabel20: "",
     floatLabel22: "",
     // Hazardous Substances
-    HAZARDOUS: "0",
+    working_hazardious_substen: "0",
     floatLabel24: "",
     floatLabel25: "",
     floatLabel26: "",
@@ -174,7 +190,7 @@ function NewRequest() {
     floatLabel30: "",
     floatLabel31: "",
     // Working at Height
-    workingAtHeight: "0",
+    working_at_height: "0",
     segragated_demarkated: "",
     floatLabel39: "",
     floatLabel40: "",
@@ -189,7 +205,7 @@ function NewRequest() {
     floatLabel49: "",
     floatLabel50: "",
     // Working in Confined Spaces
-    confinedSpaces: "0",
+    working_confined_spaces: "0",
     floatLabel51: "",
     floatLabel52: "",
     floatLabel53: "",
@@ -199,7 +215,7 @@ function NewRequest() {
     floatLabel57: "",
     floatLabel58: "",
     // Excavation Works
-    excavationWorks: "0",
+    excavation_works: "0",
     floatLabel71: "",
     floatLabel72: "",
     excavation_shoring: "",
@@ -210,7 +226,7 @@ function NewRequest() {
     floatLabel78: "",
     floatLabel79: "",
     // Using Crane or Lifting
-    craneLifting: "0",
+    using_cranes_or_lifting: "0",
     floatLabel80: "",
     floatLabel81: "",
     floatLabel82: "",
@@ -219,8 +235,8 @@ function NewRequest() {
     floatLabel85: "",
     floatLabel86: "",
     floatLabel87: "",
-    // Pressurization Power On fields
-    Poweron: "0",
+    // pressurization Power On fields
+    power_on: "0",
     EnergisingEquipment: "0",
     IsolatingLive: "0",
     WorkingNearLive: "0",
@@ -249,8 +265,8 @@ function NewRequest() {
     floatLabel125: "",
     floatLabel126: "",
     floatLabel127: "",
-    // Pressurization fields
-    Pressurization: "0",
+    // pressurization fields
+    pressurization: "0",
     floatLabel95: "",
     floatLabel96: "",
     floatLabel97: "",
@@ -260,7 +276,7 @@ function NewRequest() {
     floatLabel100: "",
     floatLabel101: "",
     // Pressure Testing
-    TESTINGs: "0",
+    pressure_testing_of_equipment: "0",
     floatLabel102: "",
     floatLabel103: "",
     floatLabel104: "",
@@ -277,35 +293,329 @@ function NewRequest() {
     hearing_protection: "",
     respiratory_protection: "",
     other_ppe: "",
-    peopleinvalidcount: "",
+    Number_Of_Workers: "",
     notes: "",
   });
 
-  const levels = building ? FLOOR_MAPPING[building] || [] : [];
+  // Fetch all select lists and location data from backend
+  useEffect(() => {
+    const loadSelectors = async () => {
+      try {
+        const [
+          contractorsRes,
+          activitiesRes,
+          electricalRes,
+          mechanicalRes,
+          buildingsRes,
+          floorsRes,
+          zonesRes,
+          roomsRes
+        ] = await Promise.all([
+          getContractors(1, 1000),
+          getActivities(1, 1000),
+          getElectricalWorks(1, 1000),
+          getMechanicalWorks(1, 1000),
+          getBuildings(1, 1000),
+          getFloors(1, 1000),
+          getZones(1, 1000),
+          getRooms(1, 1000)
+        ]);
+
+        setContractors(contractorsRes?.data?.rows ?? contractorsRes?.data ?? contractorsRes ?? []);
+        setActivitiesList(activitiesRes?.data?.rows ?? activitiesRes?.data ?? activitiesRes ?? []);
+        setElectricalWorksList(electricalRes?.data ?? []);
+        setMechanicalWorksList(mechanicalRes?.data ?? []);
+        setBuildingsList(buildingsRes?.data ?? []);
+        setFloorsList(floorsRes?.data ?? []);
+        setZonesList(zonesRes?.data ?? []);
+        setRoomsList(roomsRes?.data ?? []);
+      } catch (err) {
+        console.error("Failed to load request form selector data", err);
+        showError("Failed to load selector databases.");
+      } finally {
+        setIsLoadingSelectors(false);
+      }
+    };
+    loadSelectors();
+  }, []);
+
+  // Bind edit request data once selectors have finished loading
+  useEffect(() => {
+    if (!isLoadingSelectors && editRequest) {
+      setIsEditMode(true);
+      setBuilding(String(editRequest.Building_Id || ""));
+      setLevel(editRequest.Room_Type || "");
+
+      // Match room IDs to room names to render correctly in FloorDrawing
+      if (editRequest.Room_Nos) {
+        const editRoomIds = String(editRequest.Room_Nos).split(",");
+        const matchedNames = roomsList
+          .filter(r => editRoomIds.includes(String(r.room_id ?? r.id)))
+          .map(r => r.room_name);
+        setSelectedRooms(matchedNames);
+      }
+
+      // Display existing file attachments
+      if (editRequest.files) {
+        setExistingFiles(editRequest.files.map(f => ({ id: f.id, name: f.file_name, file: f.file })));
+      }
+
+      // Load notes history
+      if (editRequest.note) {
+        setNotesHistory(editRequest.note.map(n => ({ Note: n.note, Username: n.username })));
+      } else if (editRequest.notes) {
+        setNotesHistory(Array.isArray(editRequest.notes) ? editRequest.notes : []);
+      }
+
+      // Bind all fields into formData
+      setFormData({
+        Request_Date: editRequest.Request_Date || new Date().toLocaleDateString("en-GB"),
+        Company_Name: editRequest.Company_Name || "M3 Infrastructure",
+        Sub_Contractor_Id: editRequest.Sub_Contractor_Id || "",
+        new_sub_contractor: editRequest.new_sub_contractor || "",
+        Foreman: editRequest.Foreman || "",
+        Foreman_Phone_Number: editRequest.Foreman_Phone_Number || "",
+        Activity: editRequest.Activity || "",
+        Type_Of_Activity_Id: editRequest.Type_Of_Activity_Id || "",
+        rams_number: editRequest.rams_number || "",
+        permit_type: editRequest.permit_type || "Construction",
+        description_of_activity: editRequest.description_of_activity || "",
+        Working_Date: editRequest.Working_Date || "",
+        Start_Time: editRequest.Start_Time ? editRequest.Start_Time.slice(0, 5) : "",
+        End_Time: editRequest.End_Time ? editRequest.End_Time.slice(0, 5) : "",
+        night_shift: editRequest.night_shift === 1 || editRequest.night_shift === true,
+        new_date: editRequest.new_date || "",
+        new_end_time: editRequest.new_end_time ? editRequest.new_end_time.slice(0, 5) : "",
+        Site_Id: editRequest.Site_Id || "5",
+        Tools: editRequest.Tools || "",
+        Machinery: editRequest.Machinery || "",
+        work_type: editRequest.work_type || "",
+        electrical_works: editRequest.electrical_works ? String(editRequest.electrical_works).split(",") : [],
+        mechanical_works: editRequest.mechanical_works ? String(editRequest.mechanical_works).split(",") : [],
+
+        // General Safety Questions
+        floatLabel11: editRequest.affecting_other_contractors || "",
+        floatLabel12: editRequest.other_conditions || "",
+        other_conditions_input: editRequest.other_conditions_input || "",
+        floatLabel13: editRequest.lighting_begin_work || "",
+        floatLabel14: editRequest.specific_risks || "",
+        floatLabel15: editRequest.environment_ensured || "",
+        floatLabel16: editRequest.course_of_action || "",
+
+        // Hot Work
+        Hot_work: String(editRequest.Hot_work ?? "0"),
+        floatLabel1: editRequest.tasks_in_progress_in_the_area || "",
+        floatLabel3: editRequest.lighting_sufficiently || "",
+        floatLabel4: editRequest.specific_risks_based_on_task || "",
+        floatLabel5: editRequest.work_environment_safety_ensured || "",
+        floatLabel6: editRequest.course_of_action_in_emergencies || "",
+        floatLabel7: editRequest.fire_watch_establish || "",
+        floatLabel8: editRequest.combustible_material || "",
+        floatLabel9: editRequest.safety_measures || "",
+        floatLabel10: editRequest.extinguishers_and_fire_blanket || "",
+        NEWHOTWORK: String(editRequest.welding_activitiy ?? "0"),
+        NEWHOTWORK1: editRequest.heat_treatment || "",
+        NEWHOTWORK2: editRequest.air_extraction_be_established || "",
+
+        // Temporary Electrical Systems
+        working_on_electrical_system: String(editRequest.working_on_electrical_system ?? "0"),
+        floatLabel17: editRequest.responsible_for_the_informed || "",
+        floatLabel18: editRequest.de_energized || "",
+        floatLabel19: editRequest.if_no_loto || "",
+        floatLabel20: editRequest.do_risk_assessment || "",
+        floatLabel22: editRequest.electricity_have_isulation || "",
+
+        // Hazardous Substances
+        working_hazardious_substen: String(editRequest.working_hazardious_substen ?? "0"),
+        floatLabel24: editRequest.relevant_mal || "",
+        floatLabel25: editRequest.msds || "",
+        floatLabel26: editRequest.equipment_taken_account || "",
+        floatLabel27: editRequest.ventilation || "",
+        floatLabel28: editRequest.hazardaus_substances || "",
+        floatLabel29: editRequest.storage_and_disposal || "",
+        floatLabel30: editRequest.reachable_case || "",
+        floatLabel31: editRequest.checical_risk_assessment || "",
+
+        // Working at Height
+        working_at_height: String(editRequest.working_at_height ?? "0"),
+        segragated_demarkated: editRequest.segragated_demarkated || "",
+        floatLabel39: editRequest.lanyard_attachments || "",
+        floatLabel40: editRequest.rescue_plan || "",
+        floatLabel41: editRequest.avoid_hazards || "",
+        floatLabel42: editRequest.height_training || "",
+        floatLabel43: editRequest.supervision || "",
+        floatLabel44: editRequest.shock_absorbing || "",
+        floatLabel45: editRequest.height_equipments || "",
+        floatLabel46: editRequest.vertical_life || "",
+        floatLabel47: editRequest.secured_falling || "",
+        floatLabel48: editRequest.dropped_objects || "",
+        floatLabel49: editRequest.safe_acces || "",
+        floatLabel50: editRequest.weather_acceptable || "",
+
+        // Working in Confined Spaces
+        working_confined_spaces: String(editRequest.working_confined_spaces ?? "0"),
+        floatLabel51: editRequest.vapours_gases || "",
+        floatLabel52: editRequest.lel_measurement || "",
+        floatLabel53: editRequest.all_equipment || "",
+        floatLabel54: editRequest.exit_conditions || "",
+        floatLabel55: editRequest.communication_emergency || "",
+        floatLabel56: editRequest.rescue_equipments || "",
+        floatLabel57: editRequest.space_ventilation || "",
+        floatLabel58: editRequest.oxygen_meter || "",
+
+        // Excavation Works
+        excavation_works: String(editRequest.excavation_works ?? "0"),
+        floatLabel71: editRequest.excavation_segregated || "",
+        floatLabel72: editRequest.nn_standards || "",
+        excavation_shoring: editRequest.excavation_shoring || "",
+        floatLabel74: editRequest.danish_regulation || "",
+        floatLabel75: editRequest.safe_access_and_egress || "",
+        floatLabel76: editRequest.correctly_sloped || "",
+        floatLabel77: editRequest.inspection_dates || "",
+        floatLabel78: editRequest.marked_drawings || "",
+        floatLabel79: editRequest.underground_areas_cleared || "",
+
+        // Using Crane or Lifting
+        using_cranes_or_lifting: String(editRequest.using_cranes_or_lifting ?? "0"),
+        floatLabel80: editRequest.appointed_person || "",
+        floatLabel81: editRequest.vendor_supplier || "",
+        floatLabel82: editRequest.lift_plan || "",
+        floatLabel83: editRequest.supplied_and_inspected || "",
+        floatLabel84: editRequest.legal_required_certificates || "",
+        floatLabel85: editRequest.prapared_lifting || "",
+        floatLabel86: editRequest.lifting_task_fenced || "",
+        floatLabel87: editRequest.overhead_risks || "",
+
+        // pressurization Power On fields
+        power_on: String(editRequest.power_on ?? "0"),
+        EnergisingEquipment: String(editRequest.energising_equipment ?? "0"),
+        IsolatingLive: String(editRequest.isolating_live ?? "0"),
+        WorkingNearLive: String(editRequest.working_near_live ?? "0"),
+        floatLabel88: editRequest.responsible_for_the_area || "",
+        floatLabel89: editRequest.risk_assessment_done || "",
+        floatLabel90: editRequest.barriers_signage || "",
+        floatLabel110: String(editRequest.arc_flash ?? "0"),
+        floatLabel91: editRequest.energized_been_tested || "",
+        floatLabel92: editRequest.punches_been_closed || "",
+        floatLabel93: editRequest.toct_checklist || "",
+        floatLabel94: editRequest.informed_aligned || "",
+        floatLabel111: editRequest.isolating_resposible || "",
+        floatLabel112: editRequest.isolating_risk_assessment || "",
+        floatLabel113: editRequest.cq_informed || "",
+        floatLabel114: editRequest.cq_provided || "",
+        floatLabel115: editRequest.de_energisation_request || "",
+        floatLabel116: editRequest.ppe_prepared || "",
+        floatLabel117: editRequest.absence_of_voltage || "",
+        floatLabel118: editRequest.stored_energy || "",
+        floatLabel119: editRequest.backup_power || "",
+        floatLabel120: editRequest.unavoidable || "",
+        floatLabel121: editRequest.reasonably_practicable || "",
+        floatLabel122: editRequest.work_authorised || "",
+        floatLabel123: editRequest.working_risk_assessment || "",
+        floatLabel124: editRequest.working_arc_boundary || "",
+        floatLabel125: editRequest.working_barriers || "",
+        floatLabel126: editRequest.insulated_tools || "",
+        floatLabel127: editRequest.event_of_emergency || "",
+
+        // pressurization fields
+        pressurization: String(editRequest.pressurization ?? "0"),
+        floatLabel95: editRequest.performed_approved || "",
+        floatLabel96: editRequest.flushing_approved || "",
+        floatLabel97: editRequest.mc_approved || "",
+        mc_number_text: editRequest.mc_number_text || "",
+        floatLabel98: editRequest.visual_inspection || "",
+        floatLabel99: editRequest.loto_plan_approved || "",
+        floatLabel100: editRequest.follow_media_code || "",
+        floatLabel101: editRequest.cq_safety_signs || "",
+
+        // Pressure Testing
+        pressure_testing_of_equipment: String(editRequest.pressure_testing_of_equipment ?? "0"),
+        floatLabel102: editRequest.line_walk || "",
+        floatLabel103: editRequest.pressure_test_coordinated || "",
+        floatLabel104: editRequest.pipework_mic || "",
+        floatLabel105: editRequest.loto_plan_attached || "",
+        floatLabel106: editRequest.exclusion_zone_calculated || "",
+        floatLabel107: editRequest.pneumatic_hydrostatic || "",
+        pressure_pneumatic: editRequest.pressure_pneumatic || "",
+        floatLabel108: editRequest.pressure_of_the_test || "",
+        pressure_hydrostatic: editRequest.pressure_hydrostatic || "",
+        floatLabel109: editRequest.safety_valves_calibrated || "",
+
+        // Task Specific PPE
+        eye_protection: editRequest.eye_protection || "",
+        fall_protection: editRequest.fall_protection || "",
+        hearing_protection: editRequest.hearing_protection || "",
+        respiratory_protection: editRequest.respiratory_protection || "",
+        other_ppe: editRequest.other_ppe || "",
+        Number_Of_Workers: editRequest.Number_Of_Workers || "",
+        notes: "",
+      });
+
+      setIsnewrequestcreated(true);
+    }
+  }, [isLoadingSelectors, editRequest]);
+
+  const levels = useMemo(() => {
+    return building ? floorsList.filter(f => String(f.build_id) === String(building)).map(f => f.floor_name) : [];
+  }, [building, floorsList]);
 
   const selectedPdf = useMemo(() => {
-    return FLOOR_PDFS[building]?.[level] || "";
-  }, [building, level]);
+    if (!building) return "";
+    // Find the building name from buildingList using building (which is database build_id)
+    const dbBuilding = buildingsList.find(b => String(b.build_id || b.id) === String(building));
+    const bName = dbBuilding ? dbBuilding.building_name : "";
+    if (!bName) return "";
+
+    // Map building_name to static building ID
+    const staticB = BUILDINGS.find(item => item.name.toLowerCase().trim() === bName.toLowerCase().trim());
+    const staticBuildingId = staticB ? staticB.id : "";
+    if (!staticBuildingId) return "";
+
+    const pdfsForBuilding = FLOOR_PDFS[staticBuildingId];
+    if (!pdfsForBuilding) return "";
+
+    // 1. Try exact match
+    if (pdfsForBuilding[level]) return pdfsForBuilding[level];
+
+    // 2. Try case-insensitive substring match
+    const levelLower = level.toLowerCase().trim();
+    const foundKey = Object.keys(pdfsForBuilding).find(key => {
+      const keyLower = key.toLowerCase().trim();
+      return keyLower.includes(levelLower) || levelLower.includes(keyLower);
+    });
+    if (foundKey) return pdfsForBuilding[foundKey];
+
+    // 3. Fallback to first available PDF for that building
+    return Object.values(pdfsForBuilding)[0] || "";
+  }, [building, level, buildingsList]);
 
   const selectedZones = useMemo(() => {
-    return ZONE_MAPPING[level] || [];
+    if (!level) return [];
+    // 1. Try exact match
+    if (ZONE_MAPPING[level]) return ZONE_MAPPING[level];
+
+    // 2. Try case-insensitive substring match
+    const levelLower = level.toLowerCase().trim();
+    const foundKey = Object.keys(ZONE_MAPPING).find(key => {
+      const keyLower = key.toLowerCase().trim();
+      return keyLower.includes(levelLower) || levelLower.includes(keyLower);
+    });
+    if (foundKey) return ZONE_MAPPING[foundKey];
+
+    return [];
   }, [level]);
 
   const zonesToDisplay = useMemo(() => {
-    // Find all zones that have at least one room selected
     const active = selectedZones.filter(zone =>
       zone.rooms.some(room => {
         const roomName = typeof room === "object" ? room.name : room;
         return selectedRooms.includes(roomName);
       })
     );
-
-    // If active is empty but we have a selectedZone, make sure selectedZone is shown
     if (active.length === 0 && selectedZone) {
       const current = selectedZones.find(z => z.id === selectedZone.id || z.name === selectedZone.name);
       return current ? [current] : [selectedZone];
     }
-
     return active;
   }, [selectedZones, selectedRooms, selectedZone]);
 
@@ -326,18 +636,337 @@ function NewRequest() {
   };
 
   const selectedBuildingName = useMemo(() => {
-    const b = BUILDINGS.find((x) => x.id === building);
-    return b ? b.name : "";
-  }, [building]);
+    const b = buildingsList.find((x) => String(x.build_id) === String(building));
+    return b ? b.building_name : "";
+  }, [building, buildingsList]);
 
-  const handleSubmit = (e, status) => {
-    e.preventDefault();
-    alert(`Work Permit Request saved as [${status}] successfully (Simulation)!`);
-    setIsnewrequestcreated(false);
-    setBuilding("");
-    setLevel("");
-    setSelectedRooms([]);
-    setSelectedZone(null);
+  // Group dynamic electrical works list by module name
+  const groupedElectrical = useMemo(() => {
+    const groups = {};
+    electricalWorksList.forEach((item) => {
+      const mod = item.module || "General";
+      if (!groups[mod]) {
+        groups[mod] = [];
+      }
+      groups[mod].push({ id: String(item.id), name: item.electrical_works });
+    });
+    return Object.keys(groups).map((key) => ({
+      module: key,
+      items: groups[key],
+    }));
+  }, [electricalWorksList]);
+
+  // Map mechanical works list for display selection
+  const mechanicalWorksOptions = useMemo(() => {
+    return mechanicalWorksList.map((m) => ({
+      id: String(m.id),
+      name: m.mechanical_works,
+    }));
+  }, [mechanicalWorksList]);
+
+  const handleSubmit = async (e, status) => {
+    if (e && e.preventDefault) e.preventDefault();
+
+    if (!building) {
+      showError("Please select a building.");
+      return;
+    }
+    if (!level) {
+      showError("Please select a level.");
+      return;
+    }
+
+    // 1. Tally selected location items to resolve database IDs
+    const Building_Id = building ? Number(building) : null;
+
+    const matchedFloor = floorsList.find(
+      (f) => String(f.build_id) === String(building) && (f.floor_name === level || f.floor_status === level)
+    );
+    const Floor_Id = matchedFloor ? matchedFloor.fl_id : null;
+
+    // Find zone IDs and zone names
+    const selectedZoneObjects = selectedZones.filter((zone) =>
+      zone.rooms.some((room) => {
+        const roomName = typeof room === "object" ? room.name : room;
+        return selectedRooms.includes(roomName);
+      })
+    );
+    const zoneVal = selectedZoneObjects.map((z) => z.name).join(",");
+
+    const matchedZoneIds = zonesList
+      .filter((z) => String(z.floor_id) === String(Floor_Id) && selectedZoneObjects.some((zo) => zo.name === z.zone))
+      .map((z) => z.id ?? z.zoneStatusId);
+    const Zone_Id = matchedZoneIds.join(",");
+
+    // Find Room IDs
+    const matchedRoomIds = roomsList
+      .filter((r) => String(r.fl_id) === String(Floor_Id) && selectedRooms.includes(r.room_name))
+      .map((r) => r.room_id ?? r.id);
+    const Room_Nos = matchedRoomIds.join(",");
+
+    // Current User
+    const currentUser = getUser();
+    const currentUserId = currentUser?.id || 1;
+
+    // 2. Prepare payload
+    const payload = {
+      ...formData,
+      Building_Id,
+      Floor_Id,
+      Zone_Id,
+      zone: zoneVal,
+      Room_Nos,
+      // RoomNos: Room_Nos,
+      Room_Type: level,
+      Request_status: status === "Hold" ? "Hold" : "Draft",
+      userId: currentUserId,
+      Request_Date: isEditMode ? editRequest.Request_Date : new Date().toISOString().split("T")[0],
+      Working_Date: formData.Working_Date,
+      Start_Time: formData.Start_Time ? `${formData.Start_Time}:00` : "",
+      End_Time: formData.End_Time ? `${formData.End_Time}:00` : "",
+      night_shift: formData.night_shift ? 1 : 0,
+      new_end_time: formData.new_end_time ? `${formData.new_end_time}:00` : "",
+      Assign_Start_Time: formData.Start_Time ? `${formData.Start_Time}:00` : "",
+      Assign_End_Time: formData.End_Time ? `${formData.End_Time}:00` : "",
+      Assign_Start_Date: formData.Working_Date,
+      Assign_End_Date: formData.Working_Date,
+      Sub_Contractor_Id: formData.Sub_Contractor_Id ? Number(formData.Sub_Contractor_Id) : null,
+      Type_Of_Activity_Id: formData.Type_Of_Activity_Id ? Number(formData.Type_Of_Activity_Id) : null,
+      Activity: formData.Activity || "",
+      new_sub_contractor: formData.new_sub_contractor || "",
+      Foreman_Phone_Number: formData.Foreman_Phone_Number || "",
+      rams_number: formData.rams_number || "",
+      description_of_activity: formData.description_of_activity || "",
+      Site_Id: 5, // M3 Infrastructure
+      Company_Name: formData.Company_Name || "M3 Infrastructure",
+      Hot_work: formData.Hot_work === "1" ? 1 : 0,
+      working_on_electrical_system: formData.working_on_electrical_system === "1" ? 1 : 0,
+      working_hazardious_substen: formData.working_hazardious_substen === "1" ? 1 : 0,
+      working_at_height: formData.working_at_height === "1" ? 1 : 0,
+      working_confined_spaces: formData.working_confined_spaces === "1" ? 1 : 0,
+      excavation_works: formData.excavation_works === "1" ? 1 : 0,
+      using_cranes_or_lifting: formData.using_cranes_or_lifting === "1" ? 1 : 0,
+      power_on: formData.power_on === "1" ? 1 : 0,
+      pressurization: formData.pressurization === "1" ? 1 : 0,
+      pressure_testing_of_equipment: formData.pressure_testing_of_equipment === "1" ? 1 : 0,
+      Number_Of_Workers: formData.Number_Of_Workers,
+      electrical_works: Array.isArray(formData.electrical_works) ? formData.electrical_works.join(",") : "",
+      mechanical_works: Array.isArray(formData.mechanical_works) ? formData.mechanical_works.join(",") : "",
+
+      // General Safety Checklist
+      affecting_other_contractors: formData.floatLabel11 || 0,
+      other_conditions: formData.floatLabel12 || 0,
+      lighting_begin_work: formData.floatLabel13 || 0,
+      specific_risks: formData.floatLabel14 || 0,
+      environment_ensured: formData.floatLabel15 || 0,
+      course_of_action: formData.floatLabel16 || 0,
+
+      // Hot Work
+      tasks_in_progress_in_the_area: formData.floatLabel1 || 0,
+      lighting_sufficiently: formData.floatLabel3 || 0,
+      specific_risks_based_on_task: formData.floatLabel4 || 0,
+      work_environment_safety_ensured: formData.floatLabel5 || 0,
+      course_of_action_in_emergencies: formData.floatLabel6 || 0,
+      fire_watch_establish: formData.floatLabel7 || 0,
+      combustible_material: formData.floatLabel8 || 0,
+      safety_measures: formData.floatLabel9 || 0,
+      extinguishers_and_fire_blanket: formData.floatLabel10 || 0,
+      welding_activitiy: formData.NEWHOTWORK || 0,
+      heat_treatment: formData.NEWHOTWORK1 || 0,
+      air_extraction_be_established: formData.NEWHOTWORK2 || 0,
+
+      // Temporary Electrical Systems
+      responsible_for_the_informed: formData.floatLabel17 || 0,
+      de_energized: formData.floatLabel18 || 0,
+      if_no_loto: formData.floatLabel19 || 0,
+      do_risk_assessment: formData.floatLabel20 || 0,
+      electricity_have_isulation: formData.floatLabel22 || 0,
+      // electrician_certification: formData.floatLabel23 || 0,
+
+      // Hazardous Substances
+      relevant_mal: formData.floatLabel24 || 0,
+      msds: formData.floatLabel25 || 0,
+      equipment_taken_account: formData.floatLabel26 || 0,
+      ventilation: formData.floatLabel27 || 0,
+      hazardaus_substances: formData.floatLabel28 || 0,
+      storage_and_disposal: formData.floatLabel29 || 0,
+      reachable_case: formData.floatLabel30 || 0,
+      checical_risk_assessment: formData.floatLabel31 || 0,
+
+      // Testing Section
+      // transfer_of_palnt: formData.floatLabel32 || 0,
+      // area_drained: formData.floatLabel33 || 0,
+      // area_depressurised: formData.floatLabel34 || 0,
+      // area_flused: formData.floatLabel35 || 0,
+      // tank_area_container: formData.floatLabel36 || 0,
+      // system_free_for_dust: formData.floatLabel37 || 0,
+      // loto_plan_submitted: formData.floatLabel38 || 0,
+
+      // Working at Height
+      lanyard_attachments: formData.floatLabel39 || 0,
+      rescue_plan: formData.floatLabel40 || 0,
+      avoid_hazards: formData.floatLabel41 || 0,
+      height_training: formData.floatLabel42 || 0,
+      supervision: formData.floatLabel43 || 0,
+      shock_absorbing: formData.floatLabel44 || 0,
+      height_equipments: formData.floatLabel45 || 0,
+      vertical_life: formData.floatLabel46 || 0,
+      secured_falling: formData.floatLabel47 || 0,
+      dropped_objects: formData.floatLabel48 || 0,
+      safe_acces: formData.floatLabel49 || 0,
+      weather_acceptable: formData.floatLabel50 || 0,
+
+      // Working in Confined Spaces
+      vapours_gases: formData.floatLabel51 || 0,
+      lel_measurement: formData.floatLabel52 || 0,
+      all_equipment: formData.floatLabel53 || 0,
+      exit_conditions: formData.floatLabel54 || 0,
+      communication_emergency: formData.floatLabel55 || 0,
+      rescue_equipments: formData.floatLabel56 || 0,
+      space_ventilation: formData.floatLabel57 || 0,
+      oxygen_meter: formData.floatLabel58 || 0,
+
+      // Work in Atex Area
+      // ex_area_downgraded: formData.floatLabel59 || 0,
+      // atmospheric_tester: formData.floatLabel60 || 0,
+      // flammable_materials: formData.floatLabel61 || 0,
+      // potential_explosive: formData.floatLabel62 || 0,
+      // oxygen_meter_confined_spaces: formData.floatLabel63 || 0,
+
+      // Excavation Works
+      excavation_segregated: formData.floatLabel71 || 0,
+      nn_standards: formData.floatLabel72 || 0,
+      danish_regulation: formData.floatLabel74 || 0,
+      safe_access_and_egress: formData.floatLabel75 || 0,
+      correctly_sloped: formData.floatLabel76 || 0,
+      inspection_dates: formData.floatLabel77 || 0,
+      marked_drawings: formData.floatLabel78 || 0,
+      underground_areas_cleared: formData.floatLabel79 || 0,
+
+      // Using Cranes or Lifting
+      appointed_person: formData.floatLabel80 || 0,
+      vendor_supplier: formData.floatLabel81 || 0,
+      lift_plan: formData.floatLabel82 || 0,
+      supplied_and_inspected: formData.floatLabel83 || 0,
+      legal_required_certificates: formData.floatLabel84 || 0,
+      prapared_lifting: formData.floatLabel85 || 0,
+      lifting_task_fenced: formData.floatLabel86 || 0,
+      overhead_risks: formData.floatLabel87 || 0,
+
+      // Pressurization Power On fields
+      energising_equipment: formData.EnergisingEquipment === "1" ? 1 : 0,
+      isolating_live: formData.IsolatingLive === "1" ? 1 : 0,
+      working_near_live: formData.WorkingNearLive === "1" ? 1 : 0,
+      responsible_for_the_area: formData.floatLabel88 || 0,
+      risk_assessment_done: formData.floatLabel89 || 0,
+      barriers_signage: formData.floatLabel90 || 0,
+      energized_been_tested: formData.floatLabel91 || 0,
+      punches_been_closed: formData.floatLabel92 || 0,
+      toct_checklist: formData.floatLabel93 || 0,
+      informed_aligned: formData.floatLabel94 || 0,
+
+      // Pressurization Isolating Live fields
+      isolating_resposible: formData.floatLabel111 || 0,
+      isolating_risk_assessment: formData.floatLabel112 || 0,
+      cq_informed: formData.floatLabel113 || 0,
+      cq_provided: formData.floatLabel114 || 0,
+      de_energisation_request: formData.floatLabel115 || 0,
+      ppe_prepared: formData.floatLabel116 || 0,
+      absence_of_voltage: formData.floatLabel117 || 0,
+      stored_energy: formData.floatLabel118 || 0,
+      backup_power: formData.floatLabel119 || 0,
+
+      // Pressurization Working Near Live fields
+      unavoidable: formData.floatLabel120 || 0,
+      reasonably_practicable: formData.floatLabel121 || 0,
+      work_authorised: formData.floatLabel122 || 0,
+      working_risk_assessment: formData.floatLabel123 || 0,
+      working_arc_boundary: formData.floatLabel124 || 0,
+      working_barriers: formData.floatLabel125 || 0,
+      insulated_tools: formData.floatLabel126 || 0,
+      event_of_emergency: formData.floatLabel127 || 0,
+
+      // Pressurization general fields
+      performed_approved: formData.floatLabel95 || 0,
+      flushing_approved: formData.floatLabel96 || 0,
+      mc_approved: formData.floatLabel97 || 0,
+      visual_inspection: formData.floatLabel98 || 0,
+      loto_plan_approved: formData.floatLabel99 || 0,
+      follow_media_code: formData.floatLabel100 || 0,
+      cq_safety_signs: formData.floatLabel101 || 0,
+
+      // Commission fields of electrical systems (Pressure testing of equipment)
+      line_walk: formData.floatLabel102 || 0,
+      pressure_test_coordinated: formData.floatLabel103 || 0,
+      pipework_mic: formData.floatLabel104 || 0,
+      loto_plan_attached: formData.floatLabel105 || 0,
+      exclusion_zone_calculated: formData.floatLabel106 || 0,
+      pneumatic_hydrostatic: formData.floatLabel107 || 0,
+      pressure_of_the_test: formData.floatLabel108 || 0,
+      safety_valves_calibrated: formData.floatLabel109 || 0,
+    };
+
+    // Remove internal React floatLabel keys and temporary properties from payload
+    const keysToDelete = [
+      "floatLabel1", "floatLabel3", "floatLabel4", "floatLabel5", "floatLabel6", "floatLabel7", "floatLabel8", "floatLabel9", "floatLabel10",
+      "floatLabel11", "floatLabel12", "floatLabel13", "floatLabel14", "floatLabel15", "floatLabel16", "floatLabel17", "floatLabel18", "floatLabel19", "floatLabel20", "floatLabel22",
+      "floatLabel24", "floatLabel25", "floatLabel26", "floatLabel27", "floatLabel28", "floatLabel29", "floatLabel30", "floatLabel31",
+      "floatLabel39", "floatLabel40", "floatLabel41", "floatLabel42", "floatLabel43", "floatLabel44", "floatLabel45", "floatLabel46", "floatLabel47", "floatLabel48", "floatLabel49", "floatLabel50",
+      "floatLabel51", "floatLabel52", "floatLabel53", "floatLabel54", "floatLabel55", "floatLabel56", "floatLabel57", "floatLabel58",
+      "floatLabel71", "floatLabel72", "floatLabel74", "floatLabel75", "floatLabel76", "floatLabel77", "floatLabel78", "floatLabel79", "floatLabel80", "floatLabel81", "floatLabel82", "floatLabel83", "floatLabel84", "floatLabel85", "floatLabel86", "floatLabel87", "floatLabel88", "floatLabel89", "floatLabel90", "floatLabel91", "floatLabel92", "floatLabel93", "floatLabel94", "floatLabel95", "floatLabel96", "floatLabel97", "floatLabel98", "floatLabel99", "floatLabel100", "floatLabel101", "floatLabel102", "floatLabel103", "floatLabel104", "floatLabel105", "floatLabel106", "floatLabel107", "floatLabel108", "floatLabel109", "floatLabel110", "floatLabel111", "floatLabel112", "floatLabel113", "floatLabel114", "floatLabel115", "floatLabel116", "floatLabel117", "floatLabel118", "floatLabel119", "floatLabel120", "floatLabel121", "floatLabel122", "floatLabel123", "floatLabel124", "floatLabel125", "floatLabel126", "floatLabel127",
+      "NEWHOTWORK", "NEWHOTWORK1", "NEWHOTWORK2",
+      "EnergisingEquipment", "IsolatingLive", "WorkingNearLive"
+    ];
+    keysToDelete.forEach(k => delete payload[k]);
+
+    // Construct FormData object
+    const fd = new FormData();
+    for (const [key, value] of Object.entries(payload)) {
+      if (value !== null && value !== undefined) {
+        fd.append(key, String(value));
+      }
+    }
+
+    // Append files (only new files accumulated in creation mode)
+    if (!isEditMode && uploadedFiles.length > 0) {
+      uploadedFiles.forEach((file) => {
+        fd.append("rams_file[]", file);
+      });
+    }
+
+    try {
+      if (isEditMode) {
+        // Submit update request
+        await updateRequest(editRequest.id, fd);
+
+        // Submit notes if typed
+        if (formData.notes && formData.notes.trim()) {
+          const notePayload = {
+            request_id: String(editRequest.id),
+            permit_no: editRequest.PermitNo,
+            user_id: currentUserId,
+            username: currentUser?.displayName || currentUser?.username || "Supervisor",
+            note: formData.notes.trim(),
+          };
+          await addListReqstNote(notePayload);
+        }
+        showSuccess("Work Permit Request updated successfully");
+      } else {
+        await createRequest(fd);
+        showSuccess("Work Permit Request created successfully");
+      }
+
+      setIsnewrequestcreated(false);
+      setBuilding("");
+      setLevel("");
+      setSelectedRooms([]);
+      setSelectedZone(null);
+      setUploadedFiles([]);
+      navigate("/list-request");
+    } catch (err) {
+      console.error(err);
+      showError("Operation failed. Please try again.");
+    }
   };
 
   const toggleRoomSelection = (roomName) => {
@@ -349,6 +978,7 @@ function NewRequest() {
   };
 
   if (isnewrequestcreated) {
+
     return (
       <div className="dept-page">
         <div className="dept-page-header">
@@ -376,7 +1006,7 @@ function NewRequest() {
                 <input
                   type="text"
                   className="df-input df-readonly"
-                  value={formData.Requestdate}
+                  value={formData.Request_Date}
                   readOnly
                 />
               </div>
@@ -385,7 +1015,7 @@ function NewRequest() {
                 <input
                   type="text"
                   className="df-input df-readonly"
-                  value={formData.Companyname}
+                  value={formData.Company_Name}
                   readOnly
                 />
               </div>
@@ -396,13 +1026,13 @@ function NewRequest() {
                 <label className="df-label">Contractor</label>
                 <select
                   className="df-select"
-                  value={formData.SubContractor}
-                  onChange={(e) => handleFieldChange("SubContractor", e.target.value)}
+                  value={formData.Sub_Contractor_Id}
+                  onChange={(e) => handleFieldChange("Sub_Contractor_Id", e.target.value)}
                 >
                   <option value="">Select Contractor</option>
-                  {SUB_CONTRACTORS.map((c) => (
+                  {contractors.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.name}
+                      {c.subContractorName}
                     </option>
                   ))}
                 </select>
@@ -413,8 +1043,8 @@ function NewRequest() {
                   type="text"
                   className="df-input"
                   placeholder="Enter Sub Contractor Name"
-                  value={formData.newSubContractor}
-                  onChange={(e) => handleFieldChange("newSubContractor", e.target.value)}
+                  value={formData.new_sub_contractor}
+                  onChange={(e) => handleFieldChange("new_sub_contractor", e.target.value)}
                 />
               </div>
             </div>
@@ -450,8 +1080,8 @@ function NewRequest() {
                   type="text"
                   className="df-input"
                   placeholder="Enter Foreman Phone"
-                  value={formData.ForemanPhone}
-                  onChange={(e) => handleFieldChange("ForemanPhone", e.target.value)}
+                  value={formData.Foreman_Phone_Number}
+                  onChange={(e) => handleFieldChange("Foreman_Phone_Number", e.target.value)}
                 />
               </div>
               <div className="df-field">
@@ -471,13 +1101,21 @@ function NewRequest() {
                 <label className="df-label">Type of Activity</label>
                 <select
                   className="df-select"
-                  value={formData.TypeActivity}
-                  onChange={(e) => handleFieldChange("TypeActivity", e.target.value)}
+                  value={formData.Type_Of_Activity_Id}
+                  onChange={(e) => {
+                    const actId = e.target.value;
+                    const matched = activitiesList.find(a => String(a.id) === String(actId));
+                    setFormData(prev => ({
+                      ...prev,
+                      Type_Of_Activity_Id: actId,
+                      Activity: matched ? matched.activityName : prev.Activity
+                    }));
+                  }}
                 >
                   <option value="">Select Activity Type</option>
-                  {ACTIVITY_TYPES.map((a) => (
+                  {activitiesList.map((a) => (
                     <option key={a.id} value={a.id}>
-                      {a.name}
+                      {a.activityName}
                     </option>
                   ))}
                 </select>
@@ -488,8 +1126,8 @@ function NewRequest() {
                   type="text"
                   className="df-input"
                   placeholder="Enter RAMS Number"
-                  value={formData.RAMSNumber}
-                  onChange={(e) => handleFieldChange("RAMSNumber", e.target.value)}
+                  value={formData.rams_number}
+                  onChange={(e) => handleFieldChange("rams_number", e.target.value)}
                 />
               </div>
             </div>
@@ -500,8 +1138,8 @@ function NewRequest() {
                 className="df-textarea"
                 rows={3}
                 placeholder="Enter Description of Activity"
-                value={formData.descriptActivity}
-                onChange={(e) => handleFieldChange("descriptActivity", e.target.value)}
+                value={formData.description_of_activity}
+                onChange={(e) => handleFieldChange("description_of_activity", e.target.value)}
               />
             </div>
           </div>
@@ -515,8 +1153,8 @@ function NewRequest() {
                 <input
                   type="date"
                   className="df-input"
-                  value={formData.Startdate}
-                  onChange={(e) => handleFieldChange("Startdate", e.target.value)}
+                  value={formData.Working_Date}
+                  onChange={(e) => handleFieldChange("Working_Date", e.target.value)}
                 />
               </div>
               <div className="df-field">
@@ -524,8 +1162,8 @@ function NewRequest() {
                 <input
                   type="time"
                   className="df-input"
-                  value={formData.StartTime}
-                  onChange={(e) => handleFieldChange("StartTime", e.target.value)}
+                  value={formData.Start_Time}
+                  onChange={(e) => handleFieldChange("Start_Time", e.target.value)}
                 />
               </div>
             </div>
@@ -536,8 +1174,8 @@ function NewRequest() {
                 <input
                   type="time"
                   className="df-input"
-                  value={formData.EndTime}
-                  onChange={(e) => handleFieldChange("EndTime", e.target.value)}
+                  value={formData.End_Time}
+                  onChange={(e) => handleFieldChange("End_Time", e.target.value)}
                 />
               </div>
               <div className="df-field night-shift-field" style={{ display: "flex", alignItems: "center" }}>
@@ -559,8 +1197,8 @@ function NewRequest() {
                   <input
                     type="date"
                     className="df-input"
-                    value={formData.newWorkDate}
-                    onChange={(e) => handleFieldChange("newWorkDate", e.target.value)}
+                    value={formData.new_date}
+                    onChange={(e) => handleFieldChange("new_date", e.target.value)}
                   />
                 </div>
                 <div className="df-field">
@@ -581,7 +1219,7 @@ function NewRequest() {
                 <input
                   type="text"
                   className="df-input df-readonly"
-                  value={formData.Site}
+                  value="M3 Infrastructure"
                   readOnly
                 />
               </div>
@@ -709,19 +1347,37 @@ function NewRequest() {
                 />
               </div>
               <div className="file-list-container">
-                {uploadedFiles.map((file, idx) => (
-                  <div key={idx} className="file-item">
-                    <span>{file.name}</span>
-                    <button
-                      type="button"
-                      className="file-remove-btn"
-                      onClick={() => handleRemoveFile(idx)}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-                {uploadedFiles.length === 0 && (
+                {isEditMode ? (
+                  existingFiles.map((file, idx) => (
+                    <div key={file.id || idx} className="file-item">
+                      <span>{file.name}</span>
+                      <button
+                        type="button"
+                        className="file-remove-btn"
+                        onClick={() => handleRemoveFile(idx, file.id)}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  uploadedFiles.map((file, idx) => (
+                    <div key={idx} className="file-item">
+                      <span>{file.name}</span>
+                      <button
+                        type="button"
+                        className="file-remove-btn"
+                        onClick={() => handleRemoveFile(idx)}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))
+                )}
+                {isEditMode && existingFiles.length === 0 && (
+                  <span style={{ color: "#9ca3af", fontStyle: "italic", fontSize: "13px" }}>No files uploaded yet.</span>
+                )}
+                {!isEditMode && uploadedFiles.length === 0 && (
                   <span style={{ color: "#9ca3af", fontStyle: "italic", fontSize: "13px" }}>No files uploaded yet.</span>
                 )}
               </div>
@@ -758,7 +1414,7 @@ function NewRequest() {
                         handleFieldChange("electrical_works", values);
                       }}
                     >
-                      {ELECTRICAL_WORKS.map((g) => (
+                      {groupedElectrical.map((g) => (
                         <optgroup key={g.module} label={g.module}>
                           {g.items.map((i) => (
                             <option key={i.id} value={i.id}>
@@ -783,7 +1439,7 @@ function NewRequest() {
                         handleFieldChange("mechanical_works", values);
                       }}
                     >
-                      {MECHANICAL_WORKS.map((m) => (
+                      {mechanicalWorksOptions.map((m) => (
                         <option key={m.id} value={m.id}>
                           {m.name}
                         </option>
@@ -891,8 +1547,8 @@ function NewRequest() {
                 <label className="df-label">Is Hotwork Required?</label>
                 <select
                   className="df-select"
-                  value={formData.HOTWORK}
-                  onChange={(e) => handleFieldChange("HOTWORK", e.target.value)}
+                  value={formData.Hot_work}
+                  onChange={(e) => handleFieldChange("Hot_work", e.target.value)}
                 >
                   <option value="0">No</option>
                   <option value="1">Yes</option>
@@ -900,7 +1556,7 @@ function NewRequest() {
               </div>
             </div>
 
-            {formData.HOTWORK === "1" && (
+            {formData.Hot_work === "1" && (
               <div className="conditional-fields-block" style={{ marginBottom: "20px" }}>
                 <div className="checklist-item">
                   <p className="checklist-question">Are there other tasks in progress in the area?</p>
@@ -1027,8 +1683,8 @@ function NewRequest() {
                 <label className="df-label">Working on Site Temporary Electrical Systems?</label>
                 <select
                   className="df-select"
-                  value={formData.electricalSystem}
-                  onChange={(e) => handleFieldChange("electricalSystem", e.target.value)}
+                  value={formData.working_on_electrical_system}
+                  onChange={(e) => handleFieldChange("working_on_electrical_system", e.target.value)}
                 >
                   <option value="0">No</option>
                   <option value="1">Yes</option>
@@ -1036,7 +1692,7 @@ function NewRequest() {
               </div>
             </div>
 
-            {formData.electricalSystem === "1" && (
+            {formData.working_on_electrical_system === "1" && (
               <div className="conditional-fields-block" style={{ marginBottom: "20px" }}>
                 <div className="checklist-item">
                   <p className="checklist-question">Is the responsible for the area informed?</p>
@@ -1094,8 +1750,8 @@ function NewRequest() {
                 <label className="df-label">Working with Hazardous Substances/Chemicals?</label>
                 <select
                   className="df-select"
-                  value={formData.HAZARDOUS}
-                  onChange={(e) => handleFieldChange("HAZARDOUS", e.target.value)}
+                  value={formData.working_hazardious_substen}
+                  onChange={(e) => handleFieldChange("working_hazardious_substen", e.target.value)}
                 >
                   <option value="0">No</option>
                   <option value="1">Yes</option>
@@ -1103,7 +1759,7 @@ function NewRequest() {
               </div>
             </div>
 
-            {formData.HAZARDOUS === "1" && (
+            {formData.working_hazardious_substen === "1" && (
               <div className="conditional-fields-block" style={{ marginBottom: "20px" }}>
                 <div className="checklist-item">
                   <p className="checklist-question">Relevant MAL-codes and safety datasheets for hazardous medias have been presented?</p>
@@ -1186,8 +1842,8 @@ function NewRequest() {
                 <label className="df-label">WORKING AT HEIGHT?</label>
                 <select
                   className="df-select"
-                  value={formData.workingAtHeight}
-                  onChange={(e) => handleFieldChange("workingAtHeight", e.target.value)}
+                  value={formData.working_at_height}
+                  onChange={(e) => handleFieldChange("working_at_height", e.target.value)}
                 >
                   <option value="0">No</option>
                   <option value="1">Yes</option>
@@ -1195,7 +1851,7 @@ function NewRequest() {
               </div>
             </div>
 
-            {formData.workingAtHeight === "1" && (
+            {formData.working_at_height === "1" && (
               <div className="conditional-fields-block" style={{ marginBottom: "20px" }}>
                 <div className="checklist-item">
                   <p className="checklist-question">Has the working area been segregated or demarkated with hand barriers?</p>
@@ -1323,8 +1979,8 @@ function NewRequest() {
                 <label className="df-label">WORKING IN CONFINED SPACES?</label>
                 <select
                   className="df-select"
-                  value={formData.confinedSpaces}
-                  onChange={(e) => handleFieldChange("confinedSpaces", e.target.value)}
+                  value={formData.working_confined_spaces}
+                  onChange={(e) => handleFieldChange("working_confined_spaces", e.target.value)}
                 >
                   <option value="0">No</option>
                   <option value="1">Yes</option>
@@ -1332,7 +1988,7 @@ function NewRequest() {
               </div>
             </div>
 
-            {formData.confinedSpaces === "1" && (
+            {formData.working_confined_spaces === "1" && (
               <div className="conditional-fields-block" style={{ marginBottom: "20px" }}>
                 <div className="checklist-item">
                   <p className="checklist-question">Is the tank/container cleaned so that the task can take place without risk from vapours, gases etc.?</p>
@@ -1415,8 +2071,8 @@ function NewRequest() {
                 <label className="df-label">EXCAVATION WORKS?</label>
                 <select
                   className="df-select"
-                  value={formData.excavationWorks}
-                  onChange={(e) => handleFieldChange("excavationWorks", e.target.value)}
+                  value={formData.excavation_works}
+                  onChange={(e) => handleFieldChange("excavation_works", e.target.value)}
                 >
                   <option value="0">No</option>
                   <option value="1">Yes</option>
@@ -1424,7 +2080,7 @@ function NewRequest() {
               </div>
             </div>
 
-            {formData.excavationWorks === "1" && (
+            {formData.excavation_works === "1" && (
               <div className="conditional-fields-block" style={{ marginBottom: "20px" }}>
                 <div className="checklist-item">
                   <p className="checklist-question">Is the excavation area segregated (1 meter from edge with hard barriers or 2 meters with soft barriers) before the work begins?</p>
@@ -1516,8 +2172,8 @@ function NewRequest() {
                 <label className="df-label">USING CRANE OR LIFTING?</label>
                 <select
                   className="df-select"
-                  value={formData.craneLifting}
-                  onChange={(e) => handleFieldChange("craneLifting", e.target.value)}
+                  value={formData.using_cranes_or_lifting}
+                  onChange={(e) => handleFieldChange("using_cranes_or_lifting", e.target.value)}
                 >
                   <option value="0">No</option>
                   <option value="1">Yes</option>
@@ -1525,7 +2181,7 @@ function NewRequest() {
               </div>
             </div>
 
-            {formData.craneLifting === "1" && (
+            {formData.using_cranes_or_lifting === "1" && (
               <div className="conditional-fields-block" style={{ marginBottom: "20px" }}>
                 <div className="checklist-item">
                   <p className="checklist-question">Is there an appointed person in charge of the lifting/crane operation?</p>
@@ -1601,7 +2257,7 @@ function NewRequest() {
               </div>
             )}
 
-            {/* Pressurization power on dropdown */}
+            {/* pressurization power on dropdown */}
             {formData.permit_type === "Commissioning" && !shouldShowElectricianCert() && (
               <>
                 <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center", marginTop: "20px" }}>
@@ -1612,8 +2268,8 @@ function NewRequest() {
                     <label className="df-label">Energising, Isolating and Working on Live Electrical Systems</label>
                     <select
                       className="df-select"
-                      value={formData.Poweron}
-                      onChange={(e) => handleFieldChange("Poweron", e.target.value)}
+                      value={formData.power_on}
+                      onChange={(e) => handleFieldChange("power_on", e.target.value)}
                     >
                       <option value="">Select Option</option>
                       {ELECTRICAL_WORKS_SELECT.map((tech) => (
@@ -1625,7 +2281,7 @@ function NewRequest() {
                   </div>
                 </div>
 
-                {formData.Poweron === "1" && (
+                {formData.power_on === "1" && (
                   <div className="conditional-fields-block" style={{ marginBottom: "20px" }}>
                     {/* Energising Electrical Equipment */}
                     <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center" }}>
@@ -1934,7 +2590,7 @@ function NewRequest() {
               </>
             )}
 
-            {/* Pressurization starts */}
+            {/* pressurization starts */}
             {formData.permit_type === "Commissioning" && !shouldShowElectricianCert() && (
               <>
                 <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center", marginTop: "20px" }}>
@@ -1945,8 +2601,8 @@ function NewRequest() {
                     <label className="df-label">Energization of Mechanical equipment</label>
                     <select
                       className="df-select"
-                      value={formData.Pressurization}
-                      onChange={(e) => handleFieldChange("Pressurization", e.target.value)}
+                      value={formData.pressurization}
+                      onChange={(e) => handleFieldChange("pressurization", e.target.value)}
                     >
                       <option value="">Select Option</option>
                       {MECHANICAL_WORKS_SELECT.map((tech) => (
@@ -1958,7 +2614,7 @@ function NewRequest() {
                   </div>
                 </div>
 
-                {formData.Pressurization === "1" && (
+                {formData.pressurization === "1" && (
                   <div className="conditional-fields-block" style={{ marginBottom: "20px" }}>
                     <div className="checklist-item">
                       <p className="checklist-question">Pressure test performed and approved?</p>
@@ -2049,8 +2705,8 @@ function NewRequest() {
                     <label className="df-label">PRESSURE TESTING OF EQUIPMENT REQUIRED?</label>
                     <select
                       className="df-select"
-                      value={formData.TESTINGs}
-                      onChange={(e) => handleFieldChange("TESTINGs", e.target.value)}
+                      value={formData.pressure_testing_of_equipment}
+                      onChange={(e) => handleFieldChange("pressure_testing_of_equipment", e.target.value)}
                     >
                       <option value="">Select Option</option>
                       {TESTINGS_SELECT.map((tech) => (
@@ -2062,7 +2718,7 @@ function NewRequest() {
                   </div>
                 </div>
 
-                {formData.TESTINGs === "1" && (
+                {formData.pressure_testing_of_equipment === "1" && (
                   <div className="conditional-fields-block" style={{ marginBottom: "20px", marginTop: "20px" }}>
                     <div className="checklist-item">
                       <p className="checklist-question">Linewalk of the pipework/equipment done?</p>
@@ -2239,16 +2895,30 @@ function NewRequest() {
             <div className="df-field" style={{ marginTop: "16px" }}>
               <label className="df-label">Number of workers involved</label>
               <input
-                type="number"
+                type="text"
                 className="df-input"
                 placeholder="Enter number of workers"
-                value={formData.peopleinvalidcount}
-                onChange={(e) => handleFieldChange("peopleinvalidcount", e.target.value)}
+                value={formData.Number_Of_Workers}
+                onChange={(e) => handleFieldChange("Number_Of_Workers", e.target.value)}
               />
             </div>
 
+            {isEditMode && notesHistory.length > 0 && (
+              <div className="notes-history-section" style={{ marginTop: "16px", background: "rgba(255,255,255,0.03)", padding: "16px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.05)" }}>
+                <h4 style={{ color: "#fff", marginBottom: "8px", fontSize: "14px" }}>Notes History</h4>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "150px", overflowY: "auto" }}>
+                  {notesHistory.map((n, idx) => (
+                    <div key={idx} style={{ padding: "8px", background: "rgba(255,255,255,0.02)", borderRadius: "4px" }}>
+                      <strong style={{ color: "#3b82f6", fontSize: "12px" }}>{n.Username}:</strong>
+                      <p style={{ color: "#d1d5db", fontSize: "13px", margin: "2px 0 0 0" }}>{n.Note}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="df-field" style={{ marginTop: "16px" }}>
-              <label className="df-label">Note</label>
+              <label className="df-label">{isEditMode ? "Add New Note" : "Note"}</label>
               <textarea
                 className="df-textarea"
                 rows={3}
@@ -2279,7 +2949,7 @@ function NewRequest() {
             <button
               type="button"
               className="nr-btn nr-btn--primary"
-              onClick={(e) => handleSubmit(e, "Saved")}
+              onClick={(e) => handleSubmit(e, "Draft")}
             >
               Save
             </button>
@@ -2324,9 +2994,9 @@ function NewRequest() {
                 }}
               >
                 <option value="">Select Building</option>
-                {BUILDINGS.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
+                {buildingsList.map((item) => (
+                  <option key={item.build_id} value={item.build_id}>
+                    {item.building_name}
                   </option>
                 ))}
               </select>

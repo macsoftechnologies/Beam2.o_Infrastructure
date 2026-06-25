@@ -245,7 +245,7 @@ function Sidebar({ sidebarOpen }) {
           <NavItem icon="ti-file-description" label="Request"
             paths={['/request-new', '/request-list']}>
             {userRole !== "Observer" && <SubItem href="/new-request" label="New Request" />}
-            <SubItem href="/request-list" label="List Request" />
+            <SubItem href="/list-request" label="List Request" />
           </NavItem>
 
           {(userRole === "Admin" || userRole === "Department" || userRole === "Department1") && (
