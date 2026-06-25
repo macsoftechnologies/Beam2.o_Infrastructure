@@ -153,36 +153,36 @@ function StatCard({ colorClass, icon: IconComp, value, label }) {
 
 /* ── RECENT REQUESTS TABLE ─────────────────── */
 const recentRequests = [
-  { permit: '220969065042026', activity: 'Electrical',  contractor: 'Alpha Build',   status: 'Approved', badgeClass: 'badge-success' },
-  { permit: '220969065042032', activity: 'HVAC',        contractor: 'Cooling Tech',  status: 'Hold',     badgeClass: 'badge-warning' },
-  { permit: '220969065042111', activity: 'Plumbing',    contractor: 'WaterWorks',    status: 'Closed',   badgeClass: 'badge-primary' },
-  { permit: '220969065042322', activity: 'Scaffolding', contractor: 'Safe Erectors', status: 'Rejected', badgeClass: 'badge-danger'  },
-  { permit: '220969065042398', activity: 'Welding',     contractor: 'Metal Masters', status: 'Approved', badgeClass: 'badge-success' },
+  { permit: '220969065042026', activity: 'Electrical', contractor: 'Alpha Build', status: 'Approved', badgeClass: 'badge-success' },
+  { permit: '220969065042032', activity: 'HVAC', contractor: 'Cooling Tech', status: 'Hold', badgeClass: 'badge-warning' },
+  { permit: '220969065042111', activity: 'Plumbing', contractor: 'WaterWorks', status: 'Closed', badgeClass: 'badge-primary' },
+  { permit: '220969065042322', activity: 'Scaffolding', contractor: 'Safe Erectors', status: 'Rejected', badgeClass: 'badge-danger' },
+  { permit: '220969065042398', activity: 'Welding', contractor: 'Metal Masters', status: 'Approved', badgeClass: 'badge-success' },
 ]
 
 /* ── PENDING APPROVALS TABLE ───────────────── */
 const pendingApprovals = [
-  { permit: '220969065042026', activity: 'Welding',    contractor: 'Metal Masters' },
-  { permit: '220969065042032', activity: 'Crane Ops',  contractor: 'Heavy Lift'   },
-  { permit: '220969065042111', activity: 'Excavation', contractor: 'Dig Deep'     },
-  { permit: '220969065042322', activity: 'Concrete',   contractor: 'Solid Base'   },
-  { permit: '220969065042450', activity: 'Roofing',    contractor: 'Top Build'    },
+  { permit: '220969065042026', activity: 'Welding', contractor: 'Metal Masters' },
+  { permit: '220969065042032', activity: 'Crane Ops', contractor: 'Heavy Lift' },
+  { permit: '220969065042111', activity: 'Excavation', contractor: 'Dig Deep' },
+  { permit: '220969065042322', activity: 'Concrete', contractor: 'Solid Base' },
+  { permit: '220969065042450', activity: 'Roofing', contractor: 'Top Build' },
 ]
 
 /* ── RECENT LOGS DATA ──────────────────────── */
 const recentLogs = [
-  { dot: '#3B82F6', user: 'John Doe', action: 'created request',     category: 'Requests',    catColor: '#3B82F6', time: '2m'  },
-  { dot: '#10B981', user: 'Admin',    action: 'approved PRM-1024',   category: 'Approvals',   catColor: '#10B981', time: '15m' },
-  { dot: '#06B6D4', user: 'System',   action: 'generated report',    category: 'Reports',     catColor: '#06B6D4', time: '1h'  },
-  { dot: '#FB7185', user: 'Sara K.',  action: 'rejected PRM-2088',   category: 'Rejections',  catColor: '#FB7185', time: '2h'  },
-  { dot: '#F97316', user: 'Ali M.',   action: 'added new contractor', category: 'Contractors', catColor: '#F97316', time: '3h'  },
+  { dot: '#3B82F6', user: 'John Doe', action: 'created request', category: 'Requests', catColor: '#3B82F6', time: '2m' },
+  { dot: '#10B981', user: 'Admin', action: 'approved PRM-1024', category: 'Approvals', catColor: '#10B981', time: '15m' },
+  { dot: '#06B6D4', user: 'System', action: 'generated report', category: 'Reports', catColor: '#06B6D4', time: '1h' },
+  { dot: '#FB7185', user: 'Sara K.', action: 'rejected PRM-2088', category: 'Rejections', catColor: '#FB7185', time: '2h' },
+  { dot: '#F97316', user: 'Ali M.', action: 'added new contractor', category: 'Contractors', catColor: '#F97316', time: '3h' },
 ]
 
 /* ═══════════════════════════════════════════ */
 function Dashboard() {
-  const barChartRef    = useRef(null)
-  const donutChartRef  = useRef(null)
-  const barChartInst   = useRef(null)
+  const barChartRef = useRef(null)
+  const donutChartRef = useRef(null)
+  const barChartInst = useRef(null)
   const donutChartInst = useRef(null)
 
   const [counts, setCounts] = useState({
@@ -209,20 +209,24 @@ function Dashboard() {
   const [weekLabel, setWeekLabel] = useState("");
   const [graphData, setGraphData] = useState(null);
 
-  // Helper: calculate first/last day of the week
   const getWeekRange = (offset = 0) => {
     const today = new Date();
-    const currentDay = today.getDay(); // 0 is Sunday
+    const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon...
+    // Shift so week starts Monday
+    const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+
     const first = new Date(today);
-    first.setDate(today.getDate() - currentDay + (offset * 7));
+    first.setDate(today.getDate() + diffToMonday + offset * 7);
+
     const last = new Date(first);
     last.setDate(first.getDate() + 6);
 
-    const formatDate = (d) => d.toISOString().split('T')[0];
+    const pad = (d) => d.toISOString().split('T')[0];
+
     return {
-      firstDay: formatDate(first),
-      lastDay: formatDate(last),
-      label: `${first.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${last.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+      firstDay: pad(first),
+      lastDay: pad(last),
+      label: `${first.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${last.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
     };
   };
 
@@ -234,14 +238,145 @@ function Dashboard() {
     const fetchGraphData = async () => {
       try {
         const res = await getGraphCountsPerDay(firstDay, lastDay);
+        console.log(res);
+        // API wraps in { data: [...] } or returns array directly
         const raw = res?.data ?? res ?? null;
-        setGraphData(raw);
+
+        // Extract the array regardless of nesting
+        const arr = Array.isArray(raw)
+          ? raw
+          : Array.isArray(raw?.data)
+            ? raw.data
+            : null;
+
+        console.log("Graph API response:", res);
+        console.log("Graph data array:", arr);
+
+        setGraphData(arr);
       } catch (err) {
         console.error("Failed to load daily graph data", err);
+        setGraphData(null);
       }
     };
+
     fetchGraphData();
   }, [weekOffset]);
+
+  // ─── RENDER BAR CHART ──────────────────────
+  useEffect(() => {
+    // Default empty data — never use static fallback numbers
+    let labels = [];
+    let approvedData = [];
+    let openData = [];
+    let closedData = [];
+    let rejectedData = [];
+
+    if (Array.isArray(graphData) && graphData.length > 0) {
+      graphData.forEach((dayObj) => {
+        // ✅ date already formatted e.g. " Wednesday 14/01/26" — just trim it
+        labels.push((dayObj.date ?? "").trim());
+
+        // ✅ correct field names from your API
+        approvedData.push(Number(dayObj.approveCount ?? dayObj.Approved ?? dayObj.approved ?? 0));
+        openData.push(Number(dayObj.openCount ?? dayObj.Open ?? dayObj.open ?? 0));
+        closedData.push(Number(dayObj.closeCount ?? dayObj.Closed ?? dayObj.closed ?? 0));
+        rejectedData.push(Number(dayObj.rejectCount ?? dayObj.Rejected ?? dayObj.rejected ?? 0));
+      });
+    } else {
+      // No data yet — show empty placeholder labels
+      labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      approvedData = rejectedData = openData = closedData = [0, 0, 0, 0, 0, 0, 0];
+    }
+
+    if (!barChartRef.current) return;
+
+    if (barChartInst.current) {
+      barChartInst.current.destroy();
+      barChartInst.current = null;
+    }
+
+    const ctx = barChartRef.current.getContext('2d');
+    barChartInst.current = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Approved',
+            data: approvedData,
+            backgroundColor: '#8B5CF6',
+            borderRadius: 5,
+            borderSkipped: false,
+          },
+          {
+            label: 'Open',
+            data: openData,
+            backgroundColor: '#06B6D4',
+            borderRadius: 5,
+            borderSkipped: false,
+          },
+          {
+            label: 'Closed',
+            data: closedData,
+            backgroundColor: '#10B981',
+            borderRadius: 5,
+            borderSkipped: false,
+          },
+          {
+            label: 'Rejected',
+            data: rejectedData,
+            backgroundColor: '#FB7185',
+            borderRadius: 5,
+            borderSkipped: false,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 500 },
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { boxWidth: 11, padding: 18, color: '#fff' },
+          },
+          tooltip: {
+            callbacks: {
+              // Trim the leading space from date label in tooltip
+              title: (items) => (items[0]?.label ?? "").trim(),
+            },
+          },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              color: '#fff',
+              precision: 0,
+              stepSize: 1,
+            },
+            grid: { color: 'rgba(255,255,255,0.07)' },
+          },
+          x: {
+            ticks: {
+              color: '#fff',
+              maxRotation: 35,
+              minRotation: 25,
+              font: { size: 11 },
+            },
+            grid: { display: false },
+          },
+        },
+      },
+    });
+
+    return () => {
+      if (barChartInst.current) {
+        barChartInst.current.destroy();
+        barChartInst.current = null;
+      }
+    };
+  }, [graphData]); // ✅ re-renders whenever graphData changes
 
   // ─── LOAD OVERALL COUNTS, SUMMARY & PLANS ───
   useEffect(() => {
@@ -251,26 +386,26 @@ function Dashboard() {
         const raw = res?.data ?? res ?? null;
         if (raw) {
           let approved = 0, open = 0, closed = 0, rejected = 0, total = 0;
-          
+
           // Handle format: [ { totalCount: 10418, approvedCount: 71, ... } ] or similar
           const list = Array.isArray(raw) ? raw : [raw];
           const dataObj = list[0];
-          
+
           if (dataObj && (
-            'approvedCount' in dataObj || 
-            'totalCount' in dataObj || 
-            'draftCount' in dataObj || 
+            'approvedCount' in dataObj ||
+            'totalCount' in dataObj ||
+            'draftCount' in dataObj ||
             'closedCount' in dataObj
           )) {
             approved = Number(dataObj.approvedCount ?? 0);
-            open = Number(dataObj.draftCount ?? 0) + 
-                   Number(dataObj.holdCount ?? 0) + 
-                   Number(dataObj.preApprovedCount ?? 0) + 
-                   Number(dataObj.openedCount ?? 0);
+            open = Number(dataObj.draftCount ?? 0) +
+              Number(dataObj.holdCount ?? 0) +
+              Number(dataObj.preApprovedCount ?? 0) +
+              Number(dataObj.openedCount ?? 0);
             closed = Number(dataObj.closedCount ?? 0);
-            rejected = Number(dataObj.rejectedCount ?? 0) + 
-                       Number(dataObj.cancelledCount ?? 0) + 
-                       Number(dataObj.autoCancelledCount ?? 0);
+            rejected = Number(dataObj.rejectedCount ?? 0) +
+              Number(dataObj.cancelledCount ?? 0) +
+              Number(dataObj.autoCancelledCount ?? 0);
             total = Number(dataObj.totalCount ?? (approved + open + closed + rejected));
 
             setCounts({
@@ -339,23 +474,23 @@ function Dashboard() {
       }
     };
 
-    const fetchSummary = async () => {
-      try {
-        const res = await getGraphSummary();
-        const raw = res?.data ?? res ?? null;
-        if (raw) {
-          const target = raw.today || raw;
-          setTodaySummary({
-            total: Number(target.total_requests || target.total || target.Total || 42),
-            approved: Number(target.approved || target.Approved || 28),
-            rejected: Number(target.rejected || target.Rejected || 2),
-            nightShift: Number(target.night_shift || target.nightShift || target.NightShift || 5)
-          });
-        }
-      } catch (err) {
-        console.error("Failed to load today's summary counts", err);
-      }
-    };
+    // const fetchSummary = async () => {
+    //   try {
+    //     const res = await getGraphSummary();
+    //     const raw = res?.data ?? res ?? null;
+    //     if (raw) {
+    //       const target = raw.today || raw;
+    //       setTodaySummary({
+    //         total: Number(target.total_requests || target.total || target.Total || 42),
+    //         approved: Number(target.approved || target.Approved || 28),
+    //         rejected: Number(target.rejected || target.Rejected || 2),
+    //         nightShift: Number(target.night_shift || target.nightShift || target.NightShift || 5)
+    //       });
+    //     }
+    //   } catch (err) {
+    //     console.error("Failed to load today's summary counts", err);
+    //   }
+    // };
 
     const fetchPlansList = async () => {
       try {
@@ -379,8 +514,8 @@ function Dashboard() {
           });
 
           setRecentRequestsList(mapped.slice(0, 5));
-          
-          const pending = mapped.filter(item => 
+
+          const pending = mapped.filter(item =>
             ["pending", "draft", "hold"].includes(item.status.toLowerCase())
           );
           if (pending.length > 0) {
@@ -395,78 +530,9 @@ function Dashboard() {
     };
 
     fetchCounts();
-    fetchSummary();
+    // fetchSummary();
     fetchPlansList();
   }, []);
-
-  // ─── RENDER BAR CHART ──────────────────────
-  useEffect(() => {
-    let labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    let approvedData = [45, 55, 58, 56, 62, 59, 64];
-    let openData = [35, 42, 36, 26, 45, 48, 52];
-    let closedData = [78, 87, 102, 99, 88, 106, 93];
-    let rejectedData = [12, 18, 15, 20, 10, 22, 14];
-
-    if (graphData) {
-      if (Array.isArray(graphData)) {
-        graphData.forEach((dayObj, index) => {
-          let label = dayObj.date || dayObj.day || labels[index] || "";
-          if (dayObj.date) {
-            const d = new Date(dayObj.date);
-            const weekday = d.toLocaleDateString('en-US', { weekday: 'short' });
-            const dayMonth = `${d.getDate()}/${d.getMonth() + 1}`;
-            label = `${weekday} ${dayMonth}`;
-          }
-          if (index < 7) {
-            labels[index] = label;
-            approvedData[index] = Number(dayObj.Approved ?? dayObj.approved ?? 0);
-            openData[index] = Number(dayObj.Open ?? dayObj.open ?? dayObj.draft ?? 0);
-            closedData[index] = Number(dayObj.Closed ?? dayObj.closed ?? dayObj.completed ?? 0);
-            rejectedData[index] = Number(dayObj.Rejected ?? dayObj.rejected ?? 0);
-          }
-        });
-      } else if (typeof graphData === "object") {
-        if (graphData.labels) labels = graphData.labels;
-        if (graphData.Approved) approvedData = graphData.Approved;
-        if (graphData.Open) openData = graphData.Open;
-        if (graphData.Closed) closedData = graphData.Closed;
-        if (graphData.Rejected) rejectedData = graphData.Rejected;
-      }
-    }
-
-    if (barChartRef.current) {
-      if (barChartInst.current) barChartInst.current.destroy();
-      const ctx = barChartRef.current.getContext('2d');
-      barChartInst.current = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [
-            { label: 'Approved', data: approvedData, backgroundColor: '#8B5CF6', borderRadius: 5 },
-            { label: 'Open',     data: openData,     backgroundColor: '#06B6D4', borderRadius: 5 },
-            { label: 'Closed',   data: closedData,   backgroundColor: '#10B981', borderRadius: 5 },
-            { label: 'Rejected', data: rejectedData, backgroundColor: '#FB7185', borderRadius: 5 },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          color: '#ffffff',
-          plugins: {
-            legend: { position: 'bottom', labels: { boxWidth: 11, padding: 18, color: '#fff' } },
-          },
-          scales: {
-            y: { beginAtZero: true, ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.07)' } },
-            x: { ticks: { color: '#fff' }, grid: { display: false } },
-          },
-        },
-      });
-    }
-
-    return () => {
-      if (barChartInst.current) barChartInst.current.destroy();
-    };
-  }, [graphData]);
 
   // ─── RENDER DONUT CHART ────────────────────
   useEffect(() => {
@@ -519,10 +585,10 @@ function Dashboard() {
   }, [counts]);
 
   /* ── HANDLERS ─────────────────────────── */
-  const handleAdd    = () => window.location.href = '/new-request';
+  const handleAdd = () => window.location.href = '/new-request';
   const handleUpdate = () => window.location.href = '/employees';
   const handleDelete = () => window.location.href = '/contractors';
-  const handleError  = () => console.log('Action test');
+  const handleError = () => console.log('Action test');
 
   /* ── RENDER ───────────────────────────── */
   return (
@@ -543,16 +609,16 @@ function Dashboard() {
 
       {/* ── STAT CARDS ── */}
       <div className="stat-cards-row">
-        <StatCard colorClass="card-slate"  icon={Icons.Stack}    value={counts.totalCount.toLocaleString()} label="Total" />
-        <StatCard colorClass="card-purple" icon={Icons.Check}    value={counts.approvedCount.toLocaleString()} label="Approved" />
-        <StatCard colorClass="card-green"  icon={Icons.Shield}   value={counts.closedCount.toLocaleString()} label="Closed" />
-        <StatCard colorClass="card-cyan"   icon={Icons.DoorOpen} value={counts.openedCount.toLocaleString()} label="Opened" />
-        <StatCard colorClass="card-purple" icon={Icons.Check}    value={counts.preApprovedCount.toLocaleString()} label="Pre-Approved" />
-        <StatCard colorClass="card-slate"  icon={Icons.Clock}    value={counts.draftCount.toLocaleString()} label="Drafts" />
-        <StatCard colorClass="card-cyan"   icon={Icons.Clock}    value={counts.holdCount.toLocaleString()} label="On Hold" />
-        <StatCard colorClass="card-rose"   icon={Icons.XCircle}  value={counts.rejectedCount.toLocaleString()} label="Rejected" />
-        <StatCard colorClass="card-rose"   icon={Icons.XCircle}  value={counts.cancelledCount.toLocaleString()} label="Cancelled" />
-        <StatCard colorClass="card-rose"   icon={Icons.XCircle}  value={counts.autoCancelledCount.toLocaleString()} label="Auto Cancelled" />
+        <StatCard colorClass="card-slate" icon={Icons.Stack} value={counts.totalCount.toLocaleString()} label="Total" />
+        <StatCard colorClass="card-purple" icon={Icons.Check} value={counts.approvedCount.toLocaleString()} label="Approved" />
+        <StatCard colorClass="card-green" icon={Icons.Shield} value={counts.closedCount.toLocaleString()} label="Closed" />
+        <StatCard colorClass="card-cyan" icon={Icons.DoorOpen} value={counts.openedCount.toLocaleString()} label="Opened" />
+        <StatCard colorClass="card-purple" icon={Icons.Check} value={counts.preApprovedCount.toLocaleString()} label="Pre-Approved" />
+        <StatCard colorClass="card-slate" icon={Icons.Clock} value={counts.draftCount.toLocaleString()} label="Drafts" />
+        <StatCard colorClass="card-cyan" icon={Icons.Clock} value={counts.holdCount.toLocaleString()} label="On Hold" />
+        <StatCard colorClass="card-rose" icon={Icons.XCircle} value={counts.rejectedCount.toLocaleString()} label="Rejected" />
+        <StatCard colorClass="card-rose" icon={Icons.XCircle} value={counts.cancelledCount.toLocaleString()} label="Cancelled" />
+        <StatCard colorClass="card-rose" icon={Icons.XCircle} value={counts.autoCancelledCount.toLocaleString()} label="Auto Cancelled" />
       </div>
 
       {/* ── WEEKLY BAR CHART ── */}
@@ -611,10 +677,10 @@ function Dashboard() {
             Today's Summary
           </div>
           {[
-            { label: 'Total Requests', value: todaySummary.total, color: '#fff'    },
-            { label: 'Approved',       value: todaySummary.approved, color: '#34D399' },
-            { label: 'Rejected',       value: todaySummary.rejected,  color: '#FB7185' },
-            { label: 'Night Shift',    value: todaySummary.nightShift,  color: '#FCD34D' },
+            { label: 'Total Requests', value: todaySummary.total, color: '#fff' },
+            { label: 'Approved', value: todaySummary.approved, color: '#34D399' },
+            { label: 'Rejected', value: todaySummary.rejected, color: '#FB7185' },
+            { label: 'Night Shift', value: todaySummary.nightShift, color: '#FCD34D' },
           ].map(({ label, value, color }) => (
             <div key={label} className="today-row">
               <span>{label}</span>
@@ -701,19 +767,19 @@ function Dashboard() {
               cls: 'warning',
               iconBg: '#FEF3C7', iconColor: '#D97706',
               icon: <Icons.ConeStriped />,
-              name: 'Under Construction', sub: 'Active zones',  count: 12,
+              name: 'Under Construction', sub: 'Active zones', count: 12,
             },
             {
               cls: 'info',
               iconBg: '#CFFAFE', iconColor: '#0891B2',
               icon: <Icons.GearWide />,
-              name: 'Commissioning',      sub: 'In progress',   count: 8,
+              name: 'Commissioning', sub: 'In progress', count: 8,
             },
             {
               cls: 'success',
               iconBg: '#D1FAE5', iconColor: '#059669',
               icon: <Icons.BuildingCheck />,
-              name: 'Hand Over',          sub: 'Completed',     count: 5,
+              name: 'Hand Over', sub: 'Completed', count: 5,
             },
           ].map(z => (
             <div key={z.name} className={`zone-item ${z.cls}`}>

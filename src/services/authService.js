@@ -308,12 +308,14 @@ export const getPlans = async (payload) => {
     return res.data;
 };
 
-export const getGraphCountsPerDay = async (weekFirstday, weekLastday) => {
-    const res = await api.post("/requests/analytics/graph", { WeekFirstday: weekFirstday, WeekLastday: weekLastday });
-    return res.data;
+export const getGraphCountsPerDay = (firstDay, lastDay) => {
+    return api.post('/requests/analytics/graph', {
+        WeekFirstday: firstDay,
+        WeekLastday: lastDay,
+    });
 };
 
 export const getGraphSummary = async () => {
-    const res = await api.get("/requests/analytics/graph/counts");
+    const res = await api.post("/requests/analytics/graph/counts");
     return res.data;
 };

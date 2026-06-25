@@ -1,16 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Table from "../../components/common/Table/Table";
+import { searchRequests } from "../../services/requestService";
 import "../styles/pages.css";
+import LogHistoryModal from "./LogHistoryModel";
 
-const STATIC_LOG_HISTORY = [
-  { logId: 1,  permitNumber: "PN-1001", activity: "WP-328H_Electrical Installation", contractor: "Alpha Build Co.",      building: "Block A", area: "Zone 1", level: "L1", workingDate: "2026-05-01", nightShift: "No",  newDate: "2026-05-03" },
-  { logId: 2,  permitNumber: "PN-1002", activity: "WP-329_Ethanol Tanks",             contractor: "BrightWave Infra",     building: "Block B", area: "Zone 2", level: "L2", workingDate: "2026-05-02", nightShift: "Yes", newDate: "—"          },
-  { logId: 3,  permitNumber: "PN-1003", activity: "WP-328G_Piping Installation",      contractor: "CoreTech Solutions",   building: "Block C", area: "Zone 3", level: "L3", workingDate: "2026-05-03", nightShift: "No",  newDate: "2026-05-05" },
-  { logId: 4,  permitNumber: "PN-1004", activity: "WP-403_Cooling and Heating",       contractor: "Delta Constructions",  building: "Block D", area: "Zone 1", level: "L1", workingDate: "2026-05-04", nightShift: "Yes", newDate: "—"          },
-  { logId: 5,  permitNumber: "PN-1005", activity: "WP-328F_Insulation",               contractor: "EagleEye Services",    building: "Block A", area: "Zone 4", level: "L2", workingDate: "2026-05-05", nightShift: "No",  newDate: "2026-05-07" },
-];
-
-const PAGE_LIMIT_DEFAULT = 10;
+const PAGE_LIMIT_DEFAULT = 30;
 
 const SearchIcon = () => (
   <svg
@@ -32,39 +26,92 @@ const SearchIcon = () => (
 );
 
 const LogHistory = () => {
-  const [search, setSearch]           = useState("");
+  const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageLimit]                   = useState(PAGE_LIMIT_DEFAULT);
+  const [pageLimit] = useState(PAGE_LIMIT_DEFAULT);
+  const [requests, setRequests] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedPermit, setSelectedPermit] = useState(null);
 
-  const filtered = STATIC_LOG_HISTORY.filter((item) =>
-    item.permitNumber.toLowerCase().includes(search.toLowerCase())
-  );
+  const fetchLogHistory = useCallback(async (page = 1, searchQuery = "") => {
+    setIsLoading(true);
+    try {
+      const payload = {
+        PermitNo: searchQuery.trim(),
+        Page: page,
+        End: pageLimit,
+        Site_Id: 5
+      };
 
-  const totalPages = Math.ceil(filtered.length / pageLimit);
-  const startIndex = (currentPage - 1) * pageLimit;
-  const paginated  = filtered.slice(startIndex, startIndex + pageLimit);
+      const res = await searchRequests(payload);
+
+      // The API returns an array: [{ data: [...] }, { count: N }, ...]
+      // res is either the array directly, or wrapped in res.data by axios
+      const responseArray = Array.isArray(res) ? res : (res?.data ?? []);
+
+      const rows = responseArray[0]?.data ?? [];
+      const count = responseArray[1]?.count ?? rows.length;
+
+      setRequests(rows);
+      setTotalCount(Number(count));
+    } catch (err) {
+      console.error("Failed to fetch log history", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [pageLimit]);
+
+  useEffect(() => {
+    fetchLogHistory(currentPage, search);
+  }, [currentPage, search, fetchLogHistory]);
 
   const columns = [
     { header: "Permit number", accessor: "permitNumber" },
-    { header: "Activity",      accessor: "activity"     },
-    { header: "Contractor",    accessor: "contractor"   },
-    { header: "Building",      accessor: "building"     },
-    { header: "Area",          accessor: "area"         },
-    { header: "Level",         accessor: "level"        },
-    { header: "Working Date",  accessor: "workingDate"  },
-    { header: "Night Shift",   accessor: "nightShift"   },
-    { header: "New Date",      accessor: "newDate"      },
-    { header: "Actions",       accessor: "actions"      },
+    { header: "Activity", accessor: "activity" },
+    { header: "Contractor", accessor: "contractor" },
+    { header: "Building", accessor: "building" },
+    { header: "Area", accessor: "area" },
+    { header: "Level", accessor: "level" },
+    { header: "Working Date", accessor: "workingDate" },
+    { header: "Night Shift", accessor: "nightShift" },
+    { header: "New Date", accessor: "newDate" },
+    { header: "Actions", accessor: "actions" },
   ];
 
-  const tableData = paginated.map((item) => ({
+  const tableData = requests.map((item) => ({
     ...item,
+    // permitNumber: item.PermitNo || "—",
+    permitNumber: (
+      <span
+        onClick={() => setSelectedPermit(item)}
+        style={{ color: "#4a9eff", cursor: "pointer", textDecoration: "underline" }}
+      >
+        {item.PermitNo || "—"}
+      </span>
+    ),
+    activity: item.Activity || "—",
+    contractor: item.subContractorName || item.Company_Name || "—",
+    building: item.building_name || "—",
+    area: item.zone_name || item.room_names || item.Room_Nos || "—",
+    level: item.Room_Type || "—",
+    workingDate: item.Working_Date || "—",
+    nightShift: (item.night_shift === 1 || item.night_shift === "1") ? "Yes" : "No",
+    newDate: item.new_date || "—",
     actions: (
       <div className="dept-action-btns">
-        <button className="dept-action-btn dept-action-btn--view" title="View">👁</button>
+        <button
+          className="dept-action-btn dept-action-btn--view"
+          title="View Details Drawing"
+          onClick={() => window.open(`http://187.127.171.51/requests/logs-design/${item.PermitNo}`, '_blank')}
+        >
+          👁
+        </button>
       </div>
     ),
   }));
+
+  const totalPages = Math.ceil(totalCount / pageLimit);
 
   return (
     <div className="dept-page">
@@ -134,9 +181,14 @@ const LogHistory = () => {
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
-          isLoading={false}
+          isLoading={isLoading}
         />
       </div>
+
+      <LogHistoryModal
+        permit={selectedPermit}
+        onClose={() => setSelectedPermit(null)}
+      />
 
     </div>
   );
