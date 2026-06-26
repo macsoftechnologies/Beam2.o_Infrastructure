@@ -316,6 +316,16 @@ export const getGraphCountsPerDay = (firstDay, lastDay) => {
 };
 
 export const getGraphSummary = async () => {
-    const res = await api.post("/requests/analytics/graph/counts");
+    const res = await api.get("/requests/analytics/graph/counts");
+    return res.data;
+};
+
+export const getZoneStatusCounts = async () => {
+    const res = await api.get("/zones/status/counts");
+    return res.data;
+};
+
+export const getEmployeeAnalyticsCounts = async () => {
+    const res = await api.get("/employee/analytics/counts");
     return res.data;
 };

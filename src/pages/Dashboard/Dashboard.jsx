@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Chart, registerables } from 'chart.js';
-import { getRequestCounts, getPlans, getGraphCountsPerDay, getGraphSummary } from '../../services/authService';
+import { getRequestCounts, getPlans, getGraphCountsPerDay, getGraphSummary, getZoneStatusCounts, getEmployeeAnalyticsCounts } from '../../services/authService';
 import './Dashboard.css';
 // import {
 //   showSuccessToast,
@@ -202,7 +202,20 @@ function Dashboard() {
     rejected: 0,
     total: 0
   });
-  const [todaySummary, setTodaySummary] = useState({ total: 42, approved: 28, rejected: 2, nightShift: 5 });
+  const [todaySummary, setTodaySummary] = useState({
+    totalCount: 0,
+    nightshiftCount: 0,
+    draftCount: 0,
+    holdCount: 0,
+    preApprovedCount: 0,
+    approvedCount: 0,
+    rejectedCount: 0,
+    openedCount: 0,
+    cancelledCount: 0,
+    closedCount: 0
+  });
+  const [zoneCounts, setZoneCounts] = useState({ UC: 0, C: 0, HO: 0 });
+  const [employeeCounts, setEmployeeCounts] = useState({ departments: 0, contractors: 0, observers: 0, total: 0 });
   const [recentRequestsList, setRecentRequestsList] = useState(recentRequests);
   const [pendingApprovalsList, setPendingApprovalsList] = useState(pendingApprovals);
   const [weekOffset, setWeekOffset] = useState(0);
@@ -360,8 +373,8 @@ function Dashboard() {
           x: {
             ticks: {
               color: '#fff',
-              maxRotation: 35,
-              minRotation: 25,
+              maxRotation: 0,
+              minRotation: 0,
               font: { size: 11 },
             },
             grid: { display: false },
@@ -474,23 +487,62 @@ function Dashboard() {
       }
     };
 
-    // const fetchSummary = async () => {
-    //   try {
-    //     const res = await getGraphSummary();
-    //     const raw = res?.data ?? res ?? null;
-    //     if (raw) {
-    //       const target = raw.today || raw;
-    //       setTodaySummary({
-    //         total: Number(target.total_requests || target.total || target.Total || 42),
-    //         approved: Number(target.approved || target.Approved || 28),
-    //         rejected: Number(target.rejected || target.Rejected || 2),
-    //         nightShift: Number(target.night_shift || target.nightShift || target.NightShift || 5)
-    //       });
-    //     }
-    //   } catch (err) {
-    //     console.error("Failed to load today's summary counts", err);
-    //   }
-    // };
+    const fetchSummary = async () => {
+      try {
+        const res = await getGraphSummary();
+        const raw = res?.data ?? res ?? null;
+        if (raw && raw.day && raw.day.length > 0) {
+          const target = raw.day[0];
+          setTodaySummary({
+            totalCount: Number(target.totalCount || 0),
+            nightshiftCount: Number(target.nightshiftCount || 0),
+            draftCount: Number(target.draftCount || 0),
+            holdCount: Number(target.holdCount || 0),
+            preApprovedCount: Number(target.preApprovedCount || 0),
+            approvedCount: Number(target.approvedCount || 0),
+            rejectedCount: Number(target.rejectedCount || 0),
+            openedCount: Number(target.openedCount || 0),
+            cancelledCount: Number(target.cancelledCount || 0),
+            closedCount: Number(target.closedCount || 0)
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load today's summary counts", err);
+      }
+    };
+
+    const fetchZoneCounts = async () => {
+      try {
+        const res = await getZoneStatusCounts();
+        const raw = res?.data ?? res ?? null;
+        if (raw) {
+          setZoneCounts({
+            UC: Number(raw.UC || 0),
+            C: Number(raw.C || 0),
+            HO: Number(raw.HO || 0),
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load zone status counts", err);
+      }
+    };
+
+    const fetchEmployeeCounts = async () => {
+      try {
+        const res = await getEmployeeAnalyticsCounts();
+        const raw = res?.data ?? res ?? null;
+        if (raw) {
+          setEmployeeCounts({
+            departments: Number(raw.departments || 0),
+            contractors: Number(raw.contractors || 0),
+            observers: Number(raw.observers || 0),
+            total: Number(raw.total || 0),
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load employee analytics counts", err);
+      }
+    };
 
     const fetchPlansList = async () => {
       try {
@@ -530,7 +582,9 @@ function Dashboard() {
     };
 
     fetchCounts();
-    // fetchSummary();
+    fetchSummary();
+    fetchZoneCounts();
+    fetchEmployeeCounts();
     fetchPlansList();
   }, []);
 
@@ -677,10 +731,16 @@ function Dashboard() {
             Today's Summary
           </div>
           {[
-            { label: 'Total Requests', value: todaySummary.total, color: '#fff' },
-            { label: 'Approved', value: todaySummary.approved, color: '#34D399' },
-            { label: 'Rejected', value: todaySummary.rejected, color: '#FB7185' },
-            { label: 'Night Shift', value: todaySummary.nightShift, color: '#FCD34D' },
+            { label: 'Total Requests', value: todaySummary.totalCount, color: '#fff' },
+            { label: 'Drafts', value: todaySummary.draftCount, color: '#64748B' },
+            { label: 'On Hold', value: todaySummary.holdCount, color: '#F59E0B' },
+            { label: 'Pre-Approved', value: todaySummary.preApprovedCount, color: '#6366F1' },
+            { label: 'Approved', value: todaySummary.approvedCount, color: '#8B5CF6' },
+            { label: 'Opened', value: todaySummary.openedCount, color: '#06B6D4' },
+            { label: 'Closed', value: todaySummary.closedCount, color: '#10B981' },
+            { label: 'Rejected', value: todaySummary.rejectedCount, color: '#EF4444' },
+            { label: 'Cancelled', value: todaySummary.cancelledCount, color: '#F43F5E' },
+            { label: 'Night Shift', value: todaySummary.nightshiftCount, color: '#FCD34D' },
           ].map(({ label, value, color }) => (
             <div key={label} className="today-row">
               <span>{label}</span>
@@ -767,19 +827,19 @@ function Dashboard() {
               cls: 'warning',
               iconBg: '#FEF3C7', iconColor: '#D97706',
               icon: <Icons.ConeStriped />,
-              name: 'Under Construction', sub: 'Active zones', count: 12,
+              name: 'Under Construction', sub: 'Active zones', count: zoneCounts.UC,
             },
             {
               cls: 'info',
               iconBg: '#CFFAFE', iconColor: '#0891B2',
               icon: <Icons.GearWide />,
-              name: 'Commissioning', sub: 'In progress', count: 8,
+              name: 'Commissioning', sub: 'In progress', count: zoneCounts.C,
             },
             {
               cls: 'success',
               iconBg: '#D1FAE5', iconColor: '#059669',
               icon: <Icons.BuildingCheck />,
-              name: 'Hand Over', sub: 'Completed', count: 5,
+              name: 'Hand Over', sub: 'Completed', count: zoneCounts.HO,
             },
           ].map(z => (
             <div key={z.name} className={`zone-item ${z.cls}`}>
@@ -805,15 +865,22 @@ function Dashboard() {
               <div className="stat-circle bg-primary-soft">
                 <Icons.Buildings />
               </div>
-              <p className="stat-circle-num">15</p>
+              <p className="stat-circle-num">{employeeCounts.departments}</p>
               <p className="stat-circle-label">Departments</p>
             </div>
             <div>
               <div className="stat-circle bg-success-soft">
                 <Icons.BriefcaseLg />
               </div>
-              <p className="stat-circle-num">42</p>
+              <p className="stat-circle-num">{employeeCounts.contractors}</p>
               <p className="stat-circle-label">Contractors</p>
+            </div>
+            <div>
+              <div className="stat-circle" style={{ background: 'rgba(6, 182, 212, 0.15)', color: '#0891B2' }}>
+                <Icons.Shield />
+              </div>
+              <p className="stat-circle-num">{employeeCounts.observers}</p>
+              <p className="stat-circle-label">Observers</p>
             </div>
           </div>
           <div className="emp-band">
@@ -821,7 +888,7 @@ function Dashboard() {
               <Icons.PeopleFill />
               Total Employees
             </span>
-            <span className="emp-band-val">1,280</span>
+            <span className="emp-band-val">{employeeCounts.total.toLocaleString()}</span>
           </div>
         </div>
 
