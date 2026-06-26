@@ -7,6 +7,8 @@ import {
   getZones,
   getPlans
 } from "../../services/authService";
+import { searchRequests } from "../../services/requestService";
+import { buildingDataWithIds } from "../../data/buildingDataWithIds";
 import "../styles/pages.css";
 import "../../forms/styles/forms.css";
 
@@ -428,46 +430,76 @@ const Reports = () => {
     fetchSelectors();
   }, []);
 
-  // ─── Filter Logic ──────────────────────────────────────────────────────────
-  const filteredLevels = useMemo(() => {
-    if (filters.building.length === 0) return floorsList;
-    return floorsList.filter(f => filters.building.includes(String(f.build_id)));
-  }, [filters.building, floorsList]);
-
-  const uniqueLevels = useMemo(() => {
-    const levels = filteredLevels.map(f => f.floor_name);
-    return [...new Set(levels)];
-  }, [filteredLevels]);
-
-  const filteredZones = useMemo(() => {
-    if (filters.level.length === 0) return zonesList;
-    const matchedFloorIds = floorsList
-      .filter(f => filters.level.includes(f.floor_name))
-      .map(f => String(f.fl_id));
-    return zonesList.filter(z => matchedFloorIds.includes(String(z.floor_id)));
-  }, [filters.level, zonesList, floorsList]);
-
-  const groupedZones = useMemo(() => {
-    const groups = {};
-    filteredZones.forEach(z => {
-      const floor = floorsList.find(f => String(f.fl_id) === String(z.floor_id));
-      const floorName = floor ? floor.floor_name : "Other Zones";
-      if (!groups[floorName]) {
-        groups[floorName] = [];
-      }
-      if (!groups[floorName].includes(z.zone)) {
-        groups[floorName].push(z.zone);
-      }
+  // ─── Filtered Levels and Areas derived from buildingDataWithIds ────────────
+  const buildingsOptions = useMemo(() => {
+    const uniqueIds = [...new Set(buildingDataWithIds.map(b => String(b.buildingId)))];
+    return uniqueIds.map(id => {
+      const apiBuild = buildingsList.find(b => String(b.build_id) === id);
+      return {
+        build_id: id,
+        building_name: apiBuild ? apiBuild.building_name : `Building ${id}`
+      };
     });
-    return Object.keys(groups).map(floorName => ({
-      floorName,
-      zones: groups[floorName]
-    }));
-  }, [filteredZones, floorsList]);
+  }, [buildingsList]);
+
+  const allFloors = useMemo(() => {
+    const floors = [];
+    buildingDataWithIds.forEach(building => {
+      floors.push({
+        buildingId: String(building.buildingId),
+        floorName: building.planType
+      });
+    });
+    return floors;
+  }, []);
+
+  const allRooms = useMemo(() => {
+    const rooms = [];
+    buildingDataWithIds.forEach(building => {
+      building.zoneList?.forEach(zone => {
+        rooms.push({
+          buildingId: String(building.buildingId),
+          planType: building.planType,
+          floorName: zone.floorName,
+          zones: zone.zoneSubList?.map(sub => sub.value) || []
+        });
+      });
+    });
+    return rooms;
+  }, []);
+
+  const filteredFloors = useMemo(() => {
+    if (filters.building.length === 0) {
+      return [...new Set(allFloors.map(f => f.floorName))];
+    }
+    return [
+      ...new Set(
+        allFloors
+          .filter(f => filters.building.includes(f.buildingId))
+          .map(f => f.floorName)
+      )
+    ];
+  }, [filters.building, allFloors]);
+
+  const filteredRooms = useMemo(() => {
+    return allRooms.filter(room => {
+      const buildingMatch = filters.building.length === 0 || filters.building.includes(room.buildingId);
+      const levelMatch = filters.level.length === 0 || filters.level.includes(room.planType);
+      return buildingMatch && levelMatch;
+    });
+  }, [filters.building, filters.level, allRooms]);
 
   // ─── Change Handlers ────────────────────────────────────────────────────────
   const handleChange = (field, value) => {
-    setFilters((prev) => ({ ...prev, [field]: value }));
+    setFilters((prev) => {
+      const next = { ...prev, [field]: value };
+      if (field === "reportType") {
+        next.date = "";
+        next.year = "";
+        next.weekno = "";
+      }
+      return next;
+    });
   };
 
   const handleYearChange = (yearVal) => {
@@ -511,68 +543,70 @@ const Reports = () => {
     setIsSearching(true);
     setHasSearched(true);
     try {
-      const plansPayload = {};
+      const searchPayload = {};
 
-      plansPayload.Building_Id = filters.building.length > 0 ? filters.building.map(Number) : null;
-      plansPayload.Sub_Contractor_Id = filters.subContractor || "";
-      plansPayload.Month = "";
-      plansPayload.Date = (filters.reportType === "1" && filters.date) ? filters.date : "";
-      plansPayload.Year = filters.reportType === "2" ? (filters.year || "") : "";
-      plansPayload.Week = filters.reportType === "2" ? (filters.weekno || "") : "";
-      plansPayload.Room_Type = filters.level.length > 0 ? filters.level.join(",") : "";
-      plansPayload.from_date = filters.workingDateFrom || "";
-      plansPayload.to_date = filters.workingDateTo || "";
-      plansPayload.new_date = filters.newWorkDate || "";
-      plansPayload.start_time = filters.startTime || "";
-      plansPayload.end_time = filters.endTime || "";
-      plansPayload.new_end_time = filters.newEndTime || "";
-      plansPayload.night_shift = filters.nightShift ? "1" : "0";
-      plansPayload.permit_under = filters.permitUnder || "";
+      // Unified search payload parameters (with fallback/compatible keys)
+      searchPayload.Site_Id = 5;
+      searchPayload.Page = 1;
+      searchPayload.End = 5000;
+      searchPayload.Building_Id = filters.building.length > 0 ? Number(filters.building[0]) : null;
+      searchPayload.Sub_Contractor_Id = filters.subContractor ? Number(filters.subContractor) : null;
+      searchPayload.Room_Type = filters.level.length > 0 ? filters.level.join(",") : "";
+      searchPayload.area = filters.area.length > 0 ? filters.area.join("|") : "";
+      searchPayload.permit_type = filters.permitType || "";
+      searchPayload.permit_under = filters.permitUnder || "";
+      searchPayload.night_shift = filters.nightShift ? "1" : "0";
+      
+      const targetDate = (filters.reportType === "1" && filters.date) ? filters.date : "";
+      searchPayload.fromDate = targetDate || filters.workingDateFrom || "";
+      searchPayload.toDate = targetDate || filters.workingDateTo || "";
+      
+      // Suffix start/end time with :00 if present
+      searchPayload.Start_Time = filters.startTime ? (filters.startTime.length === 5 ? `${filters.startTime}:00` : filters.startTime) : "";
+      searchPayload.End_Time = filters.endTime ? (filters.endTime.length === 5 ? `${filters.endTime}:00` : filters.endTime) : "";
 
-      // Format Status: "'Hold','Draft'"
+      // Format status
       const statusArray = Array.isArray(filters.status) ? filters.status : [];
       const formattedStatus = statusArray
         .filter(val => val !== null && val !== undefined && val !== "")
         .map(val => `'${val}'`)
         .join(",");
-      plansPayload.Request_status = formattedStatus || "";
+      searchPayload.Request_status = formattedStatus || "";
 
       // HRA calculations
       const hrasList = Array.isArray(filters.hras) ? filters.hras : [];
       const hasNone = hrasList.includes("none");
-      plansPayload.hras = hasNone ? "none" : "";
-      
-      HRA_LIST.forEach(hra => {
-        plansPayload[hra.key] = "0";
-      });
-
-      if (!hasNone && hrasList.length > 0) {
+      if (hasNone) {
+        searchPayload.hras = 0;
+      } else if (hrasList.length > 0) {
+        searchPayload.hras = 1;
         hrasList.forEach(hraKey => {
-          plansPayload[hraKey] = "1";
+          searchPayload[hraKey] = 1;
         });
       }
 
-      // Cleanup zero parameters
-      HRA_LIST.forEach(hra => {
-        if (plansPayload[hra.key] === "0") {
-          delete plansPayload[hra.key];
-        }
-      });
+      // Keep only allowed custom extension fields that don't trigger validation errors
+      searchPayload.new_date = filters.newWorkDate || "";
+      searchPayload.new_end_time = filters.newEndTime || "";
 
-      // Area calculations
-      plansPayload.area = filters.area.length > 0 ? filters.area.join("|") : "";
-      plansPayload.permit_type = filters.permitType || "";
-      plansPayload.Site_Id = 5;
-
-      const res = await getPlans(plansPayload);
+      // Call Unified Search API
+      const res = await searchRequests(searchPayload);
       
       let rows = [];
-      if (Array.isArray(res)) {
-        rows = res[0]?.data ?? [];
-      } else if (res?.data) {
-        rows = Array.isArray(res.data) ? res.data : (res.data.rows ?? []);
-      } else {
-        rows = [];
+      if (res && res.data) {
+        if (Array.isArray(res.data) && res.data.length > 0 && res.data[0] && Array.isArray(res.data[0].data)) {
+          rows = res.data[0].data;
+        } else if (Array.isArray(res.data)) {
+          rows = res.data;
+        } else if (res.data.rows) {
+          rows = res.data.rows;
+        }
+      } else if (Array.isArray(res)) {
+        if (res.length > 0 && res[0] && Array.isArray(res[0].data)) {
+          rows = res[0].data;
+        } else {
+          rows = res;
+        }
       }
       
       setTableData(rows);
@@ -726,6 +760,10 @@ const Reports = () => {
     { header: "Building Name", accessor: "building_name" },
     { header: "Area", accessor: "Room_Nos" },
     { header: "Working Date", accessor: "Working_Date" },
+    { header: "Time", accessor: "timeCell" },
+    { header: "Night Shift", accessor: "nightShiftCell" },
+    { header: "New Date", accessor: "newDateCell" },
+    { header: "New End Time", accessor: "newEndTime" },
     { header: "Status", accessor: "statusCell" }
   ];
 
@@ -733,10 +771,32 @@ const Reports = () => {
   const startIndex = (currentPage - 1) * PAGE_LIMIT;
   const paginatedData = tableData.slice(startIndex, startIndex + PAGE_LIMIT);
 
-  const formattedTableData = paginatedData.map(item => ({
-    ...item,
-    statusCell: <StatusBadge status={item.Request_status} />
-  }));
+  const formattedTableData = paginatedData.map(item => {
+    const isValidDate = (d) => {
+      if (!d || d === "0000-00-00" || d === "00-00-0000") return false;
+      const parsed = Date.parse(d);
+      return !isNaN(parsed);
+    };
+
+    const formatMediumDate = (d) => {
+      if (!isValidDate(d)) return "N/A";
+      return new Date(d).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+      });
+    };
+
+    return {
+      ...item,
+      Working_Date: formatMediumDate(item.Working_Date),
+      timeCell: `${item.Start_Time || ""} - ${item.End_Time || ""}`,
+      nightShiftCell: item.night_shift == 1 ? "Yes" : "No",
+      newDateCell: formatMediumDate(item.new_date),
+      newEndTime: item.new_end_time || "",
+      statusCell: <StatusBadge status={item.Request_status} />
+    };
+  });
 
   return (
     <div className="dept-page">
@@ -827,7 +887,7 @@ const Reports = () => {
               <label className="df-label">Building (Multiple)</label>
               <MultiSelectDropdown
                 placeholder="Select Buildings"
-                options={buildingsList}
+                options={buildingsOptions}
                 selectedValues={filters.building}
                 onChange={(vals) => {
                   setFilters(prev => ({ ...prev, building: vals, level: [], area: [] }));
@@ -856,19 +916,19 @@ const Reports = () => {
               />
             </div>
 
-            {/* Row 5: Start Time | End Time & Night Shift */}
-            <div className="df-field">
-              <label className="df-label">Start Time</label>
-              <input
-                type="time"
-                className="df-input"
-                value={filters.startTime}
-                onChange={(e) => handleChange("startTime", e.target.value)}
-              />
-            </div>
+            {/* Row 5: Start Time | End Time & Night Shift (3 columns nested in full-width wrapper) */}
+            <div className="df-field--full" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "18px" }}>
+              <div className="df-field">
+                <label className="df-label">Start Time</label>
+                <input
+                  type="time"
+                  className="df-input"
+                  value={filters.startTime}
+                  onChange={(e) => handleChange("startTime", e.target.value)}
+                />
+              </div>
 
-            <div className="df-field" style={{ display: "flex", gap: "16px", alignItems: "flex-end" }}>
-              <div style={{ flex: 1 }}>
+              <div className="df-field">
                 <label className="df-label">End Time</label>
                 <input
                   type="time"
@@ -877,23 +937,28 @@ const Reports = () => {
                   onChange={(e) => handleChange("endTime", e.target.value)}
                 />
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", paddingBottom: "10px", whiteSpace: "nowrap" }}>
-                <span className="df-label" style={{ margin: 0 }}>Night shift?</span>
-                <input
-                  type="checkbox"
-                  checked={filters.nightShift}
-                  onChange={(e) => {
-                    const checked = e.target.checked;
-                    setFilters(prev => ({
-                      ...prev,
-                      nightShift: checked,
-                      newWorkDate: checked ? prev.newWorkDate : "",
-                      newEndTime: checked ? prev.newEndTime : ""
-                    }));
-                  }}
-                  style={{ width: "16px", height: "16px", cursor: "pointer" }}
-                />
-                <span className="df-label" style={{ margin: 0 }}>Yes</span>
+
+              <div className="df-field" style={{ display: "flex", flexDirection: "column", justifyContent: "flex-end", height: "100%" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", height: "46px", paddingLeft: "12px", border: "1.5px solid var(--border-color, #374151)", borderRadius: "12px", backgroundColor: "var(--bg-card, #111827)" }}>
+                  <input
+                    type="checkbox"
+                    id="nightShiftCheckbox"
+                    checked={filters.nightShift}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setFilters(prev => ({
+                        ...prev,
+                        nightShift: checked,
+                        newWorkDate: checked ? prev.newWorkDate : "",
+                        newEndTime: checked ? prev.newEndTime : ""
+                      }));
+                    }}
+                    style={{ width: "16px", height: "16px", cursor: "pointer", accentColor: "var(--accent, #00e5a0)" }}
+                  />
+                  <label htmlFor="nightShiftCheckbox" className="df-label" style={{ margin: 0, cursor: "pointer", textTransform: "none", fontSize: "14px", fontWeight: "normal", color: "var(--text-main, #f9fafb)" }}>
+                    Night shift? Yes
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -926,7 +991,7 @@ const Reports = () => {
               <label className="df-label">Level (Multiple)</label>
               <MultiSelectDropdown
                 placeholder="Select Levels"
-                options={uniqueLevels}
+                options={filteredFloors}
                 selectedValues={filters.level}
                 onChange={(vals) => {
                   setFilters(prev => ({ ...prev, level: vals, area: [] }));
@@ -938,7 +1003,7 @@ const Reports = () => {
               <label className="df-label">Area (Multiple)</label>
               <MultiSelectDropdown
                 placeholder="Select Areas"
-                options={groupedZones}
+                options={filteredRooms}
                 selectedValues={filters.area}
                 onChange={(vals) => handleChange("area", vals)}
               />

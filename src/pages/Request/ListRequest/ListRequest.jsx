@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaEdit, FaEye, FaCopy, FaTrash, FaPlus, FaFilter, FaHistory, FaCheck, FaTimes, FaEllipsisV } from "react-icons/fa";
 import {
@@ -25,6 +25,8 @@ import { showSuccess, showError, showDeleteConfirm, showDeleteSuccess } from "..
 import Table from "../../../components/common/Table/Table";
 import Modal from "../../../components/common/Modal/Modal";
 import "./ListRequest.css";
+import "../../styles/pages.css";
+import "../../../forms/styles/forms.css";
 
 const STATUS_OPTIONS = [
   "Hold",
@@ -52,6 +54,219 @@ const HRA_LIST = [
   { key: "power_on", label: "Electrical Works", icon: "electrical_works.png" },
   { key: "pressurization", label: "Mechanical Works", icon: "mechanical1.png" }
 ];
+
+const MultiSelectDropdown = ({
+  placeholder,
+  options = [],
+  selectedValues = [],
+  onChange = () => {},
+  hasNone = false,
+  isHra = false,
+  disabled = false
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+  const handleToggle = () => {
+    if (!disabled) setIsOpen(!isOpen);
+  };
+
+  const handleCheckboxChange = (value, checked) => {
+    let nextValues = [...selectedValues];
+    if (hasNone && value === "none") {
+      if (checked) {
+        nextValues = ["none"];
+      } else {
+        nextValues = [];
+      }
+    } else {
+      if (checked) {
+        nextValues = nextValues.filter(v => v !== "none");
+        if (!nextValues.includes(value)) {
+          nextValues.push(value);
+        }
+      } else {
+        nextValues = nextValues.filter(v => v !== value);
+      }
+    }
+    onChange(nextValues);
+  };
+
+  // Resolve trigger display label text
+  let displayText = placeholder;
+  if (selectedValues.length > 0) {
+    if (hasNone && selectedValues.includes("none")) {
+      displayText = "None";
+    } else {
+      const selectedLabels = [];
+      
+      // Flatten options to easily search labels
+      const allOpts = [];
+      options.forEach(opt => {
+        if (opt.zones) {
+          opt.zones.forEach(z => allOpts.push({ value: z, label: z }));
+        } else {
+          allOpts.push(opt);
+        }
+      });
+
+      selectedValues.forEach(val => {
+        const opt = allOpts.find(o => {
+          const oVal = String(o?.value ?? o?.key ?? o?.id ?? o?.build_id ?? o);
+          return oVal === String(val);
+        });
+        if (opt) {
+          selectedLabels.push(opt.label || opt.building_name || opt.floor_name || opt.subContractorName || opt.zone || opt.value || opt.key || opt);
+        }
+      });
+
+      if (selectedLabels.length > 0) {
+        displayText = selectedLabels.join(", ");
+      }
+    }
+  }
+
+  return (
+    <div ref={containerRef} className="custom-multiselect-container" style={{ position: "relative", width: "100%" }}>
+      <div
+        className="df-input"
+        onClick={handleToggle}
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          cursor: disabled ? "not-allowed" : "pointer",
+          userSelect: "none",
+          paddingRight: "14px",
+          opacity: disabled ? 0.6 : 1,
+          color: displayText === placeholder ? "var(--text-muted, #9ca3af)" : "var(--text-main, #f9fafb)"
+        }}
+      >
+        <span style={{
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          maxWidth: "calc(100% - 24px)"
+        }}>
+          {displayText}
+        </span>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#9CA3AF"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{
+            transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+            transition: "transform 0.2s ease"
+          }}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </div>
+
+      {isOpen && (
+        <div
+          className="custom-multiselect-dropdown"
+          style={{
+            position: "absolute",
+            top: "calc(100% + 6px)",
+            left: 0,
+            width: "100%",
+            maxHeight: "260px",
+            overflowY: "auto",
+            backgroundColor: "var(--bg-card, #111827)",
+            border: "1.5px solid var(--border-color, #374151)",
+            borderRadius: "12px",
+            zIndex: 9999,
+            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5)",
+            padding: "6px 0"
+          }}
+        >
+          {hasNone && (
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                padding: "10px 16px",
+                cursor: "pointer",
+                transition: "background-color 0.2s",
+                color: "var(--text-main, #f9fafb)",
+                backgroundColor: selectedValues.includes("none") ? "rgba(255, 255, 255, 0.05)" : "transparent",
+                fontSize: "14px",
+                userSelect: "none"
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.08)"}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = selectedValues.includes("none") ? "rgba(255, 255, 255, 0.05)" : "transparent"}
+            >
+              <input
+                type="checkbox"
+                checked={selectedValues.includes("none")}
+                onChange={(e) => handleCheckboxChange("none", e.target.checked)}
+                style={{ width: "16px", height: "16px", cursor: "pointer", accentColor: "var(--accent, #00e5a0)" }}
+              />
+              <span>None</span>
+            </label>
+          )}
+
+          {options.map((opt, idx) => {
+            const val = String(opt.value ?? opt.key ?? opt.id ?? opt.build_id ?? opt);
+            const displayLabel = opt.label || opt.building_name || opt.floor_name || opt.subContractorName || opt;
+            const isChecked = selectedValues.includes(val);
+
+            return (
+              <label
+                key={idx}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  padding: "10px 16px",
+                  cursor: "pointer",
+                  transition: "background-color 0.2s",
+                  color: "var(--text-main, #f9fafb)",
+                  backgroundColor: isChecked ? "rgba(255, 255, 255, 0.05)" : "transparent",
+                  fontSize: "14px",
+                  userSelect: "none"
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.08)"}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = isChecked ? "rgba(255, 255, 255, 0.05)" : "transparent"}
+              >
+                <input
+                  type="checkbox"
+                  checked={isChecked}
+                  onChange={(e) => handleCheckboxChange(val, e.target.checked)}
+                  style={{
+                    width: "16px",
+                    height: "16px",
+                    cursor: "pointer",
+                    accentColor: "var(--accent, #00e5a0)",
+                    borderRadius: "4px"
+                  }}
+                />
+                <span>{displayLabel}</span>
+              </label>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ListRequest = () => {
   const navigate = useNavigate();
@@ -165,9 +380,9 @@ const ListRequest = () => {
       const payload = {
         Activity: searchFilters.keyword || null,
         PermitNo: searchFilters.permitNo || null,
-        Sub_Contractor_Id: searchFilters.contractors.length > 0 ? searchFilters.contractors.join(",") : null,
+        Sub_Contractor_Id: searchFilters.contractors.length > 0 ? Number(searchFilters.contractors[0]) : null,
         Request_status: searchFilters.statuses.length > 0 ? searchFilters.statuses.join(",") : null,
-        Building_Id: searchFilters.buildings.length > 0 ? searchFilters.buildings.join(",") : null,
+        Building_Id: searchFilters.buildings.length > 0 ? Number(searchFilters.buildings[0]) : null,
         Room_Type: searchFilters.levels.length > 0 ? searchFilters.levels.join(",") : null,
         area: searchFilters.areas.length > 0 ? searchFilters.areas.join(",") : null,
         permit_type: searchFilters.permitType || "",
@@ -177,16 +392,41 @@ const ListRequest = () => {
         toDate: searchFilters.toDate || "",
         Start_Time: searchFilters.startTime ? `${searchFilters.startTime}:00` : "",
         End_Time: searchFilters.endTime ? `${searchFilters.endTime}:00` : "",
-        hras: searchFilters.hras.length > 0 ? searchFilters.hras.join(",") : "",
-        Site_Id: "5",
+        Site_Id: 5,
         Page: page,
-        Start: (page - 1) * limit + 1,
-        End: String(limit)
+        End: limit
       };
 
+      const hrasList = searchFilters.hras || [];
+      if (hrasList.includes("none")) {
+        payload.hras = 0;
+      } else if (hrasList.length > 0) {
+        payload.hras = 1;
+        hrasList.forEach(key => {
+          payload[key] = 1;
+        });
+      }
+
       const res = await searchRequests(payload);
-      const rows = res?.data?.[0]?.data ?? res?.data ?? [];
-      const count = res?.data?.[1]?.count ?? res?.total ?? rows.length;
+      let rows = [];
+      let count = 0;
+      if (res && res.data) {
+        if (Array.isArray(res.data) && res.data.length > 0 && res.data[0] && Array.isArray(res.data[0].data)) {
+          rows = res.data[0].data;
+        } else if (Array.isArray(res.data)) {
+          rows = res.data;
+        } else if (res.data.rows) {
+          rows = res.data.rows;
+        }
+        count = res.data[1]?.count ?? res.total ?? rows.length;
+      } else if (Array.isArray(res)) {
+        if (res.length > 0 && res[0] && Array.isArray(res[0].data)) {
+          rows = res[0].data;
+        } else {
+          rows = res;
+        }
+        count = res[1]?.count ?? res.total ?? rows.length;
+      }
 
       setRequests(rows);
       setTotalCount(Number(count));
@@ -481,42 +721,41 @@ const ListRequest = () => {
     if (toVal < fromVal) return showError("End date cannot be earlier than start date.");
     const diffDays = Math.round(Math.abs((toVal - fromVal) / oneDay)) + 1;
 
+    // Build zone array matching backend ZoneItemDto: { Zone_Id: number, zone: string }
+    const zoneId = modalTarget.Zone_Id
+      ? Number(modalTarget.Zone_Id)
+      : (modalTarget.zone?.id ? Number(modalTarget.zone.id) : null);
+    const zoneName = modalTarget.zone_name
+      || (modalTarget.zone && typeof modalTarget.zone === "object" ? modalTarget.zone.zone : null)
+      || modalTarget.zone
+      || "";
+    const zoneObjects = zoneId
+      ? [{ Zone_Id: zoneId, zone: String(zoneName) }]
+      : [];
+
     const payload = {
       userId: currentUser?.id || 1,
       Request_status: modalTarget.Request_status || "Pending",
       Room_Nos: modalTarget.Room_Nos,
       Room_Type: modalTarget.Room_Type,
-      Site_Id: modalTarget.Site_Id || 5,
-      Special_Instructions: modalTarget.Special_Instructions,
+      Site_Id: modalTarget.Site_Id ? Number(modalTarget.Site_Id) : 5,
       Start_Time: modalTarget.Start_Time,
-      Sub_Contractor_Id: modalTarget.Sub_Contractor_Id,
-      teamId: modalTarget.teamId,
-      Tools: modalTarget.Tools,
-      Type_Of_Activity_Id: modalTarget.Type_Of_Activity_Id,
-      Working_Date: modalTarget.Working_Date,
+      Sub_Contractor_Id: modalTarget.Sub_Contractor_Id ? Number(modalTarget.Sub_Contractor_Id) : null,
+      Type_Of_Activity_Id: modalTarget.Type_Of_Activity_Id ? String(modalTarget.Type_Of_Activity_Id) : "",
       Assign_Start_Time: modalTarget.Start_Time,
       Assign_End_Time: modalTarget.End_Time,
       Assign_Start_Date: copyDates.from,
       Assign_End_Date: copyDates.to,
-      Building_Id: modalTarget.Building_Id,
-      Certified_Person: modalTarget.Certified_Person,
+      Building_Id: modalTarget.Building_Id ? Number(modalTarget.Building_Id) : null,
       Company_Name: modalTarget.Company_Name,
-      Crane_Number: modalTarget.Crane_Number,
-      Crane_Requested: modalTarget.Crane_Requested,
       End_Time: modalTarget.End_Time,
-      Floor_Id: modalTarget.Floor_Id,
+      Floor_Id: modalTarget.Floor_Id ? Number(modalTarget.Floor_Id) : null,
       Foreman: modalTarget.Foreman,
       Foreman_Phone_Number: modalTarget.Foreman_Phone_Number,
-      Hot_work: modalTarget.Hot_work,
-      LOTO_Number: modalTarget.LOTO_Number,
-      LOTO_Procedure: modalTarget.LOTO_Procedure,
-      Machinery: modalTarget.Machinery,
-      Number_Of_Workers: modalTarget.Number_Of_Workers,
       PermitNo: modalTarget.PermitNo,
-      Power_Off_Required: modalTarget.Power_Off_Required,
       count: diffDays,
       createdTime: new Date().toISOString().replace("T", " ").slice(0, 19),
-      zone: modalTarget.zone
+      zone: zoneObjects
     };
 
     try {
@@ -567,8 +806,18 @@ const ListRequest = () => {
       const contractorName = contrObj ? contrObj.subContractorName : (row.Company_Name || "—");
 
       // Find building name
-      const buildObj = buildingsList.find(b => String(b.build_id) === String(row.Building_Id));
+      const buildObj = buildingsList.find(b => Number(b.build_id) === Number(row.Building_Id));
       const buildingName = buildObj ? buildObj.building_name : "—";
+
+      // Find area (zone) name safely
+      const zoneName = (row.zone && typeof row.zone === "object")
+        ? row.zone.zone
+        : (row.zone || "—");
+
+      // Find Level (Room_Type) name safely
+      const roomTypeCell = (row.Room_Type && typeof row.Room_Type === "object")
+        ? (row.Room_Type.floor_name || row.Room_Type.name || "—")
+        : (row.Room_Type || "—");
 
       // Formatted Start/End time
       const timeCell = (row.Start_Time && row.End_Time)
@@ -659,7 +908,7 @@ const ListRequest = () => {
           )}
 
           <a
-            href={`https://beam.safesiteworks.com/m3infrastructure/newbeam1/index.php?PermitNo=${row.PermitNo}`}
+            href={`http://187.127.171.51/requests/permit-design/${row.PermitNo}`}
             target="_blank"
             rel="noreferrer"
             className="op-action-btn op-action-btn--view"
@@ -709,6 +958,8 @@ const ListRequest = () => {
         ),
         contractorName,
         buildingName,
+        zone: zoneName,
+        Room_Type: roomTypeCell,
         timeCell,
         nightShiftCell,
         newEndTimeCell,
@@ -751,7 +1002,7 @@ const ListRequest = () => {
       {/* Dynamic Search Filters Card */}
       {filtersOpen && (
         <div className="form-card filters-card-wrapper premium-form-container">
-          <form onSubmit={handleSearchSubmit}>
+          <form onSubmit={handleSearchSubmit} className="df-form">
             <div className="df-grid df-grid--4-cols">
               <div className="df-field">
                 <label className="df-label">Permit Number</label>
@@ -777,114 +1028,68 @@ const ListRequest = () => {
 
               <div className="df-field">
                 <label className="df-label">Contractor</label>
-                <select
-                  multiple
-                  className="df-select df-select-multiple"
-                  style={{ height: "42px" }}
-                  value={searchFilters.contractors}
-                  onChange={(e) => {
-                    const vals = Array.from(e.target.selectedOptions, opt => opt.value);
-                    setSearchFilters(prev => ({ ...prev, contractors: vals }));
-                  }}
-                >
-                  {contractors.map((c) => (
-                    <option key={c.id} value={c.id}>{c.subContractorName}</option>
-                  ))}
-                </select>
+                <MultiSelectDropdown
+                  placeholder="Select Contractors"
+                  options={contractors}
+                  selectedValues={searchFilters.contractors}
+                  onChange={(vals) => setSearchFilters(prev => ({ ...prev, contractors: vals }))}
+                />
               </div>
 
               <div className="df-field">
                 <label className="df-label">Permit Status</label>
-                <select
-                  multiple
-                  className="df-select df-select-multiple"
-                  style={{ height: "42px" }}
-                  value={searchFilters.statuses}
-                  onChange={(e) => {
-                    const vals = Array.from(e.target.selectedOptions, opt => opt.value);
-                    setSearchFilters(prev => ({ ...prev, statuses: vals }));
-                  }}
-                >
-                  {STATUS_OPTIONS.map((st) => (
-                    <option key={st} value={st}>{st}</option>
-                  ))}
-                </select>
+                <MultiSelectDropdown
+                  placeholder="Select Statuses"
+                  options={STATUS_OPTIONS}
+                  selectedValues={searchFilters.statuses}
+                  onChange={(vals) => setSearchFilters(prev => ({ ...prev, statuses: vals }))}
+                />
               </div>
             </div>
 
             <div className="df-grid df-grid--4-cols" style={{ marginTop: "16px" }}>
               <div className="df-field">
                 <label className="df-label">Building</label>
-                <select
-                  multiple
-                  className="df-select df-select-multiple"
-                  style={{ height: "42px" }}
-                  value={searchFilters.buildings}
-                  onChange={(e) => {
-                    const vals = Array.from(e.target.selectedOptions, opt => opt.value);
-                    setSearchFilters(prev => ({ ...prev, buildings: vals, levels: [], areas: [] }));
-                  }}
-                >
-                  {buildingsList.map((b) => (
-                    <option key={b.build_id} value={b.build_id}>{b.building_name}</option>
-                  ))}
-                </select>
+                <MultiSelectDropdown
+                  placeholder="Select Buildings"
+                  options={buildingsList}
+                  selectedValues={searchFilters.buildings}
+                  onChange={(vals) => setSearchFilters(prev => ({ ...prev, buildings: vals, levels: [], areas: [] }))}
+                />
               </div>
 
               <div className="df-field">
                 <label className="df-label">Level / Floor</label>
-                <select
-                  multiple
-                  className="df-select df-select-multiple"
-                  style={{ height: "42px" }}
+                <MultiSelectDropdown
+                  placeholder="Select Levels"
+                  options={filteredLevels.map(f => f.floor_name)}
+                  selectedValues={searchFilters.levels}
+                  onChange={(vals) => setSearchFilters(prev => ({ ...prev, levels: vals, areas: [] }))}
                   disabled={searchFilters.buildings.length === 0}
-                  value={searchFilters.levels}
-                  onChange={(e) => {
-                    const vals = Array.from(e.target.selectedOptions, opt => opt.value);
-                    setSearchFilters(prev => ({ ...prev, levels: vals, areas: [] }));
-                  }}
-                >
-                  {filteredLevels.map((f, idx) => (
-                    <option key={idx} value={f.floor_name}>{f.floor_name}</option>
-                  ))}
-                </select>
+                />
               </div>
 
               <div className="df-field">
                 <label className="df-label">Area / Zone</label>
-                <select
-                  multiple
-                  className="df-select df-select-multiple"
-                  style={{ height: "42px" }}
+                <MultiSelectDropdown
+                  placeholder="Select Areas"
+                  options={filteredZones.map(z => z.zone)}
+                  selectedValues={searchFilters.areas}
+                  onChange={(vals) => setSearchFilters(prev => ({ ...prev, areas: vals }))}
                   disabled={searchFilters.levels.length === 0}
-                  value={searchFilters.areas}
-                  onChange={(e) => {
-                    const vals = Array.from(e.target.selectedOptions, opt => opt.value);
-                    setSearchFilters(prev => ({ ...prev, areas: vals }));
-                  }}
-                >
-                  {filteredZones.map((z, idx) => (
-                    <option key={idx} value={z.zone}>{z.zone}</option>
-                  ))}
-                </select>
+                />
               </div>
 
               <div className="df-field">
                 <label className="df-label">HRA Checklists</label>
-                <select
-                  multiple
-                  className="df-select df-select-multiple"
-                  style={{ height: "42px" }}
-                  value={searchFilters.hras}
-                  onChange={(e) => {
-                    const vals = Array.from(e.target.selectedOptions, opt => opt.value);
-                    setSearchFilters(prev => ({ ...prev, hras: vals }));
-                  }}
-                >
-                  {HRA_LIST.map((h) => (
-                    <option key={h.key} value={h.key}>{h.label}</option>
-                  ))}
-                </select>
+                <MultiSelectDropdown
+                  placeholder="Select HRA Checklists"
+                  options={HRA_LIST.map(h => ({ ...h, image: '/src/assets/images/logos/' + h.icon }))}
+                  selectedValues={searchFilters.hras}
+                  onChange={(vals) => setSearchFilters(prev => ({ ...prev, hras: vals }))}
+                  hasNone={true}
+                  isHra={true}
+                />
               </div>
             </div>
 
