@@ -34,7 +34,7 @@ export const deleteRequest = async (id) => {
 
 // Delete selected permit requests in bulk
 export const deleteSelectedRequests = async (payload) => {
-  const res = await api.post("/requests/deleteSelected", payload);
+  const res = await api.delete("/requests", { data: payload });
   return res.data;
 };
 
@@ -52,7 +52,7 @@ export const updateListReqstSafety = async (payload) => {
 
 // Update working times/shifts in bulk
 export const updateListReqstTime = async (payload) => {
-  const res = await api.put("/requests/time/change", payload);
+  const res = await api.put("/requests/status/change", payload);
   return res.data;
 };
 
