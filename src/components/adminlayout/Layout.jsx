@@ -8,7 +8,7 @@ import Footer from './Footer/Footer'
 import './Layout.css'
 
 function Layout() {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768)
 
   const [theme, setTheme] = useState(() => {
   const saved = localStorage.getItem('app-theme') || 'default-dark'

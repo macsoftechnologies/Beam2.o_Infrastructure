@@ -30,7 +30,8 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .navbar-right {
@@ -144,6 +145,10 @@
 /* ─────────────────────────────────────────
    § 5.  NAVBAR TITLE BLOCK
 ───────────────────────────────────────── */
+.navbar-title {
+  min-width: 0;
+}
+
 .navbar-title h4 {
   font-family: var(--font-brand);
   font-size: 15px;
@@ -152,6 +157,9 @@
   line-height: 1.2;
   letter-spacing: 0.3px;
   transition: color 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .navbar-title p {
@@ -160,6 +168,9 @@
   margin: 0;
   margin-top: 1px;
   transition: color 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 
@@ -500,7 +511,9 @@
 }
 
 @media (max-width: 768px) {
-  .top-navbar { padding: 0 12px; }
+  .top-navbar { padding: 0 12px; gap: 8px; }
+  .navbar-left { gap: 8px; }
+  .navbar-title h4 { font-size: 14px; }
   .navbar-title p { display: none; }
   .theme-switcher { display: none; }
   .navbar-user-info { display: none; }
