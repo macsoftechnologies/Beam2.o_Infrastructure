@@ -131,13 +131,13 @@ const Buildings = () => {
           <span className="dept-count-badge">
             {totalCount || buildingList.length} Total
           </span>
-          <button
+          {/* <button
             className="dept-add-btn"
             onClick={() => { setSelectedBuilding(null); setOpen(true); }}
           >
             <span className="dept-add-btn__icon">＋</span>
             Add Building
-          </button>
+          </button> */}
         </div>
       </div>
 

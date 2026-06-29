@@ -12,9 +12,40 @@
 /* HRA Icons styling */
 .hra-icons-group {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
   align-items: center;
+  min-width: max-content;
+}
+
+/* Sticky right columns for ListRequest table */
+.sticky-col-status {
+  position: sticky !important;
+  right: 180px !important;
+  background-color: var(--bg-card, #111827) !important;
+  z-index: 10;
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: -4px 0 8px -4px rgba(0, 0, 0, 0.2);
+}
+
+.sticky-col-operations {
+  position: sticky !important;
+  right: 0 !important;
+  background-color: var(--bg-card, #111827) !important;
+  z-index: 10;
+}
+
+/* Ensure headers stay on top of body cells when scrolling vertically */
+th.sticky-col-status,
+th.sticky-col-operations {
+  background-color: var(--bg-dark, #0f172a) !important;
+  z-index: 20 !important; /* th needs higher z-index than td */
+}
+
+/* Handle row hover background sync */
+.beam-tr:hover .sticky-col-status,
+.beam-tr:hover .sticky-col-operations {
+  background-color: var(--bg-card-hover, #1f2937) !important;
 }
 
 .hra-icon-thumb {

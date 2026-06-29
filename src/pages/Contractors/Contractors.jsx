@@ -109,6 +109,8 @@ const Contractors = () => {
       // Status field removed
       if (formData.logoFile) {
         formDataObj.append("logo", formData.logoFile);
+      } else if (formData.logoCleared) {
+        formDataObj.append("logo", "");
       }
 
       if (selectedContractor && editOpen) {
@@ -148,9 +150,9 @@ const Contractors = () => {
       name: item.subContractorName,
       department: deptName,
       logoCell: logoUrl ? (
-        <img src={logoUrl} alt={`${item.subContractorName} logo`} className="dept-logo-thumb" />
+        <img src={logoUrl} alt={`${item.subContractorName} logo`} className="dept-logo-thumb" style={{ width: '60px', height: '60px', objectFit: 'contain' }} />
       ) : (
-        <span className="dept-no-logo">—</span>
+        <span className="dept-no-logo">No Logo</span>
       ),
       actions: (
         <ActionButtons

@@ -72,6 +72,7 @@ function Contractorform({ onClose, initialData, isEdit, onSubmit }) {
       subContractorName: name,
       departId: department,
       logoFile,
+      logoCleared: logo === null,
     };
 
     onSubmit && onSubmit(payload);

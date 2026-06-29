@@ -795,8 +795,8 @@ const ListRequest = () => {
     { header: "Time", accessor: "timeCell" },
     { header: "Night Shift", accessor: "nightShiftCell" },
     { header: "New End Time", accessor: "newEndTimeCell" },
-    { header: "Status", accessor: "statusCell" },
-    { header: "Operations", accessor: "operationsCell" }
+    { header: "Status", accessor: "statusCell", className: "sticky-col-status" },
+    { header: "Operations", accessor: "operationsCell", className: "sticky-col-operations", style: { width: "180px", minWidth: "180px", maxWidth: "180px" } }
   ];
 
   const tableData = useMemo(() => {
@@ -1174,24 +1174,23 @@ const ListRequest = () => {
                   <option value="0">No</option>
                 </select>
               </div>
+            </div>
 
-              <div className="df-field" style={{ display: "flex", gap: "12px", alignItems: "flex-end", justifyContent: "flex-end" }}>
-                <button
-                  type="button"
-                  className="nr-btn nr-btn--ghost"
-                  style={{ height: "42px", flex: 1 }}
-                  onClick={handleResetFilters}
-                >
-                  Reset
-                </button>
-                <button
-                  type="submit"
-                  className="nr-btn nr-btn--primary"
-                  style={{ height: "42px", flex: 1 }}
-                >
-                  Search
-                </button>
-              </div>
+            {/* Action Buttons */}
+            <div className="df-footer" style={{ justifyContent: "flex-end", marginTop: "24px" }}>
+              <button
+                type="button"
+                className="df-btn df-btn--cancel"
+                onClick={handleResetFilters}
+              >
+                Reset
+              </button>
+              <button
+                type="submit"
+                className="df-btn df-btn--submit"
+              >
+                Search
+              </button>
             </div>
           </form>
         </div>

@@ -73,6 +73,8 @@ function NewRequest() {
   const [selectedRooms, setSelectedRooms] = useState([]);
   const [selectedZone, setSelectedZone] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isElectricalDropdownOpen, setIsElectricalDropdownOpen] = useState(false);
+  const [isMechanicalDropdownOpen, setIsMechanicalDropdownOpen] = useState(false);
 
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const fileInputRef = useRef(null);
@@ -1403,48 +1405,111 @@ function NewRequest() {
                 </div>
 
                 {formData.work_type === "Electrical Works" && (
-                  <div className="df-field">
+                  <div className="df-field" style={{ position: "relative" }}>
                     <label className="df-label">Electrical Works</label>
-                    <select
-                      multiple
-                      className="df-select df-select-multiple"
-                      value={formData.electrical_works}
-                      onChange={(e) => {
-                        const values = Array.from(e.target.selectedOptions, (option) => option.value);
-                        handleFieldChange("electrical_works", values);
-                      }}
-                    >
-                      {groupedElectrical.map((g) => (
-                        <optgroup key={g.module} label={g.module}>
-                          {g.items.map((i) => (
-                            <option key={i.id} value={i.id}>
-                              {i.name}
-                            </option>
-                          ))}
-                        </optgroup>
-                      ))}
-                    </select>
+                    <div style={{ position: "relative" }}>
+                      <input
+                        type="text"
+                        className="df-input"
+                        style={{ cursor: "pointer", background: "rgba(255, 255, 255, 0.02)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+                        placeholder="Click to select electrical works..."
+                        value={
+                          formData.electrical_works?.length > 0
+                            ? formData.electrical_works.map(id => electricalWorksList.find(x => String(x.id) === String(id))?.name || id).join(", ")
+                            : ""
+                        }
+                        readOnly
+                        onClick={() => setIsElectricalDropdownOpen(prev => !prev)}
+                      />
+                      <span style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: "#9ca3af", pointerEvents: "none", fontSize: "10px" }}>
+                        ▼
+                      </span>
+                    </div>
+
+                    {isElectricalDropdownOpen && groupedElectrical.length > 0 && (
+                      <div className="zone-rooms-dropdown" style={{ background: "#111827", border: "1px solid rgba(255, 255, 255, 0.15)", borderRadius: "8px", padding: "16px", marginTop: "8px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.3)", position: "absolute", top: "100%", left: 0, width: "100%", zIndex: 100, maxHeight: "300px", overflowY: "auto" }}>
+                        {groupedElectrical.map((g) => (
+                          <div key={g.module} style={{ marginBottom: "20px" }}>
+                            <div style={{ fontWeight: "bold", color: "#00e5a0", marginBottom: "12px", fontSize: "14px", textTransform: "uppercase" }}>
+                              {g.module}
+                            </div>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "12px", paddingLeft: "8px" }}>
+                              {g.items.map((i) => {
+                                const isChecked = (formData.electrical_works || []).includes(String(i.id));
+                                return (
+                                  <label key={i.id} className="custom-checkbox-label" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                    <input
+                                      type="checkbox"
+                                      className="custom-checkbox-input"
+                                      checked={isChecked}
+                                      onChange={() => {
+                                        const current = formData.electrical_works || [];
+                                        const newValues = isChecked
+                                          ? current.filter(val => val !== String(i.id))
+                                          : [...current, String(i.id)];
+                                        handleFieldChange("electrical_works", newValues);
+                                      }}
+                                    />
+                                    <span>{i.name}</span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
                 {formData.work_type === "Mechanical Works" && (
-                  <div className="df-field">
+                  <div className="df-field" style={{ position: "relative" }}>
                     <label className="df-label">Mechanical Works</label>
-                    <select
-                      multiple
-                      className="df-select df-select-multiple"
-                      value={formData.mechanical_works}
-                      onChange={(e) => {
-                        const values = Array.from(e.target.selectedOptions, (option) => option.value);
-                        handleFieldChange("mechanical_works", values);
-                      }}
-                    >
-                      {mechanicalWorksOptions.map((m) => (
-                        <option key={m.id} value={m.id}>
-                          {m.name}
-                        </option>
-                      ))}
-                    </select>
+                    <div style={{ position: "relative" }}>
+                      <input
+                        type="text"
+                        className="df-input"
+                        style={{ cursor: "pointer", background: "rgba(255, 255, 255, 0.02)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+                        placeholder="Click to select mechanical works..."
+                        value={
+                          formData.mechanical_works?.length > 0
+                            ? formData.mechanical_works.map(id => mechanicalWorksOptions.find(x => String(x.id) === String(id))?.name || id).join(", ")
+                            : ""
+                        }
+                        readOnly
+                        onClick={() => setIsMechanicalDropdownOpen(prev => !prev)}
+                      />
+                      <span style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: "#9ca3af", pointerEvents: "none", fontSize: "10px" }}>
+                        ▼
+                      </span>
+                    </div>
+
+                    {isMechanicalDropdownOpen && mechanicalWorksOptions.length > 0 && (
+                      <div className="zone-rooms-dropdown" style={{ background: "#111827", border: "1px solid rgba(255, 255, 255, 0.15)", borderRadius: "8px", padding: "16px", marginTop: "8px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.3)", position: "absolute", top: "100%", left: 0, width: "100%", zIndex: 100, maxHeight: "300px", overflowY: "auto" }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                          {mechanicalWorksOptions.map((m) => {
+                            const isChecked = (formData.mechanical_works || []).includes(String(m.id));
+                            return (
+                              <label key={m.id} className="custom-checkbox-label" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                <input
+                                  type="checkbox"
+                                  className="custom-checkbox-input"
+                                  checked={isChecked}
+                                  onChange={() => {
+                                    const current = formData.mechanical_works || [];
+                                    const newValues = isChecked
+                                      ? current.filter(val => val !== String(m.id))
+                                      : [...current, String(m.id)];
+                                    handleFieldChange("mechanical_works", newValues);
+                                  }}
+                                />
+                                <span>{m.name}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -1540,9 +1605,7 @@ function NewRequest() {
 
             {/* Hotwork dropdown */}
             <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center" }}>
-              <div style={{ width: "64px", height: "64px", flexShrink: 0, background: "#1f2937", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <img src="/src/assets/images/logos/HotWorks.png" alt="HotWorks" style={{ width: "40px", height: "40px", objectFit: "contain" }} />
-              </div>
+              <img src="/src/assets/images/logos/HotWorks.png" alt="HotWorks" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.08)", background: "#fff" }} />
               <div className="df-field" style={{ flex: 1 }}>
                 <label className="df-label">Is Hotwork Required?</label>
                 <select
@@ -1676,9 +1739,7 @@ function NewRequest() {
 
             {/* Temporary Electrical Systems dropdown */}
             <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center" }}>
-              <div style={{ width: "64px", height: "64px", flexShrink: 0, background: "#1f2937", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <img src="/src/assets/images/logos/ElectricalSystems.png" alt="ElectricalSystems" style={{ width: "40px", height: "40px", objectFit: "contain" }} />
-              </div>
+              <img src="/src/assets/images/logos/ElectricalSystems.png" alt="ElectricalSystems" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.08)", background: "#fff" }} />
               <div className="df-field" style={{ flex: 1 }}>
                 <label className="df-label">Working on Site Temporary Electrical Systems?</label>
                 <select
@@ -1743,9 +1804,7 @@ function NewRequest() {
 
             {/* Hazardous Substances dropdown */}
             <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center" }}>
-              <div style={{ width: "64px", height: "64px", flexShrink: 0, background: "#1f2937", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <img src="/src/assets/images/logos/substanceChemical.png" alt="Chemicals" style={{ width: "40px", height: "40px", objectFit: "contain" }} />
-              </div>
+              <img src="/src/assets/images/logos/substanceChemical.png" alt="Chemicals" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.08)", background: "#fff" }} />
               <div className="df-field" style={{ flex: 1 }}>
                 <label className="df-label">Working with Hazardous Substances/Chemicals?</label>
                 <select
@@ -1837,7 +1896,7 @@ function NewRequest() {
 
             {/* Working at Height dropdown */}
             <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center" }}>
-              <img src="/src/assets/images/logos/WorkingAtHight.png" alt="Working at Height" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "contain", flexShrink: 0 }} />
+              <img src="/src/assets/images/logos/WorkingAtHight.png" alt="Working at Height" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.08)", background: "#fff" }} />
               <div className="df-field" style={{ flex: 1 }}>
                 <label className="df-label">WORKING AT HEIGHT?</label>
                 <select
@@ -1974,7 +2033,7 @@ function NewRequest() {
 
             {/* Working in Confined Spaces dropdown */}
             <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center" }}>
-              <img src="/src/assets/images/logos/ConfinedSpace.png" alt="Confined Spaces" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "contain", flexShrink: 0 }} />
+              <img src="/src/assets/images/logos/ConfinedSpace.png" alt="Confined Spaces" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.08)", background: "#fff" }} />
               <div className="df-field" style={{ flex: 1 }}>
                 <label className="df-label">WORKING IN CONFINED SPACES?</label>
                 <select
@@ -2066,7 +2125,7 @@ function NewRequest() {
 
             {/* Excavation Works dropdown */}
             <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center" }}>
-              <img src="/src/assets/images/logos/ExcavationWorks.png" alt="Excavation Works" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "contain", flexShrink: 0 }} />
+              <img src="/src/assets/images/logos/ExcavationWorks.png" alt="Excavation Works" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.08)", background: "#fff" }} />
               <div className="df-field" style={{ flex: 1 }}>
                 <label className="df-label">EXCAVATION WORKS?</label>
                 <select
@@ -2167,7 +2226,7 @@ function NewRequest() {
 
             {/* Using Crane or Lifting dropdown */}
             <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center" }}>
-              <img src="/src/assets/images/logos/Craneslifting.png" alt="Crane Lifting" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "contain", flexShrink: 0 }} />
+              <img src="/src/assets/images/logos/Craneslifting.png" alt="Crane Lifting" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.08)", background: "#fff" }} />
               <div className="df-field" style={{ flex: 1 }}>
                 <label className="df-label">USING CRANE OR LIFTING?</label>
                 <select
@@ -2261,9 +2320,7 @@ function NewRequest() {
             {formData.permit_type === "Commissioning" && !shouldShowElectricianCert() && (
               <>
                 <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center", marginTop: "20px" }}>
-                  <div style={{ width: "64px", height: "64px", flexShrink: 0, background: "#1f2937", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <img src="/src/assets/images/logos/electrical_works.png" alt="electrical_works" style={{ width: "40px", height: "40px", objectFit: "contain" }} />
-                  </div>
+                  <img src="/src/assets/images/logos/electrical_works.png" alt="electrical_works" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.08)", background: "#fff" }} />
                   <div className="df-field" style={{ flex: 1 }}>
                     <label className="df-label">Energising, Isolating and Working on Live Electrical Systems</label>
                     <select
@@ -2285,9 +2342,7 @@ function NewRequest() {
                   <div className="conditional-fields-block" style={{ marginBottom: "20px" }}>
                     {/* Energising Electrical Equipment */}
                     <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center" }}>
-                      <div style={{ width: "64px", height: "64px", flexShrink: 0, background: "#1f2937", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <img src="/src/assets/images/logos/electrical_works.png" alt="electrical_works" style={{ width: "40px", height: "40px", objectFit: "contain" }} />
-                      </div>
+                      <img src="/src/assets/images/logos/electrical_works.png" alt="electrical_works" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.08)", background: "#fff" }} />
                       <div className="df-field" style={{ flex: 1 }}>
                         <label className="df-label">Energising Electrical Equipment</label>
                         <select
@@ -2383,9 +2438,7 @@ function NewRequest() {
 
                     {/* Isolating Live Electrical Systems */}
                     <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center", marginTop: "20px" }}>
-                      <div style={{ width: "64px", height: "64px", flexShrink: 0, background: "#1f2937", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <img src="/src/assets/images/logos/electrical_works.png" alt="electrical_works" style={{ width: "40px", height: "40px", objectFit: "contain" }} />
-                      </div>
+                      <img src="/src/assets/images/logos/electrical_works.png" alt="electrical_works" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.08)", background: "#fff" }} />
                       <div className="df-field" style={{ flex: 1 }}>
                         <label className="df-label">Isolating Live Electrical Systems for Maintenance or Modification</label>
                         <select
@@ -2490,9 +2543,7 @@ function NewRequest() {
 
                     {/* Working on OR near live electrical systems */}
                     <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center", marginTop: "20px" }}>
-                      <div style={{ width: "64px", height: "64px", flexShrink: 0, background: "#1f2937", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <img src="/src/assets/images/logos/electrical_works.png" alt="electrical_works" style={{ width: "40px", height: "40px", objectFit: "contain" }} />
-                      </div>
+                      <img src="/src/assets/images/logos/electrical_works.png" alt="electrical_works" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.08)", background: "#fff" }} />
                       <div className="df-field" style={{ flex: 1 }}>
                         <label className="df-label">Working on OR near live electrical systems (Live testing, commissioning, fault finding, working inside live enclosures)</label>
                         <select
@@ -2594,9 +2645,7 @@ function NewRequest() {
             {formData.permit_type === "Commissioning" && !shouldShowElectricianCert() && (
               <>
                 <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center", marginTop: "20px" }}>
-                  <div style={{ width: "64px", height: "64px", flexShrink: 0, background: "#1f2937", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <img src="/src/assets/images/logos/mechanical1.png" alt="mechanical1" style={{ width: "40px", height: "40px", objectFit: "contain" }} />
-                  </div>
+                  <img src="/src/assets/images/logos/mechanical1.png" alt="mechanical1" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.08)", background: "#fff" }} />
                   <div className="df-field" style={{ flex: 1 }}>
                     <label className="df-label">Energization of Mechanical equipment</label>
                     <select
@@ -2700,7 +2749,7 @@ function NewRequest() {
             {formData.permit_type === "Commissioning" && !shouldShowElectricianCert() && (
               <>
                 <div style={{ display: "flex", gap: "16px", alignItems: "center", marginTop: "20px" }}>
-                  <img src="/src/assets/images/logos/testingequipment.png" alt="testingequipment" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "contain", flexShrink: 0 }} />
+                  <img src="/src/assets/images/logos/testingequipment.png" alt="testingequipment" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.08)", background: "#fff" }} />
                   <div className="df-field" style={{ flex: 1 }}>
                     <label className="df-label">PRESSURE TESTING OF EQUIPMENT REQUIRED?</label>
                     <select

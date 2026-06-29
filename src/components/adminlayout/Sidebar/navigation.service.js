@@ -1,6 +1,6 @@
 const iconMenu = [
     {
-        name: "DASHBOARD",
+        name: "Dashboard",
         type: "link",
         tooltip: "Dashboard",
         icon: "dashboard",
@@ -86,7 +86,7 @@ const iconMenu = [
 
 const AdminiconMenu = [
     {
-        name: "DASHBOARD",
+        name: "Dashboard",
         type: "link",
         tooltip: "Dashboard",
         icon: "dashboard",
@@ -187,7 +187,7 @@ const AdminiconMenu = [
 
 const UsericonMenu = [
     {
-        name: "DASHBOARD",
+        name: "Dashboard",
         type: "link",
         tooltip: "Dashboard",
         icon: "dashboard",
@@ -208,7 +208,7 @@ const UsericonMenu = [
 
 const OperatoriconMenu = [
     {
-        name: "DASHBOARD",
+        name: "Dashboard",
         type: "link",
         tooltip: "Dashboard",
         icon: "dashboard",
@@ -243,7 +243,7 @@ const OperatoriconMenu = [
 
 const Operator1iconMenu = [
     {
-        name: "DASHBOARD",
+        name: "Dashboard",
         type: "link",
         tooltip: "Dashboard",
         icon: "dashboard",
@@ -292,7 +292,7 @@ const Operator1iconMenu = [
 
 const ObservericonMenu = [
     {
-        name: "DASHBOARD",
+        name: "Dashboard",
         type: "link",
         tooltip: "Dashboard",
         icon: "dashboard",

@@ -52,7 +52,7 @@ const Table = ({
           <thead>
             <tr>
               {columns.map((col) => (
-                <th key={col.accessor} className="beam-th">
+                <th key={col.accessor} className={`beam-th ${col.className || ""}`} style={col.style}>
                   {col.header}
                 </th>
               ))}
@@ -78,7 +78,7 @@ const Table = ({
                   onClick={row._rowonClick || undefined}
                 >
                   {columns.map((col) => (
-                    <td key={col.accessor} className="beam-td">
+                    <td key={col.accessor} className={`beam-td ${col.className || ""}`} style={col.style}>
                       {row[col.accessor]}
                     </td>
                   ))}

@@ -13,6 +13,7 @@ function LiveClock() {
   return (
     <span className="navbar-clock">
       {time.toLocaleTimeString('en-US', {
+        timeZone: 'Europe/Copenhagen',
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',

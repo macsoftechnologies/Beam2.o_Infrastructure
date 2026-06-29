@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Chart, registerables } from 'chart.js';
-import { getRequestCounts, getPlans, getGraphCountsPerDay, getGraphSummary, getZoneStatusCounts, getEmployeeAnalyticsCounts } from '../../services/authService';
+import { getRequestCounts, getPlans, getGraphCountsPerDay, getGraphSummary, getZoneStatusCounts, getEmployeeAnalyticsCounts, searchDashboardRequests } from '../../services/authService';
+import Modal from '../../components/common/Modal/Modal';
+import EmployeeForm from '../../forms/Employeesform/Employeesform';
+import ContractorForm from '../../forms/Contractorsform/Contractorform';
 import './Dashboard.css';
 // import {
 //   showSuccessToast,
@@ -184,6 +187,10 @@ function Dashboard() {
   const donutChartRef = useRef(null)
   const barChartInst = useRef(null)
   const donutChartInst = useRef(null)
+
+  const [showAllStats, setShowAllStats] = useState(false);
+  const [isEmployeeModalOpen, setIsEmployeeModalOpen] = useState(false);
+  const [isContractorModalOpen, setIsContractorModalOpen] = useState(false);
 
   const [counts, setCounts] = useState({
     totalCount: 0,
@@ -546,36 +553,54 @@ function Dashboard() {
 
     const fetchPlansList = async () => {
       try {
-        const res = await getPlans(1, 10);
-        const rows = res?.data?.rows ?? res?.data ?? res ?? [];
-        if (Array.isArray(rows) && rows.length > 0) {
-          const mapped = rows.map(item => {
-            const status = item.Request_status || item.status || "Open";
-            let badgeClass = "badge-primary";
-            if (status.toLowerCase() === "approved") badgeClass = "badge-success";
-            else if (status.toLowerCase() === "hold") badgeClass = "badge-warning";
-            else if (status.toLowerCase() === "rejected") badgeClass = "badge-danger";
-
-            return {
-              permit: item.PermitNo || item.permit_no || String(item.id),
-              activity: item.Activity || "General Work",
-              contractor: item.Company_Name || item.contractor_name || "Contractor",
-              status,
-              badgeClass
-            };
-          });
-
-          setRecentRequestsList(mapped.slice(0, 5));
-
-          const pending = mapped.filter(item =>
-            ["pending", "draft", "hold"].includes(item.status.toLowerCase())
-          );
-          if (pending.length > 0) {
-            setPendingApprovalsList(pending.slice(0, 5));
-          } else {
-            setPendingApprovalsList(mapped.slice(5, 10));
+        const parseRow = (item) => {
+          const status = item.Request_status || item.status || "Open";
+          let badgeClass = "badge-primary";
+          if (status.toLowerCase() === "approved") badgeClass = "badge-success";
+          else if (status.toLowerCase() === "hold") badgeClass = "badge-warning";
+          else if (status.toLowerCase() === "rejected") badgeClass = "badge-danger";
+          
+          let dateStr = item.Created_At || item.created_at || item.Date || item.date || "";
+          if (dateStr) {
+            const d = new Date(dateStr);
+            if (!isNaN(d)) {
+              dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            }
           }
-        }
+
+          return {
+            permit: item.PermitNo || item.permit_no || String(item.id || ""),
+            date: dateStr || "-",
+            activity: item.Activity || "General Work",
+            contractor: item.Company_Name || item.contractor_name || "Contractor",
+            status,
+            badgeClass
+          };
+        };
+
+        const extractRows = (apiRes) => {
+          if (!apiRes) return [];
+          if (Array.isArray(apiRes)) {
+            if (apiRes.length > 0 && Array.isArray(apiRes[0].data)) {
+              return apiRes[0].data; // Postman screenshot format: [ { data: [...] } ]
+            }
+            return apiRes;
+          }
+          if (apiRes.data) {
+            return Array.isArray(apiRes.data) ? apiRes.data : (apiRes.data.rows || []);
+          }
+          return [];
+        };
+
+        // Fetch Recent Requests
+        const recentRes = await searchDashboardRequests({ Page: 1, End: 5 });
+        const recentRows = extractRows(recentRes);
+        setRecentRequestsList(recentRows.slice(0, 5).map(parseRow));
+
+        // Fetch Pending Approvals (Status: Hold)
+        const pendingRes = await searchDashboardRequests({ Request_status: "Hold", Page: 1, End: 5 });
+        const pendingRows = extractRows(pendingRes);
+        setPendingApprovalsList(pendingRows.slice(0, 5).map(parseRow));
       } catch (err) {
         console.error("Failed to load plans list", err);
       }
@@ -640,8 +665,8 @@ function Dashboard() {
 
   /* ── HANDLERS ─────────────────────────── */
   const handleAdd = () => window.location.href = '/new-request';
-  const handleUpdate = () => window.location.href = '/employees';
-  const handleDelete = () => window.location.href = '/contractors';
+  const handleUpdate = () => setIsEmployeeModalOpen(true);
+  const handleDelete = () => setIsContractorModalOpen(true);
   const handleError = () => console.log('Action test');
 
   /* ── RENDER ───────────────────────────── */
@@ -667,12 +692,27 @@ function Dashboard() {
         <StatCard colorClass="card-purple" icon={Icons.Check} value={counts.approvedCount.toLocaleString()} label="Approved" />
         <StatCard colorClass="card-green" icon={Icons.Shield} value={counts.closedCount.toLocaleString()} label="Closed" />
         <StatCard colorClass="card-cyan" icon={Icons.DoorOpen} value={counts.openedCount.toLocaleString()} label="Opened" />
-        <StatCard colorClass="card-purple" icon={Icons.Check} value={counts.preApprovedCount.toLocaleString()} label="Pre-Approved" />
-        <StatCard colorClass="card-slate" icon={Icons.Clock} value={counts.draftCount.toLocaleString()} label="Drafts" />
         <StatCard colorClass="card-cyan" icon={Icons.Clock} value={counts.holdCount.toLocaleString()} label="On Hold" />
-        <StatCard colorClass="card-rose" icon={Icons.XCircle} value={counts.rejectedCount.toLocaleString()} label="Rejected" />
-        <StatCard colorClass="card-rose" icon={Icons.XCircle} value={counts.cancelledCount.toLocaleString()} label="Cancelled" />
-        <StatCard colorClass="card-rose" icon={Icons.XCircle} value={counts.autoCancelledCount.toLocaleString()} label="Auto Cancelled" />
+        
+        {showAllStats && (
+          <>
+            <StatCard colorClass="card-purple" icon={Icons.Check} value={counts.preApprovedCount.toLocaleString()} label="Pre-Approved" />
+            <StatCard colorClass="card-slate" icon={Icons.Clock} value={counts.draftCount.toLocaleString()} label="Drafts" />
+            <StatCard colorClass="card-rose" icon={Icons.XCircle} value={counts.rejectedCount.toLocaleString()} label="Rejected" />
+            <StatCard colorClass="card-rose" icon={Icons.XCircle} value={counts.cancelledCount.toLocaleString()} label="Cancelled" />
+            <StatCard colorClass="card-rose" icon={Icons.XCircle} value={counts.autoCancelledCount.toLocaleString()} label="Auto Cancelled" />
+          </>
+        )}
+      </div>
+
+      <div style={{ textAlign: 'end', marginTop: '15px', marginBottom: '15px' }}>
+        <button 
+          className="btn-action-outline" 
+          onClick={() => setShowAllStats(!showAllStats)}
+          style={{ width: 'auto', padding: '8px 20px', margin: '0 auto' }}
+        >
+          {showAllStats ? 'View Less' : 'View All'}
+        </button>
       </div>
 
       {/* ── WEEKLY BAR CHART ── */}
@@ -756,13 +796,14 @@ function Dashboard() {
         <div className="clean-card">
           <div className="clean-card-header">
             <div className="section-heading">Recent Requests</div>
-            <a href="/request-list" className="btn-view-all">View All</a>
+            <a href="/list-request" className="btn-view-all">View All</a>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table className="custom-table">
               <thead>
                 <tr>
-                  <th>Permit #</th>
+                  <th>Permit No</th>
+                  <th>Date</th>
                   <th>Activity</th>
                   <th>Contractor</th>
                   <th>Status</th>
@@ -772,6 +813,7 @@ function Dashboard() {
                 {recentRequestsList.map(r => (
                   <tr key={r.permit}>
                     <td className="td-permit">{r.permit}</td>
+                    <td>{r.date}</td>
                     <td>{r.activity}</td>
                     <td>{r.contractor}</td>
                     <td><span className={`badge ${r.badgeClass}`}>{r.status}</span></td>
@@ -786,13 +828,13 @@ function Dashboard() {
         <div className="clean-card">
           <div className="clean-card-header">
             <div className="section-heading">Pending Approvals</div>
-            <a href="/request-list" className="btn-view-all-danger">View All</a>
+            <a href="/list-request" className="btn-view-all-danger">View All</a>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table className="custom-table">
               <thead>
                 <tr>
-                  <th>Permit #</th>
+                  <th>Permit No</th>
                   <th>Activity</th>
                   <th>Contractor</th>
                   <th>Action</th>
@@ -912,6 +954,14 @@ function Dashboard() {
         </div>
 
       </div>
+
+      <Modal open={isEmployeeModalOpen} onClose={() => setIsEmployeeModalOpen(false)} title="Add Employee" size="lg" type="default">
+        <EmployeeForm onClose={() => setIsEmployeeModalOpen(false)} onSubmit={() => setIsEmployeeModalOpen(false)} />
+      </Modal>
+
+      <Modal open={isContractorModalOpen} onClose={() => setIsContractorModalOpen(false)} title="Add Contractor" size="lg" type="default">
+        <ContractorForm onClose={() => setIsContractorModalOpen(false)} onSubmit={() => setIsContractorModalOpen(false)} />
+      </Modal>
     </div>
   )
 }

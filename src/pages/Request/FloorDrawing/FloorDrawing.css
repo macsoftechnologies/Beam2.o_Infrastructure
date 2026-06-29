@@ -64,6 +64,7 @@
   border: none;
   overflow: hidden;
   display: block;
+  cursor: pointer;
 }
 
 .zone-overlay {

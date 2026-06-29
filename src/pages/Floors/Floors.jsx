@@ -153,13 +153,13 @@ const Floors = () => {
           <span className="dept-count-badge">
             {totalCount || floorList.length} Total
           </span>
-          <button
+          {/* <button
             className="dept-add-btn"
             onClick={() => { setSelectedFloor(null); setOpen(true); }}
           >
             <span className="dept-add-btn__icon">＋</span>
             Add Floor
-          </button>
+          </button> */}
         </div>
       </div>
 

@@ -65,6 +65,7 @@ function FloorDrawing({
               justifyContent: "center",
               alignItems: "center",
               flex: 1,
+              cursor: "pointer",
             }}
           >
             {/* Wrapper matching exact size of rendered PDF page canvas */}

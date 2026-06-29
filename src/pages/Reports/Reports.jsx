@@ -745,6 +745,112 @@ const Reports = () => {
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.setAttribute('download', `ACTIVITY_PERMITS_REPORT_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.removeChild(link);
+  };
+
+  const handleDownloadExcel = () => {
+    if (tableData.length === 0) {
+      alert("No data available to export.");
+      return;
+    }
+    const daysNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+    const printHRAS = (row) => {
+      const hrasValues = [];
+      const keys = [
+        "Hot_work", "working_on_electrical_system", "working_hazardious_substen",
+        "pressure_tesing_of_equipment", "working_at_height", "working_confined_spaces",
+        "work_in_atex_area", "securing_facilities", "excavation_works", "using_cranes_or_lifting",
+        "power_on", "pressurization"
+      ];
+      keys.forEach(key => {
+        if (row[key] == 1 || row[key] === "1" || row[key] === true) {
+          hrasValues.push(key.replace(/_/g, ' '));
+        }
+      });
+      return hrasValues.join(", ");
+    };
+
+    const formatNotes = (notes) => {
+      if (!notes) return "";
+      if (typeof notes === "string") return notes.replace(/[\n\r,]+/g, " ");
+      if (Array.isArray(notes)) {
+        return notes
+          .map(n => `${n.username || n.Username || ""}: ${n.note || n.Note || ""}`)
+          .join("; ")
+          .replace(/[\n\r,]+/g, " ");
+      }
+      return "";
+    };
+
+    const findNewDay = (row) => {
+      if (row.new_date && row.new_date !== "00-00-0000" && row.new_date !== "0000-00-00") {
+        const newDate = new Date(row.new_date);
+        if (!isNaN(newDate.getTime())) {
+          return daysNames[newDate.getDay()];
+        }
+      }
+      return "";
+    };
+
+    const headers = [
+      "PermitNo", "PermitUnder", "PermitType", "ContractorName", "Sub_Contractor_Name",
+      "Building_Name", "Level", "Room_Nos", "Activity", "description_of_activity",
+      "Rams_Number", "HRAs", "Auth", "Comment", "Start_Time", "End_Time",
+      "Night_Shift", "New_End_Time", "Request_status", "Notes", "Working_Date",
+      "Day", "New_Date", "New_Day", "CoNM_initials", "CoMM_initials", "Opened_By",
+      "Reject_Reason", "Cancel_Reason"
+    ];
+
+    const rowsData = tableData.map(x => {
+      const dayIndex = x.Working_Date ? new Date(x.Working_Date).getDay() : null;
+      const dayName = (dayIndex !== null && !isNaN(dayIndex)) ? daysNames[dayIndex] : "";
+      
+      return {
+        PermitNo: x.PermitNo || "",
+        PermitUnder: x.permit_under || 'Construction',
+        PermitType: x.permit_type || 'Construction',
+        ContractorName: x.subContractorName || "",
+        Sub_Contractor_Name: x.new_sub_contractor || "",
+        Building_Name: x.building_name || "",
+        Level: x.Room_Type || "",
+        Room_Nos: x.Room_Nos || "",
+        Activity: x.Activity || "",
+        description_of_activity: x.description_of_activity || "",
+        Rams_Number: x.rams_number || "",
+        HRAs: printHRAS(x),
+        Auth: "",
+        Comment: "",
+        Start_Time: x.Start_Time || "",
+        End_Time: x.End_Time || "",
+        Night_Shift: x.night_shift == 1 ? 'Yes' : 'No',
+        New_End_Time: x.new_end_time || "",
+        Request_status: x.Request_status || "",
+        Notes: formatNotes(x.Notes || x.note),
+        Working_Date: x.Working_Date || "",
+        Day: dayName,
+        New_Date: x.new_date || "",
+        New_Day: findNewDay(x),
+        CoNM_initials: x.ConM_initials || "",
+        CoMM_initials: x.CoMM_initials || "",
+        Opened_By: x.ConM_initials1 || "",
+        Reject_Reason: x.reject_reason || "",
+        Cancel_Reason: x.cancel_reason || ""
+      };
+    });
+
+    let html = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
+    html += '<head><meta charset="UTF-8"></head><body><table border="1">';
+    html += '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+    rowsData.forEach(row => {
+      html += '<tr>' + headers.map(h => `<td>${String(row[h]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>`).join('') + '</tr>';
+    });
+    html += '</table></body></html>';
+
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute('download', `ACTIVITY_PERMITS_REPORT_${new Date().toISOString().slice(0, 10)}.xls`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1089,7 +1195,7 @@ const Reports = () => {
           <div className="dept-page-header__left">
             <span className="dept-count-badge">{tableData.length} Total</span>
           </div>
-          <div className="dept-page-header__right">
+          <div className="dept-page-header__right" style={{ display: "flex", gap: "12px" }}>
             <button
               className="dept-add-btn"
               onClick={handleDownload}
@@ -1097,6 +1203,15 @@ const Reports = () => {
             >
               <span className="dept-add-btn__icon">⬇</span>
               Download CSV
+            </button>
+            <button
+              className="dept-add-btn"
+              onClick={handleDownloadExcel}
+              disabled={tableData.length === 0}
+              style={{ backgroundColor: "#10b981", color: "#fff" }}
+            >
+              <span className="dept-add-btn__icon">⬇</span>
+              Download Excel
             </button>
           </div>
         </div>
