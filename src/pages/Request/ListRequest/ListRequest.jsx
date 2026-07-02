@@ -937,13 +937,13 @@ const ListRequest = () => {
             </button>
           )}
 
-          <button
+          {/* <button
             className="op-action-btn op-action-btn--history"
             title="History Logs"
             onClick={() => handleViewLogs(row)}
           >
             <FaHistory />
-          </button>
+          </button> */}
         </div>
       );
 

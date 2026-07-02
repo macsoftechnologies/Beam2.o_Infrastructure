@@ -731,15 +731,15 @@
 .M3-North-area-1-1 {
   position: absolute;
   z-index: 9999;
-  bottom: 29%;
+  bottom: 31%;
   left: 42%;
 }
 
 .M3-North-area-1-2 {
   position: absolute;
   z-index: 9999;
-  bottom: 35%;
-  left: 40%;
+  bottom: 47%;
+  left: 41%;
 }
 
 .M3-North-area-1-3 {
@@ -749,7 +749,7 @@
   left: 45%;
 }
 
-.Office-Welfare {
+.Office-Welfare { 
   position: absolute;
   z-index: 9999;
   bottom: 34%;
@@ -801,50 +801,50 @@
 .Park-tent-2 {
   position: absolute;
   z-index: 9999;
-  top: 5%;
-  left: 23%;
+  top: 8%;
+  left: 35%;
 }
 
 .Park-tent-3 {
   position: absolute;
   z-index: 9999;
-  top: 5%;
-  right: 37%;
+  top: 9%;
+  right: 35%;
 }
 
 .Park-tent-4 {
   position: absolute;
   z-index: 9999;
-  top: 5%;
-  right: 15%;
+  top: 10%;
+  right: 12%;
 }
 
 .Park-tent-5 {
   position: absolute;
   z-index: 9999;
-  bottom: 5%;
-  left: 0%;
+  bottom: 14%;
+  left: 12%;
 }
 
 .Park-tent-6 {
   position: absolute;
   z-index: 9999;
-  bottom: 5%;
-  left: 23%;
+  bottom: 15%;
+  left: 35%;
 }
 
 .Park-tent-7 {
   position: absolute;
   z-index: 9999;
-  bottom: 5%;
-  right: 37%;
+  bottom: 14%;
+  right: 35%;
 }
 
 .Park-tent-8 {
   position: absolute;
   z-index: 9999;
-  bottom: 5%;
-  right: 14%;
+  bottom: 12%;
+  right: 12%;
 }
 
 .Zone-1-EHLakeEast {
@@ -885,15 +885,15 @@
 .APM-Terminal-1 {
   position: absolute;
   z-index: 9999;
-  bottom: 33%;
-  left: 13%;
+  bottom: 40%;
+  left: 25%;
 }
 
 .APM-Terminal-2 {
   position: absolute;
   z-index: 9999;
-  bottom: 27%;
-  left: 13%;
+  bottom: 23%;
+  left: 24%;
 }
 
 

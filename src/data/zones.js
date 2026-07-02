@@ -226,7 +226,7 @@ export const ZONE_MAPPING = {
     {
       id: 1,
       name: "APM Terminal Zones",
-      className: "APM-Terminal-1",
+      className: "APM-Terminals",
       pdf: APMTerminalPdf,
       rooms: [
         { name: "M3 North", className: "APM-Terminal-1" },

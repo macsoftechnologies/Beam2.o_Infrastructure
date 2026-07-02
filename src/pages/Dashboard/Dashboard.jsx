@@ -316,6 +316,10 @@ function Dashboard() {
     }
 
     const ctx = barChartRef.current.getContext('2d');
+    const computedStyle = getComputedStyle(document.documentElement);
+    const textColor = computedStyle.getPropertyValue('--text-main').trim() || '#fff';
+    const gridColor = computedStyle.getPropertyValue('--border-light').trim() || 'rgba(255,255,255,0.07)';
+
     barChartInst.current = new Chart(ctx, {
       type: 'bar',
       data: {
@@ -358,7 +362,7 @@ function Dashboard() {
         plugins: {
           legend: {
             position: 'bottom',
-            labels: { boxWidth: 11, padding: 18, color: '#fff' },
+            labels: { boxWidth: 11, padding: 18, color: textColor },
           },
           tooltip: {
             callbacks: {
@@ -371,15 +375,15 @@ function Dashboard() {
           y: {
             beginAtZero: true,
             ticks: {
-              color: '#fff',
+              color: textColor,
               precision: 0,
               stepSize: 1,
             },
-            grid: { color: 'rgba(255,255,255,0.07)' },
+            grid: { color: gridColor },
           },
           x: {
             ticks: {
-              color: '#fff',
+              color: textColor,
               maxRotation: 0,
               minRotation: 0,
               font: { size: 11 },
@@ -571,6 +575,7 @@ function Dashboard() {
           return {
             permit: item.PermitNo || item.permit_no || String(item.id || ""),
             date: dateStr || "-",
+            Working_Date: item.Working_Date || item.working_date || "-",
             activity: item.Activity || "General Work",
             contractor: item.Company_Name || item.contractor_name || "Contractor",
             status,
@@ -738,10 +743,10 @@ function Dashboard() {
           <div className="donut-wrap">
             <canvas ref={donutChartRef} style={{ maxHeight: '220px' }}></canvas>
             <div className="donut-center">
-              <h3 style={{ fontWeight: 700, fontSize: '1.4rem', margin: 0 }}>
+              <h3 style={{ fontWeight: 700, fontSize: '1.4rem', margin: 0, color: 'var(--text-main)' }}>
                 {counts.total >= 1000 ? `${(counts.total / 1000).toFixed(0)}k` : counts.total}
               </h3>
-              <p style={{ color: '#94A3B8', fontSize: '0.72rem', margin: 0 }}>Total Permits</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Total Permits</p>
             </div>
           </div>
           <div className="donut-legend">
@@ -771,7 +776,7 @@ function Dashboard() {
             Today's Summary
           </div>
           {[
-            { label: 'Total Requests', value: todaySummary.totalCount, color: '#fff' },
+            { label: 'Total Requests', value: todaySummary.totalCount, color: 'var(--text-main)' },
             { label: 'Drafts', value: todaySummary.draftCount, color: '#64748B' },
             { label: 'On Hold', value: todaySummary.holdCount, color: '#F59E0B' },
             { label: 'Pre-Approved', value: todaySummary.preApprovedCount, color: '#6366F1' },
@@ -803,7 +808,7 @@ function Dashboard() {
               <thead>
                 <tr>
                   <th>Permit No</th>
-                  <th>Date</th>
+                  <th>Working Date</th>
                   <th>Activity</th>
                   <th>Contractor</th>
                   <th>Status</th>
@@ -813,7 +818,7 @@ function Dashboard() {
                 {recentRequestsList.map(r => (
                   <tr key={r.permit}>
                     <td className="td-permit">{r.permit}</td>
-                    <td>{r.date}</td>
+                    <td>{r.Working_Date}</td>
                     <td>{r.activity}</td>
                     <td>{r.contractor}</td>
                     <td><span className={`badge ${r.badgeClass}`}>{r.status}</span></td>

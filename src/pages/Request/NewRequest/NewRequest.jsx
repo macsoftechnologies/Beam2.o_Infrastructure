@@ -1104,15 +1104,7 @@ function NewRequest() {
                 <select
                   className="df-select"
                   value={formData.Type_Of_Activity_Id}
-                  onChange={(e) => {
-                    const actId = e.target.value;
-                    const matched = activitiesList.find(a => String(a.id) === String(actId));
-                    setFormData(prev => ({
-                      ...prev,
-                      Type_Of_Activity_Id: actId,
-                      Activity: matched ? matched.activityName : prev.Activity
-                    }));
-                  }}
+                  onChange={(e) => handleFieldChange("Type_Of_Activity_Id", e.target.value)}
                 >
                   <option value="">Select Activity Type</option>
                   {activitiesList.map((a) => (
@@ -1145,7 +1137,6 @@ function NewRequest() {
               />
             </div>
           </div>
-
           {/* Schedule Section */}
           <div className="form-card">
             <h2 className="form-card-title">Schedule & Location</h2>

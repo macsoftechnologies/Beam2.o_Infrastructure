@@ -220,11 +220,14 @@
   margin-bottom: 14px;
 }
 .section-heading-white {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-main);
   text-transform: uppercase;
-  letter-spacing: 1.2px;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   border-left: 3px solid var(--teal);
   padding-left: 10px;
   margin-bottom: 0;
@@ -263,8 +266,8 @@
   text-align: center;
   pointer-events: none;
 }
-.donut-center h3 { color: #f0f4ff !important; }
-.donut-center p  { color: rgba(255,255,255,0.38) !important; }
+.donut-center h3 { color: var(--text-main) !important; }
+.donut-center p  { color: var(--text-muted) !important; }
 
 .donut-legend {
   display: flex;
@@ -276,7 +279,7 @@
 .donut-legend-item {
   font-size: 0.74rem;
   font-weight: 500;
-  color: rgba(255,255,255,0.6);
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   gap: 5px;
@@ -313,11 +316,10 @@
 .today-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  font-size: 0.83rem;
-  color: rgba(255,255,255,0.55);
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-main);
+  font-size: 0.92rem;
 }
 .today-row:last-child { border-bottom: none; }
 
@@ -688,9 +690,9 @@ html[data-theme="light"] {
     color: #111827;
     border-left-color: #00c48c;
   }
-  .donut-center h3 { color: #111827 !important; }
-  .donut-center p  { color: #6b7280 !important; }
-  .donut-legend-item { color: #374151; }
+  .donut-center h3 { color: var(--text-main) !important; }
+  .donut-center p  { color: var(--text-muted) !important; }
+  .donut-legend-item { color: var(--text-muted); }
 
   /* ── Today's Summary card ── */
   .today-card {
@@ -701,8 +703,8 @@ html[data-theme="light"] {
   .today-card-title { color: #059669; }
   .today-card-title svg { stroke: #059669; }
   .today-row {
-    color: #374151;
-    border-bottom-color: #d1fae5;
+    color: var(--text-main);
+    border-bottom-color: var(--border-light);
   }
 
   /* ── Recent Requests & Pending Approvals tables ── */
