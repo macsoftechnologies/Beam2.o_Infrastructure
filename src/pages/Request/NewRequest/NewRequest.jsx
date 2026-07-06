@@ -563,6 +563,7 @@ function NewRequest() {
 
   const selectedPdf = useMemo(() => {
     if (!building) return "";
+    if (!building || !level) return "";
     // Find the building name from buildingList using building (which is database build_id)
     const dbBuilding = buildingsList.find(b => String(b.build_id || b.id) === String(building));
     const bName = dbBuilding ? dbBuilding.building_name : "";
