@@ -330,7 +330,7 @@ function NewRequest() {
         setBuildingsList(buildingsRes?.data ?? []);
         setFloorsList(floorsRes?.data ?? []);
         setZonesList(zonesRes?.data ?? []);
-        setRoomsList(roomsRes?.data ?? []);
+        setRoomsList(roomsRes?.data?.rows ?? roomsRes?.data ?? roomsRes ?? []);
       } catch (err) {
         console.error("Failed to load request form selector data", err);
         showError("Failed to load selector databases.");
@@ -700,11 +700,44 @@ function NewRequest() {
       .map((z) => z.id ?? z.zoneStatusId);
     const Zone_Id = matchedZoneIds.join(",");
 
-    // Find Room IDs
-    const matchedRoomIds = roomsList
-      .filter((r) => String(r.fl_id) === String(Floor_Id) && selectedRooms.includes(r.room_name))
+    // Find Room IDs — multi-strategy matching
+    // Strategy 1: Match by zone_id + case-insensitive room_name
+    const selectedRoomsLower = selectedRooms.map(n => n.toLowerCase().trim());
+    let matchedRoomIds = roomsList
+      .filter((r) =>
+        matchedZoneIds.includes(r.zone_id ?? r.zoneStatusId) &&
+        selectedRoomsLower.includes((r.room_name || "").toLowerCase().trim())
+      )
       .map((r) => r.room_id ?? r.id);
+
+    // Strategy 2: Fallback — match by fl_id + case-insensitive room_name
+    if (matchedRoomIds.length === 0 && Floor_Id) {
+      matchedRoomIds = roomsList
+        .filter((r) =>
+          String(r.fl_id) === String(Floor_Id) &&
+          selectedRoomsLower.includes((r.room_name || "").toLowerCase().trim())
+        )
+        .map((r) => r.room_id ?? r.id);
+    }
+
+    // Strategy 3: Fallback — include ALL rooms belonging to the matched zones
+    if (matchedRoomIds.length === 0 && matchedZoneIds.length > 0) {
+      matchedRoomIds = roomsList
+        .filter((r) => matchedZoneIds.includes(r.zone_id ?? r.zoneStatusId))
+        .map((r) => r.room_id ?? r.id);
+    }
+
     const Room_Nos = matchedRoomIds.join(",");
+
+    // Debug log — remove after confirming Room_Nos works correctly
+    console.log("[Room_Nos Debug]", {
+      selectedRooms,
+      Floor_Id,
+      matchedZoneIds,
+      roomsList: roomsList.slice(0, 5),
+      matchedRoomIds,
+      Room_Nos,
+    });
 
     // Current User
     const currentUser = getUser();

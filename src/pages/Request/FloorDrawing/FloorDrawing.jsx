@@ -1,15 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Document, Page, pdfjs } from "react-pdf";
 import ZoneModal from "../ZoneModal";
 
 import "./FloorDrawing.css";
-import "../ZonePositions.css";
-
-// Configure PDFJS worker path locally in Vite to prevent CORS/CDN errors
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url
-).toString();
+import ZonePolygonViewer from "../../../components/Zonepolygonviewer";
 
 function FloorDrawing({
   pdf,
@@ -22,18 +15,16 @@ function FloorDrawing({
   const [hoveredZoneId, setHoveredZoneId] = useState(null);
 
   const containerRef = useRef(null);
-  const [renderedWidth, setRenderedWidth] = useState(800);
+  const [viewerWidth, setViewerWidth] = useState(800);
 
-  // Measure the width of the parent container to scale PDF page responsively
+  // Measure container width so the Konva stage fills the panel responsively
   useEffect(() => {
     if (!containerRef.current) return;
 
     const observer = new ResizeObserver((entries) => {
       if (!entries || entries.length === 0) return;
-      const width = entries[0].contentRect.width;
-      if (width > 0) {
-        setRenderedWidth(width);
-      }
+      const w = entries[0].contentRect.width;
+      if (w > 0) setViewerWidth(Math.max(400, w - 40));
     });
 
     observer.observe(containerRef.current);
@@ -44,11 +35,20 @@ function FloorDrawing({
     <>
       <div className="floor-drawing-console">
 
-        {/* --- Left Panel: Drawing Viewer --- */}
+        {/* ── Left Panel: PDF + Zone Polygons ── */}
         <div className="floor-drawing-viewer-card">
           <div className="floor-viewer-header">
             <h4>
-              <span style={{ display: "inline-block", width: "8px", height: "8px", borderRadius: "50%", background: "#10b981" }} />
+              <span
+                style={{
+                  display: "inline-block",
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: "#10b981",
+                  marginRight: 8,
+                }}
+              />
               Floor Plan Viewer
             </h4>
             {level && <span className="floor-viewer-badge">{level}</span>}
@@ -63,41 +63,23 @@ function FloorDrawing({
               background: "#151d30",
               display: "flex",
               justifyContent: "center",
-              alignItems: "center",
+              alignItems: "flex-start",
               flex: 1,
               cursor: "pointer",
+              padding: "20px",
             }}
           >
-            {/* Wrapper matching exact size of rendered PDF page canvas */}
-            <div style={{ position: "relative", display: "inline-block" }}>
-              <Document file={pdf} onLoadError={(err) => console.error("Main PDF Load error:", err)}>
-                <Page
-                  pageNumber={1}
-                  width={renderedWidth}
-                  renderTextLayer={false}
-                  renderAnnotationLayer={false}
-                />
-              </Document>
-
-              {/* Render overlays relative to the PDF Page wrapper */}
-              {zones.map((zone) => (
-                <div
-                  key={zone.id}
-                  className={`zone-overlay ${zone.className} ${hoveredZoneId === zone.id ? "hovered" : ""
-                    }`}
-                  onClick={() => setSelectedZone(zone)}
-                  onMouseEnter={() => setHoveredZoneId(zone.id)}
-                  onMouseLeave={() => setHoveredZoneId(null)}
-                  title={`View Zone ${zone.name}`}
-                >
-                  <span className="zone-overlay-badge">{zone.name}</span>
-                </div>
-              ))}
-            </div>
+            <ZonePolygonViewer
+              pdf={pdf}
+              zones={zones}
+              width={viewerWidth}
+              selectedZoneId={selectedZone?.id}
+              onZoneClick={(zone) => setSelectedZone(zone)}
+            />
           </div>
         </div>
 
-        {/* --- Right Panel: Zones Directory --- */}
+        {/* ── Right Panel: Zones Directory (unchanged) ── */}
         <div className="floor-drawing-sidebar-card">
           <div className="floor-sidebar-header">
             <h4>Zones Directory</h4>
@@ -126,7 +108,8 @@ function FloorDrawing({
                   {zone.rooms && zone.rooms.length > 0 && (
                     <div className="zone-card-rooms-list">
                       {zone.rooms.slice(0, 4).map((room, idx) => {
-                        const roomName = typeof room === "object" ? room.name : room;
+                        const roomName =
+                          typeof room === "object" ? room.name : room;
                         return (
                           <span key={idx} className="zone-card-room-tag">
                             {roomName}
@@ -134,7 +117,13 @@ function FloorDrawing({
                         );
                       })}
                       {zone.rooms.length > 4 && (
-                        <span className="zone-card-room-tag" style={{ background: "rgba(37,99,235,0.1)", color: "#3b82f6" }}>
+                        <span
+                          className="zone-card-room-tag"
+                          style={{
+                            background: "rgba(37,99,235,0.1)",
+                            color: "#3b82f6",
+                          }}
+                        >
                           +{zone.rooms.length - 4} more
                         </span>
                       )}
@@ -148,6 +137,7 @@ function FloorDrawing({
 
       </div>
 
+      {/* Zone Modal — opens when a polygon or sidebar card is clicked */}
       {selectedZone && (
         <ZoneModal
           zone={selectedZone}

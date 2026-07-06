@@ -32,6 +32,7 @@ import LogHistory from "../pages/LogHistroy/LogHistroy";
 
 import ProtectedRoute from "../components/common/ProtectedRoute";
 import ListRequest from "../pages/Request/ListRequest/ListRequest";
+import PolygonEditor from "../pages/PolygonEditor/PolygonEditor";
 
 function AppRoutes() {
   return (
@@ -42,6 +43,7 @@ function AppRoutes() {
         <Route path="/" element={<PortalSelection />} />
         <Route path="/login" element={<Login />} />
         <Route path="/otp" element={<Otp />} />
+        <Route path='/polygons' element={<PolygonEditor />} />
 
         {/* Protected Layout */}
 

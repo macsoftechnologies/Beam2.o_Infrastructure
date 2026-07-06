@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
-import { Document, Page, pdfjs } from "react-pdf";
+import { pdfjs } from "react-pdf";
+import PdfPolygonViewer from "../../components/PdfPolygonViewer";
 
 // Configure PDFJS worker path locally in Vite to prevent CORS/CDN errors
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
@@ -14,47 +15,23 @@ function ZoneModal({
   onClose,
   onConfirm,
 }) {
-  const [selectedRooms, setSelectedRooms] = useState(() => {
-    const zoneRoomNames = zone.rooms.map(r => typeof r === "object" ? r.name : r);
-    return globalSelectedRooms.filter(r => zoneRoomNames.includes(r));
-  });
-
+  const [selectedRooms, setSelectedRooms] = useState(globalSelectedRooms);
+  const [viewerWidth, setViewerWidth] = useState(900);
   const [searchTerm, setSearchTerm] = useState("");
-  const [dimensions, setDimensions] = useState(null);
-  const [renderedPageWidth, setRenderedPageWidth] = useState(600);
-  const [modalStyle, setModalStyle] = useState({
-    width: "95vw",
-    height: "90vh",
-    maxWidth: "1400px",
-    maxHeight: "90vh",
-  });
+  const [activeTab, setActiveTab] = useState("pdf");
+  const containerRef = useRef(null);
+
+  // Sync selected rooms when global selections change or modal opens
+  useEffect(() => {
+    setSelectedRooms(globalSelectedRooms);
+  }, [globalSelectedRooms]);
 
   const toggleRoom = (roomName) => {
     setSelectedRooms((prev) =>
       prev.includes(roomName)
-        ? prev.filter((item) => item !== roomName)
+        ? prev.filter((r) => r !== roomName)
         : [...prev, roomName]
     );
-  };
-
-  // Fallback helper to generate coordinates in grid layout if class is missing
-  const getRoomPosition = (index, total) => {
-    const cols = Math.ceil(Math.sqrt(total));
-    const rows = Math.ceil(total / cols);
-    const r = Math.floor(index / cols);
-    const c = index % cols;
-
-    const widthVal = 80 / cols;
-    const heightVal = 60 / rows;
-    const leftVal = 10 + c * (80 / cols);
-    const topVal = 15 + r * (70 / rows);
-
-    return {
-      left: `${leftVal}%`,
-      top: `${topVal}%`,
-      width: `${widthVal}%`,
-      height: `${heightVal}%`,
-    };
   };
 
   // Lock body scroll while open
@@ -65,64 +42,29 @@ function ZoneModal({
     };
   }, []);
 
-  const onPageLoadSuccess = (page) => {
-    const { originalWidth, originalHeight } = page;
-    setDimensions({
-      width: originalWidth,
-      height: originalHeight,
-    });
-  };
-
-  // Recalculate size dynamically on dimensions ready or window resize
   useEffect(() => {
-    if (!dimensions) return;
 
-    const calculateModalSize = () => {
-      const maxWidth = window.innerWidth * 0.95;
-      const maxHeight = window.innerHeight * 0.9;
+    if (!containerRef.current) return;
 
-      const reservedHeight = 150; // Header (65px) + Footer (70px) is ~135px
-      const availableHeightForImage = Math.max(maxHeight - reservedHeight, 200);
+    const resize = () => {
+      const isMobile = window.innerWidth <= 1024;
+      const padding = isMobile ? 20 : 40; // 10px each side on mobile, 20px on desktop
+      const calculatedWidth = containerRef.current.clientWidth - padding;
 
-      const imageRatio = dimensions.width / dimensions.height;
-
-      // Fit inside viewport limits (leaving 350px space for the right sidebar directory)
-      const maxPdfWidth = maxWidth - 350 - 20;
-
-      // Scale to max available width first
-      let imgWidth = maxPdfWidth;
-      let imgHeight = imgWidth / imageRatio;
-
-      // If it exceeds the available height, scale it down to fit the height
-      if (imgHeight > availableHeightForImage) {
-        imgHeight = availableHeightForImage;
-        imgWidth = imgHeight * imageRatio;
-      }
-
-      // Enforce a minimum width for the drawing so tall/narrow drawings do not shrink excessively
-      const minPdfWidth = Math.min(350, maxPdfWidth);
-      if (imgWidth < minPdfWidth) {
-        imgWidth = minPdfWidth;
-        imgHeight = imgWidth / imageRatio;
-      }
-
-      const modalWidth = Math.min(imgWidth + 350, maxWidth);
-      const modalHeight = Math.min(imgHeight + reservedHeight, maxHeight);
-
-      setModalStyle({
-        width: `${modalWidth}px`,
-        height: `${modalHeight}px`,
-        maxWidth: "95vw",
-        maxHeight: "90vh",
-      });
-
-      setRenderedPageWidth(imgWidth);
+      // On mobile, let the PDF scale down to fit the container width (min 280px)
+      // On desktop, keep a minimum width of 600px for usability
+      const minWidth = isMobile ? 280 : 600;
+      setViewerWidth(Math.max(minWidth, calculatedWidth));
     };
 
-    calculateModalSize();
-    window.addEventListener("resize", calculateModalSize);
-    return () => window.removeEventListener("resize", calculateModalSize);
-  }, [dimensions]);
+    resize();
+
+    window.addEventListener("resize", resize);
+
+    return () =>
+      window.removeEventListener("resize", resize);
+
+  }, [activeTab]);
 
   return ReactDOM.createPortal(
     <div
@@ -144,17 +86,47 @@ function ZoneModal({
       <div
         className="zone-modal-content"
         style={{
-          ...modalStyle,
-          backgroundColor: "#111827",
-          borderRadius: "16px",
-          border: "1px solid rgba(255, 255, 255, 0.08)",
-          boxShadow: "0 20px 50px rgba(0, 0, 0, 0.6)",
+          width: "95vw",
+          height: "92vh",
+          maxWidth: "1600px",
+          background: "#111827",
           display: "flex",
           flexDirection: "column",
-          overflow: "hidden",
+          borderRadius: 16,
         }}
         onClick={(e) => e.stopPropagation()}
       >
+        <style>{`
+          @media (max-width: 1024px) {
+            .zone-modal-mobile-tabs {
+              display: flex !important;
+            }
+            .zone-modal-body {
+              grid-template-columns: 1fr !important;
+              grid-template-rows: 1fr !important;
+              overflow-y: hidden !important;
+            }
+            .zone-modal-body.show-pdf .zone-modal-sidebar {
+              display: none !important;
+            }
+            .zone-modal-body.show-rooms .zone-modal-pdf-container {
+              display: none !important;
+            }
+            .zone-modal-pdf-container {
+              padding: 10px !important;
+            }
+            .zone-modal-sidebar {
+              height: 100% !important;
+              border-left: none !important;
+              border-top: none !important;
+            }
+            .modal-room-list {
+              max-height: none !important;
+              flex: 1 !important;
+            }
+          }
+        `}</style>
+
         {/* Header */}
         <div
           className="zone-modal-header"
@@ -174,11 +146,10 @@ function ZoneModal({
           </h3>
           <button
             onClick={onClose}
-            className="close-btn"
             style={{
+              background: "none",
               border: "none",
-              background: "transparent",
-              fontSize: "32px",
+              fontSize: "24px",
               cursor: "pointer",
               color: "#9ca3af",
               lineHeight: 1,
@@ -188,11 +159,56 @@ function ZoneModal({
           </button>
         </div>
 
+        {/* Mobile Tab Navigation */}
+        <div
+          className="zone-modal-mobile-tabs"
+          style={{
+            display: "none",
+            borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+            background: "#111827",
+            flexShrink: 0,
+          }}
+        >
+          <button
+            onClick={() => setActiveTab("pdf")}
+            style={{
+              flex: 1,
+              padding: "12px",
+              background: activeTab === "pdf" ? "#1f2937" : "transparent",
+              color: activeTab === "pdf" ? "#3b82f6" : "#9ca3af",
+              border: "none",
+              borderBottom: activeTab === "pdf" ? "2px solid #3b82f6" : "none",
+              fontWeight: 600,
+              fontSize: "14px",
+              cursor: "pointer",
+            }}
+          >
+            PDF Floor Plan
+          </button>
+          <button
+            onClick={() => setActiveTab("rooms")}
+            style={{
+              flex: 1,
+              padding: "12px",
+              background: activeTab === "rooms" ? "#1f2937" : "transparent",
+              color: activeTab === "rooms" ? "#3b82f6" : "#9ca3af",
+              border: "none",
+              borderBottom: activeTab === "rooms" ? "2px solid #3b82f6" : "none",
+              fontWeight: 600,
+              fontSize: "14px",
+              cursor: "pointer",
+            }}
+          >
+            Rooms Checklist ({selectedRooms.length})
+          </button>
+        </div>
+
         {/* Two-Column Content Layout */}
         <div
+          className={`zone-modal-body ${activeTab === "pdf" ? "show-pdf" : "show-rooms"}`}
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 350px",
+            gridTemplateColumns: "minmax(0,1fr) 340px",
             flex: 1,
             overflow: "hidden",
             background: "#151d30",
@@ -200,73 +216,30 @@ function ZoneModal({
         >
           {/* Left Panel: PDF Viewer */}
           <div
-            className="zone-pdf-container"
+            className="zone-modal-pdf-container"
+            ref={containerRef}
             style={{
-              position: "relative",
-              height: "100%",
-              overflowX: "hidden",
-              overflowY: "auto",
+              flex: 1,
+              overflow: "auto",
               display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              backgroundColor: "#151d30",
-              borderRight: "1px solid rgba(255, 255, 255, 0.08)",
+              justifyContent: containerRef.current && viewerWidth > containerRef.current.clientWidth ? "flex-start" : "center",
+              alignItems: "flex-start",
+              padding: 20,
+              background: "#1b2436",
             }}
           >
-            {/* Relative wrapper holding the rendered canvas and checkbox overlays together */}
-            <div style={{ position: "relative", display: "inline-block", margin: "auto" }}>
-              <Document file={zone.pdf} onLoadError={(err) => console.error("PDF Load error:", err)}>
-                <Page
-                  pageNumber={1}
-                  width={renderedPageWidth}
-                  renderTextLayer={false}
-                  renderAnnotationLayer={false}
-                  onLoadSuccess={onPageLoadSuccess}
-                />
-              </Document>
-
-              {/* Render overlay checkboxes relative to the PDF Page wrapper */}
-              {zone.rooms.map((room, index) => {
-                const isObject = typeof room === "object";
-                const roomName = isObject ? room.name : room;
-                const hasClassName = isObject && !!room.className;
-                const roomClass = isObject ? room.className : "";
-
-                const position = hasClassName ? {} : getRoomPosition(index, zone.rooms.length);
-
-                return (
-                  <div
-                    key={roomName}
-                    className={`room-overlay ${roomClass} ${selectedRooms.includes(roomName) ? "selected" : ""
-                      }`}
-                    style={
-                      hasClassName
-                        ? {}
-                        : {
-                          top: position.top,
-                          left: position.left,
-                          width: position.width,
-                          height: position.height,
-                        }
-                    }
-                    onClick={() => toggleRoom(roomName)}
-                    title={`Toggle ${roomName}`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedRooms.includes(roomName)}
-                      onChange={() => { }} /* Click handled by parent div */
-                      className="room-overlay-checkbox"
-                    />
-                    <span className="room-overlay-label">{roomName}</span>
-                  </div>
-                );
-              })}
-            </div>
+            <PdfPolygonViewer
+              pdf={zone.pdf}
+              rooms={zone.rooms}
+              width={viewerWidth}
+              selectedRooms={selectedRooms}
+              toggleRoom={toggleRoom}
+            />
           </div>
 
           {/* Right Panel: Rooms Directory Sidebar */}
           <div
+            className="zone-modal-sidebar"
             style={{
               display: "flex",
               flexDirection: "column",
@@ -338,44 +311,29 @@ function ZoneModal({
               {zone.rooms
                 .filter((room) => {
                   const roomName = typeof room === "object" ? room.name : room;
-                  return roomName.toLowerCase().includes(searchTerm.toLowerCase());
+                  return (roomName || "").toLowerCase().includes((searchTerm || "").toLowerCase().trim());
                 })
                 .map((room) => {
                   const roomName = typeof room === "object" ? room.name : room;
-                  const isSelected = selectedRooms.includes(roomName);
+                  const key = typeof room === "object" ? (room.id || room.name) : room;
                   return (
                     <label
-                      key={roomName}
-                      className={`room-item ${isSelected ? "checked" : ""}`}
+                      key={key}
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: "10px",
-                        padding: "12px 16px",
-                        background: isSelected ? "rgba(16, 185, 129, 0.1)" : "rgba(255, 255, 255, 0.02)",
-                        border: "1px solid",
-                        borderColor: isSelected ? "#10b981" : "rgba(255, 255, 255, 0.06)",
-                        color: isSelected ? "#4ade80" : "#fff",
-                        borderRadius: "8px",
+                        gap: 10,
+                        padding: 8,
                         cursor: "pointer",
-                        fontWeight: "500",
-                        transition: "all 0.2s ease",
-                        userSelect: "none",
-                        margin: 0,
+                        color: "#f3f4f6",
                       }}
                     >
                       <input
                         type="checkbox"
-                        checked={isSelected}
+                        checked={selectedRooms.includes(roomName)}
                         onChange={() => toggleRoom(roomName)}
-                        style={{
-                          width: "16px",
-                          height: "16px",
-                          cursor: "pointer",
-                          accentColor: "#10b981",
-                        }}
                       />
-                      <span className="room-item-label" style={{ fontSize: "13px" }}>{roomName}</span>
+                      {roomName}
                     </label>
                   );
                 })}
