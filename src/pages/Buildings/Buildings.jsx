@@ -104,13 +104,6 @@ const Buildings = () => {
         >
           <FaEdit />
         </button>
-        <button
-          className="dept-action-btn dept-action-btn--delete"
-          title="Delete"
-          onClick={() => handleDelete(item)}
-        >
-          <FaTrash />
-        </button>
       </div>
     ),
   }));

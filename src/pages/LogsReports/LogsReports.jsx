@@ -1,18 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Table from "../../components/common/Table/Table";
+import { getUserLogs } from "../../services/authService";
 import "../styles/pages.css";
 
-const STATIC_LOGS = [
-  { logId: 1, action: "API_SUCCESS", method: "POST", url: "team/teamlistsubId.php",  status: 200, user: "maoh@wk.dk",                            body: "subcontId: 53",                               timestamp: "Jun 4, 2026, 3:27:57 PM" },
-  { logId: 2, action: "API_SUCCESS", method: "POST", url: "user/verifyotp.php",       status: 200, user: "Raimundas",                             body: "otp: 940547\nuser_id: 426",                   timestamp: "Jun 4, 2026, 3:26:55 PM" },
-  { logId: 3, action: "API_SUCCESS", method: "POST", url: "user/login.php",           status: 200, user: "Raimundas",                             body: "password: Raimunda5\nusername: Raimundas",    timestamp: "Jun 4, 2026, 3:26:36 PM" },
-  { logId: 4, action: "API_SUCCESS", method: "POST", url: "team/teamlistsubId.php",  status: 200, user: "simon.leonhardt-hansen.ext@veolia.com", body: "subcontId: 147",                              timestamp: "Jun 4, 2026, 3:24:19 PM" },
-  { logId: 5, action: "API_SUCCESS", method: "POST", url: "team/teamlistsubId.php",  status: 200, user: "simon.leonhardt-hansen.ext@veolia.com", body: "subcontId: 147",                              timestamp: "Jun 4, 2026, 3:20:47 PM" },
-  { logId: 6, action: "API_SUCCESS", method: "POST", url: "user/verifyotp.php",       status: 200, user: "SørenSkjoldmose-SoloService",           body: "otp: 990623\nuser_id: 137",                   timestamp: "Jun 4, 2026, 3:10:08 PM" },
-  { logId: 7, action: "API_SUCCESS", method: "POST", url: "user/login.php",           status: 200, user: "SørenSkjoldmose-SoloService",           body: "password: Solo123\nusername: SørenSkjoldmose", timestamp: "Jun 4, 2026, 3:09:57 PM" },
-];
-
-const PAGE_LIMIT_DEFAULT = 10;
+const PAGE_LIMIT_DEFAULT = 20;
 
 const CalendarIcon = () => (
   <svg
@@ -37,7 +28,8 @@ const CalendarIcon = () => (
 );
 
 const StatusBadge = ({ status }) => {
-  const isSuccess = status >= 200 && status < 300;
+  const code = Number(status);
+  const isSuccess = code >= 200 && code < 300;
   return (
     <span style={{ color: isSuccess ? "#16a34a" : "#dc2626", fontWeight: 600 }}>
       {status}
@@ -45,59 +37,157 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const ActionBadge = ({ action }) => (
-  <span style={{ color: "#16a34a", fontWeight: 700, fontSize: "13px" }}>
-    {action}
-  </span>
-);
+const ACTION_STYLES = (action) => {
+  if (!action) return { color: '#64748B', bg: 'rgba(100,116,139,0.12)' };
+  const a = action.toUpperCase();
+  if (a.includes('FAILURE') || a.includes('ERROR') || a.includes('FAIL'))
+    return { color: '#EF4444', bg: 'rgba(239,68,68,0.12)' };
+  if (a.includes('DELETED') || a.includes('DELETE'))
+    return { color: '#F97316', bg: 'rgba(249,115,22,0.12)' };
+  if (a.includes('CREATED') || a.includes('SUCCESS'))
+    return { color: '#10B981', bg: 'rgba(16,185,129,0.12)' };
+  if (a.includes('UPDATED') || a.includes('UPDATE'))
+    return { color: '#F59E0B', bg: 'rgba(245,158,11,0.12)' };
+  if (a.includes('PERMIT') || a.includes('REQUEST'))
+    return { color: '#8B5CF6', bg: 'rgba(139,92,246,0.12)' };
+  if (a.includes('LOGIN'))
+    return { color: '#3B82F6', bg: 'rgba(59,130,246,0.12)' };
+  if (a.includes('OTP'))
+    return { color: '#6366F1', bg: 'rgba(99,102,241,0.12)' };
+  return { color: '#06B6D4', bg: 'rgba(6,182,212,0.12)' };
+};
 
-const BodyCell = ({ body }) => (
-  <span style={{ whiteSpace: "pre-line", fontSize: "13px" }}>{body}</span>
-);
+const ActionBadge = ({ action }) => {
+  const { color, bg } = ACTION_STYLES(action);
+  return (
+    <span style={{
+      color,
+      background: bg,
+      fontWeight: 700,
+      fontSize: "12px",
+      padding: "3px 9px",
+      borderRadius: "999px",
+      letterSpacing: "0.03em",
+      whiteSpace: "nowrap",
+    }}>
+      {action || "—"}
+    </span>
+  );
+};
+
+
+const BodyCell = ({ body }) => {
+  let parsed = body;
+  try {
+    const obj = JSON.parse(body);
+    // Mask password field
+    if (obj && obj.password) obj.password = "••••••";
+    parsed = Object.entries(obj)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join("\n");
+  } catch {
+    /* keep raw */
+  }
+  return <span style={{ whiteSpace: "pre-line", fontSize: "13px" }}>{parsed}</span>;
+};
+
+const UserCell = ({ userStr }) => {
+  let displayName = userStr;
+  try {
+    const obj = JSON.parse(userStr);
+    displayName = obj.displayName || obj.email || obj.username || userStr;
+  } catch {
+    /* keep raw */
+  }
+  return <span style={{ fontSize: "13px" }}>{displayName || "—"}</span>;
+};
+
+const formatTimestamp = (ts) => {
+  if (!ts) return "—";
+  const d = new Date(ts);
+  if (isNaN(d)) return ts;
+  return d.toLocaleString("en-GB", {
+    day: "2-digit", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+  });
+};
 
 const LogsReports = () => {
   const [searchDate, setSearchDate]   = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageLimit]                   = useState(PAGE_LIMIT_DEFAULT);
+  const [logs, setLogs]               = useState([]);
+  const [totalPages, setTotalPages]   = useState(1);
+  const [totalCount, setTotalCount]   = useState(0);
+  const [isLoading, setIsLoading]     = useState(false);
 
-  const filtered = STATIC_LOGS.filter((item) =>
-    searchDate ? item.timestamp.toLowerCase().includes(searchDate.toLowerCase()) : true
-  );
+  const fetchLogs = useCallback(async (page) => {
+    setIsLoading(true);
+    try {
+      const res = await getUserLogs(page, pageLimit);
+      // Response: { statusCode, data: [...], total, page, limit, totalPages }
+      const rows = res?.data ?? [];
+      setLogs(rows);
+      setTotalPages(res?.totalPages ?? 1);
+      setTotalCount(res?.total ?? rows.length);
+    } catch (err) {
+      console.error("Failed to load logs", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [pageLimit]);
 
-  const totalPages = Math.ceil(filtered.length / pageLimit);
-  const startIndex = (currentPage - 1) * pageLimit;
-  const paginated  = filtered.slice(startIndex, startIndex + pageLimit);
+  useEffect(() => {
+    fetchLogs(currentPage);
+  }, [currentPage, fetchLogs]);
+
+  // Client-side date filter on the fetched page data
+  const filtered = searchDate
+    ? logs.filter((item) => {
+        if (!item.timestamp) return false;
+        // searchDate is "YYYY-MM-DD"; compare against ISO timestamp
+        return item.timestamp.startsWith(searchDate);
+      })
+    : logs;
 
   const columns = [
-    { header: "Action",    accessor: "actionCell" },
-    { header: "Method",    accessor: "method"     },
-    { header: "URL",       accessor: "url"        },
-    { header: "Status",    accessor: "statusCell" },
-    { header: "User",      accessor: "user"       },
-    { header: "Body",      accessor: "bodyCell"   },
-    { header: "Timestamp", accessor: "timestamp"  },
+    { header: "Action",    accessor: "actionCell"   },
+    { header: "URL",       accessor: "urlCell"      },
+    { header: "Method",    accessor: "method"       },
+    { header: "Status",    accessor: "statusCell"   },
+    { header: "User",      accessor: "userCell"     },
+    { header: "Body",      accessor: "bodyCell"     },
+    { header: "Timestamp", accessor: "timestampFmt" },
   ];
 
-  const tableData = paginated.map((item) => ({
+
+  const tableData = filtered.map((item) => ({
     ...item,
-    actionCell: <ActionBadge action={item.action} />,
-    statusCell: <StatusBadge status={item.status} />,
-    bodyCell:   <BodyCell body={item.body} />,
+    actionCell:   <ActionBadge action={item.action} />,
+    urlCell:      <span style={{ fontSize: "12px", color: "#94a3b8", fontFamily: "monospace" }}>{item.url || "—"}</span>,
+    statusCell:   <StatusBadge status={item.status} />,
+    userCell:     <UserCell userStr={item.user} />,
+    bodyCell:     <BodyCell body={item.body} />,
+    timestampFmt: formatTimestamp(item.timestamp),
   }));
+
 
   return (
     <div className="dept-page">
 
       <div className="dept-page-header">
         <div className="dept-page-header__left">
-          <h1 className="dept-page-title">Logs & Reports</h1>
+          <h1 className="dept-page-title">Logs &amp; Reports</h1>
           <p className="dept-page-subtitle">View all API activity logs and reports</p>
+        </div>
+        <div className="dept-page-header__right">
+          <span className="dept-count-badge">{totalCount.toLocaleString()} Total</span>
         </div>
       </div>
 
       <div className="dept-table-card">
 
-        {/* Date Search */}
+        {/* Date Filter */}
         <div style={{ padding: "16px" }}>
           <div style={{ position: "relative", maxWidth: "480px" }}>
             <CalendarIcon />
@@ -153,7 +243,7 @@ const LogsReports = () => {
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
-          isLoading={false}
+          isLoading={isLoading}
         />
       </div>
 

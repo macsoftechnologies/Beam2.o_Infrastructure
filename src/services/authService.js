@@ -335,3 +335,9 @@ export const searchDashboardRequests = async (payload) => {
     const res = await api.post("/requests/search", payload);
     return res.data;
 };
+
+// ---------------- Logs Reports ----------------
+export const getUserLogs = async (page = 1, limit = 20) => {
+    const res = await api.get(`/employee/logs-reports?page=${page}&limit=${limit}`);
+    return res.data;
+};

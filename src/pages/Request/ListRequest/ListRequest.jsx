@@ -19,7 +19,9 @@ import {
   updateListReqstTime,
   addListReqstNote,
   getRequestsLogs,
-  createByCount
+  createByCount,
+  getRequestById,
+  updateRequest
 } from "../../../services/requestService";
 import { showSuccess, showError, showDeleteConfirm, showDeleteSuccess } from "../../../components/common/Toast/Toast";
 import Table from "../../../components/common/Table/Table";
@@ -279,6 +281,7 @@ const ListRequest = () => {
   const [limit] = useState(10);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
+  const [loadingEditId, setLoadingEditId] = useState(null);
 
   // Dropdown options (from dynamic databases)
   const [contractors, setContractors] = useState([]);
@@ -319,6 +322,21 @@ const ListRequest = () => {
   const [rejectReason, setRejectReason] = useState("");
   const [cancelReason, setCancelReason] = useState("");
   const [closeNote, setCloseNote] = useState("");
+  const [submitStatusOverride, setSubmitStatusOverride] = useState(null);
+  const [closingImageFiles, setClosingImageFiles] = useState([]);
+
+  // Hotwork status change states
+  const [openActionType, setOpenActionType] = useState("Open");
+  const [approveActionType, setApproveActionType] = useState("Approve");
+  const [lowRiskHotwork, setLowRiskHotwork] = useState(0);
+  const [highRiskHotwork, setHighRiskHotwork] = useState(0);
+  const [hotWorkChecklistFilled, setHotWorkChecklistFilled] = useState(0);
+  const [fireGuardPresent, setFireGuardPresent] = useState(0);
+  const [hHeatSource, setHHeatSource] = useState(0);
+  const [hWorkplaceCheck, setHWorkplaceCheck] = useState(0);
+  const [hFireDetectors, setHFireDetectors] = useState(0);
+  const [hStartTime, setHStartTime] = useState("");
+  const [hEndTime, setHEndTime] = useState("");
 
   // Bulk operation form inputs
   const [bulkTime, setBulkTime] = useState({ startTime: "", endTime: "", nightShift: false, newEndTime: "" });
@@ -487,6 +505,21 @@ const ListRequest = () => {
   };
 
   // ─── Actions ───────────────────────────────────────────────────────────────
+
+  // Fetch full request details then navigate to edit form
+  const handleEditClick = async (row) => {
+    setLoadingEditId(row.id);
+    try {
+      const res = await getRequestById(row.id);
+      const fullRequest = res?.data ?? res;
+      navigate("/new-request", { state: { editRequest: fullRequest } });
+    } catch (err) {
+      showError("Failed to load request details for editing.");
+    } finally {
+      setLoadingEditId(null);
+    }
+  };
+
   const handleRowDelete = async (row) => {
     const confirm = await showDeleteConfirm();
     if (!confirm.isConfirmed) return;
@@ -525,27 +558,113 @@ const ListRequest = () => {
   };
 
   // Status transitions triggering dialogs
+  const getSigningRoleDescription = (row, status) => {
+    if (!row) return "";
+    const permitType = row.permit_type || "";
+    const permitUnder = row.permit_under || "";
+    
+    if (status === "Opened") {
+      return "Supervisor/CONM (Open Permit)";
+    }
+    
+    if (status === "Pre-Approved") {
+      if (permitType === "Construction" && permitUnder === "Commissioning") {
+        return "CONM (Pre-Approval)";
+      }
+      if (permitType === "Commissioning" && permitUnder === "Construction") {
+        return "COMM (Pre-Approval)";
+      }
+    }
+    
+    if (status === "Approved") {
+      if (permitType === "Commissioning" && permitUnder === "Commissioning") {
+        return "COMM (Approval)";
+      }
+      if (permitType === "Construction" && permitUnder === "Construction") {
+        return "CONM (Approval)";
+      }
+      if (permitType === "Construction" && permitUnder === "Commissioning") {
+        return "COMM (Final Approval)";
+      }
+      if (permitType === "Commissioning" && permitUnder === "Construction") {
+        return "CONM (Final Approval)";
+      }
+    }
+    
+    return currentUser?.role || "";
+  };
+
+  // Status transitions triggering dialogs
   const handleStatusTransition = (row, status) => {
-    // Role based validations
-    if (status === "Pre-Approved" || status === "Approved") {
-      const permitUnder = row.permit_under || "";
-      const isCom = row.permit_type === "Commissioning";
-      if (!isAdmin) {
-        if (isDept && isCom && status === "Pre-Approved") {
-          return showError("Only COMM role can pre-approve Commissioning permits.");
+    const permitType = row.permit_type || "";
+    const permitUnder = row.permit_under || "";
+
+    // Role based validations for Pre-Approved and Approved transitions
+    if (!isAdmin) {
+      if (status === "Pre-Approved") {
+        // Pre-Approve: Construction permit under Commissioning -> CONM (isDept) pre-approves
+        if (permitType === "Construction" && permitUnder === "Commissioning") {
+          if (!isDept) {
+            return showError("Only CONM role can pre-approve Construction permits under Commissioning.");
+          }
         }
-        if (isDept1 && !isCom && status === "Pre-Approved") {
-          return showError("Only CONM role can pre-approve Construction permits.");
+        // Pre-Approve: Commissioning permit under Construction -> COMM (isDept1) pre-approves
+        else if (permitType === "Commissioning" && permitUnder === "Construction") {
+          if (!isDept1) {
+            return showError("Only COMM role can pre-approve Commissioning permits under Construction.");
+          }
+        } else {
+          return showError("This permit configuration does not support the Pre-Approved status.");
+        }
+      }
+
+      if (status === "Approved") {
+        // Approve: Commissioning + Commissioning -> COMM (isDept1) approves
+        if (permitType === "Commissioning" && permitUnder === "Commissioning") {
+          if (!isDept1) {
+            return showError("Only COMM role can approve Commissioning permits under Commissioning.");
+          }
+        }
+        // Approve: Construction + Construction -> CONM (isDept) approves
+        else if (permitType === "Construction" && permitUnder === "Construction") {
+          if (!isDept) {
+            return showError("Only CONM role can approve Construction permits under Construction.");
+          }
+        }
+        // Approve: Construction + Commissioning (from Pre-Approved) -> COMM (isDept1) approves
+        else if (permitType === "Construction" && permitUnder === "Commissioning") {
+          if (!isDept1) {
+            return showError("Only COMM role can approve Construction permits under Commissioning.");
+          }
+        }
+        // Approve: Commissioning + Construction (from Pre-Approved) -> CONM (isDept) approves
+        else if (permitType === "Commissioning" && permitUnder === "Construction") {
+          if (!isDept) {
+            return showError("Only CONM role can approve Commissioning permits under Construction.");
+          }
         }
       }
     }
 
     setModalTarget(row);
     setModalStatus(status);
+    setSubmitStatusOverride(null);
     setInitials("");
     setRejectReason("");
     setCancelReason("");
     setCloseNote("");
+    setClosingImageFiles([]);
+    setOpenActionType("Open");
+    setApproveActionType("Approve");
+    setLowRiskHotwork(0);
+    setHighRiskHotwork(0);
+    setHotWorkChecklistFilled(0);
+    setFireGuardPresent(0);
+    setHHeatSource(0);
+    setHWorkplaceCheck(0);
+    setHFireDetectors(0);
+    setHStartTime("");
+    setHEndTime("");
     setActiveModal("status");
   };
 
@@ -553,36 +672,105 @@ const ListRequest = () => {
     e.preventDefault();
     if (!modalTarget) return;
 
+    const nextStatus = submitStatusOverride || modalStatus;
+
     const payload = {
-      id: String(modalTarget.id),
-      Request_status: modalStatus,
       userId: currentUser?.id || 1,
+      Request_status: nextStatus,
       createdTime: new Date().toISOString().replace("T", " ").slice(0, 19)
     };
 
-    if (modalStatus === "Rejected") {
+
+
+    if (nextStatus === "Rejected") {
       if (!rejectReason.trim()) return showError("Please specify rejection reason.");
       payload.reject_reason = rejectReason.trim();
-    } else if (modalStatus === "Opened") {
-      if (!initials.trim()) return showError("Supervisor/CONM initials signature required.");
-      payload.ConM_initials1 = initials.trim();
-    } else if (modalStatus === "Closed") {
+    } else if (nextStatus === "Cancelled") {
+      if (!cancelReason.trim()) return showError("Please specify cancel reason.");
+      payload.cancel_reason = cancelReason.trim();
+    } else if (nextStatus === "Opened") {
+      if (modalStatus === "Opened") {
+        if (!initials.trim()) return showError("Supervisor/CONM initials signature required.");
+        payload.ConM_initials1 = initials.trim();
+        if (modalTarget.Hot_work === 1) {
+          if (Number(lowRiskHotwork) !== 1 && Number(highRiskHotwork) !== 1) {
+            return showError("Please select either Low Risk or High Risk for the Hot Work permit.");
+          }
+          if (Number(highRiskHotwork) === 1) {
+            if (Number(hotWorkChecklistFilled) !== 1 || Number(fireGuardPresent) !== 1) {
+              return showError("High Risk Hot Work permits require both checklist to be filled and fire guard to be present.");
+            }
+          }
+          payload.low_risk_hotwork = Number(lowRiskHotwork);
+          payload.high_risk_hotwork = Number(highRiskHotwork);
+          payload.hot_work_checklist_filled = Number(hotWorkChecklistFilled);
+          payload.fire_guard_present = Number(fireGuardPresent);
+        }
+      } else {
+        payload.ConM_initials1 = modalTarget.ConM_initials1 || "";
+      }
+    } else if (nextStatus === "Closed") {
+      if (!closeNote.trim()) return showError("Please enter closing notes.");
       payload.close_note = closeNote.trim();
-    } else {
-      // Approved/Pre-Approved Signatures
-      if (isDept) {
-        payload.ConM_initials = initials.trim();
-      } else if (isDept1) {
-        payload.CoMM_initials = initials.trim();
-      } else if (isAdmin) {
-        payload.ConM_initials = initials.trim();
-        payload.CoMM_initials = initials.trim();
+      if (modalTarget.Hot_work === 1) {
+        if (hHeatSource === null || hHeatSource === undefined) {
+          return showError("Please inspect the work area for smoldering materials or residual heat.");
+        }
+        if (hWorkplaceCheck === null || hWorkplaceCheck === undefined) {
+          return showError("Please confirm if all tools and equipment have been removed.");
+        }
+        if (hFireDetectors === null || hFireDetectors === undefined) {
+          return showError("Please confirm if the area has been cleaned and restored.");
+        }
+        if (!hStartTime || !hEndTime) {
+          return showError("Please specify check start and end times.");
+        }
+        payload.h_heat_source = String(hHeatSource);
+        payload.h_workplace_check = String(hWorkplaceCheck);
+        payload.h_fire_detectors = String(hFireDetectors);
+        payload.h_start_time = hStartTime;
+        payload.h_end_time = hEndTime;
+      }
+    } else if (nextStatus === "Pre-Approved" || nextStatus === "Approved") {
+      if (!initials.trim()) return showError("Initials signature is required.");
+      const permitType = modalTarget.permit_type || "";
+      const permitUnder = modalTarget.permit_under || "";
+
+      if (nextStatus === "Pre-Approved") {
+        if (permitType === "Construction" && permitUnder === "Commissioning") {
+          payload.ConM_initials = initials.trim();
+        } else if (permitType === "Commissioning" && permitUnder === "Construction") {
+          payload.CoMM_initials = initials.trim();
+        }
+      } else if (nextStatus === "Approved") {
+        if (permitType === "Commissioning" && permitUnder === "Commissioning") {
+          payload.CoMM_initials = initials.trim();
+        } else if (permitType === "Construction" && permitUnder === "Construction") {
+          payload.ConM_initials = initials.trim();
+        } else if (permitType === "Construction" && permitUnder === "Commissioning") {
+          payload.CoMM_initials = initials.trim();
+          payload.ConM_initials = modalTarget.ConM_initials || "";
+        } else if (permitType === "Commissioning" && permitUnder === "Construction") {
+          payload.ConM_initials = initials.trim();
+          payload.CoMM_initials = modalTarget.CoMM_initials || "";
+        }
       }
     }
 
     try {
-      await updateListStatusRequest(payload);
-      showSuccess(`Status changed to ${modalStatus} successfully`);
+      const formData = new FormData();
+      for (const [key, value] of Object.entries(payload)) {
+        if (value !== null && value !== undefined) {
+          formData.append(key, String(value));
+        }
+      }
+      if (closingImageFiles && closingImageFiles.length > 0) {
+        closingImageFiles.forEach((imgObj) => {
+          formData.append("images[]", imgObj.file);
+        });
+      }
+      await updateRequest(modalTarget.id, formData);
+      showSuccess(`Status changed to ${nextStatus} successfully`);
       setActiveModal(null);
       fetchRequests(currentPage);
     } catch {
@@ -851,6 +1039,14 @@ const ListRequest = () => {
       const statusClass = `status-badge status-badge--${row.Request_status?.toLowerCase().replace(" ", "-")}`;
       
       const handleStatusClick = () => {
+        // If status is Draft, click opens edit form
+        if (row.Request_status === "Draft") {
+          if (isEditable) {
+            handleEditClick(row);
+          }
+          return;
+        }
+
         // Subcontractor opening or closing permit
         if (isSubcontractor) {
           if (row.Request_status === "Approved") {
@@ -867,7 +1063,18 @@ const ListRequest = () => {
         // Operator approving/pre-approving
         else if (canBulkAction) {
           if (row.Request_status === "Hold") {
-            handleStatusTransition(row, "Pre-Approved");
+            const permitType = row.permit_type || "";
+            const permitUnder = row.permit_under || "";
+            // Matched configurations go directly to Approved
+            if (
+              (permitType === "Commissioning" && permitUnder === "Commissioning") ||
+              (permitType === "Construction" && permitUnder === "Construction")
+            ) {
+              handleStatusTransition(row, "Approved");
+            } else {
+              // Mismatched configurations go to Pre-Approved first
+              handleStatusTransition(row, "Pre-Approved");
+            }
           } else if (row.Request_status === "Pre-Approved") {
             handleStatusTransition(row, "Approved");
           } else if (row.Request_status === "Approved") {
@@ -895,15 +1102,19 @@ const ListRequest = () => {
         row.Request_status !== "Rejected" &&
         currentUser?.role !== "Observer";
 
+      const isEditLoading = loadingEditId === row.id;
+
       const operationsCell = (
         <div className="list-operations-cell">
           {isEditable && (
             <button
               className="op-action-btn op-action-btn--edit"
               title="Edit Request"
-              onClick={() => navigate("/new-request", { state: { editRequest: row } })}
+              onClick={() => handleEditClick(row)}
+              disabled={isEditLoading}
+              style={{ opacity: isEditLoading ? 0.7 : 1, cursor: isEditLoading ? "not-allowed" : "pointer" }}
             >
-              <FaEdit />
+              {isEditLoading ? <span className="spinner-mini" /> : <FaEdit />}
             </button>
           )}
 
@@ -1287,75 +1498,371 @@ const ListRequest = () => {
         title={`Request Status Change: ${modalStatus}`}
         size="md"
         type={modalStatus === "Rejected" ? "danger" : "default"}
+        scrollable={true}
       >
         {modalTarget && (
           <form onSubmit={handleStatusSubmit} className="df-form">
-            <div style={{ marginBottom: "16px" }}>
-              <p style={{ color: "#d1d5db", fontSize: "14px" }}>
-                Changing status of Permit No: <strong style={{ color: "#fff" }}>{modalTarget.PermitNo}</strong>
-              </p>
+            <div style={{ maxHeight: "50vh", overflowY: "auto", paddingRight: "8px", marginBottom: "16px" }}>
+              <div style={{ marginBottom: "16px" }}>
+                <p style={{ color: "#d1d5db", fontSize: "14px" }}>
+                  Changing status of Permit No: <strong style={{ color: "#fff" }}>{modalTarget.PermitNo}</strong>
+                </p>
+              </div>
+
+              {/* Action choice if status is Pre-Approved or Approved */}
+              {(modalStatus === "Pre-Approved" || modalStatus === "Approved") && (
+                <div className="df-field" style={{ marginBottom: "16px" }}>
+                  <label className="df-label">Action to Take</label>
+                  <select
+                    className="df-select"
+                    value={approveActionType}
+                    onChange={(e) => setApproveActionType(e.target.value)}
+                  >
+                    <option value="Approve">
+                      {modalStatus === "Pre-Approved" ? "Pre-Approve Permit" : "Approve Permit"}
+                    </option>
+                    <option value="Reject">Reject Permit</option>
+                  </select>
+                </div>
+              )}
+
+              {/* Action choice if status is Opened */}
+              {modalStatus === "Opened" && (
+                <div className="df-field" style={{ marginBottom: "16px" }}>
+                  <label className="df-label">Action to Take</label>
+                  <select
+                    className="df-select"
+                    value={openActionType}
+                    onChange={(e) => setOpenActionType(e.target.value)}
+                  >
+                    <option value="Open">Open Permit</option>
+                    <option value="Cancel">Cancel Permit</option>
+                  </select>
+                </div>
+              )}
+
+              {/* Cancel reason if Action is Cancel */}
+              {modalStatus === "Opened" && openActionType === "Cancel" && (
+                <div className="df-field" style={{ marginBottom: "16px" }}>
+                  <label className="df-label">
+                    Cancel Reason <span className="df-required">*</span>
+                  </label>
+                  <textarea
+                    required
+                    placeholder="Type cancellation reason..."
+                    className="df-textarea"
+                    rows={3}
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                  />
+                </div>
+              )}
+
+              {/* Initials signature prompt */}
+              {(((modalStatus === "Pre-Approved" || modalStatus === "Approved") && approveActionType === "Approve") || (modalStatus === "Opened" && openActionType === "Open")) && (
+                <div className="df-field" style={{ marginBottom: "16px" }}>
+                  <label className="df-label">
+                    Initials Signature <span className="df-required">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Enter your initials..."
+                    className="df-input"
+                    value={initials}
+                    onChange={(e) => setInitials(e.target.value)}
+                  />
+                  <span style={{ color: "#9ca3af", fontSize: "12px", marginTop: "4px", display: "block" }}>
+                    Signing as: <strong style={{ color: "#00e5a0" }}>{getSigningRoleDescription(modalTarget, modalStatus)}</strong> ({currentUser?.displayName})
+                  </span>
+                </div>
+              )}
+
+              {/* Hot Work opening checklist */}
+              {modalStatus === "Opened" && openActionType === "Open" && modalTarget.Hot_work === 1 && (
+                <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: "16px", background: "rgba(255,255,255,0.02)", marginBottom: "16px" }}>
+                  <h4 style={{ color: "#00e5a0", fontSize: "13px", margin: "0 0 12px 0", textTransform: "uppercase", letterSpacing: "0.5px" }}>Hot Work Opening Checklist</h4>
+                  
+                  <div className="df-field" style={{ marginBottom: "12px" }}>
+                    <label className="df-label">Is it Low Risk Hot Work?</label>
+                    <select
+                      className="df-select"
+                      value={lowRiskHotwork}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setLowRiskHotwork(val);
+                        if (val === 1) {
+                          setHighRiskHotwork(0);
+                          setHotWorkChecklistFilled(0);
+                          setFireGuardPresent(0);
+                        }
+                      }}
+                    >
+                      <option value={0}>No</option>
+                      <option value={1}>Yes</option>
+                    </select>
+                  </div>
+
+                  <div className="df-field" style={{ marginBottom: "12px" }}>
+                    <label className="df-label">Is it High Risk Hot Work?</label>
+                    <select
+                      className="df-select"
+                      value={highRiskHotwork}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setHighRiskHotwork(val);
+                        if (val === 1) {
+                          setLowRiskHotwork(0);
+                        } else {
+                          setHotWorkChecklistFilled(0);
+                          setFireGuardPresent(0);
+                        }
+                      }}
+                    >
+                      <option value={0}>No</option>
+                      <option value={1}>Yes</option>
+                    </select>
+                  </div>
+
+                  {highRiskHotwork === 1 && (
+                    <>
+                      <div className="df-field" style={{ marginBottom: "12px" }}>
+                        <label className="df-label">Hot Work Checklist Filled?</label>
+                        <select
+                          className="df-select"
+                          value={hotWorkChecklistFilled}
+                          onChange={(e) => setHotWorkChecklistFilled(Number(e.target.value))}
+                        >
+                          <option value={0}>No</option>
+                          <option value={1}>Yes</option>
+                        </select>
+                      </div>
+
+                      <div className="df-field" style={{ marginBottom: "12px" }}>
+                        <label className="df-label">Fire Guard Present?</label>
+                        <select
+                          className="df-select"
+                          value={fireGuardPresent}
+                          onChange={(e) => setFireGuardPresent(Number(e.target.value))}
+                        >
+                          <option value={0}>No</option>
+                          <option value={1}>Yes</option>
+                        </select>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Rejection reason */}
+              {(modalStatus === "Rejected" || ((modalStatus === "Pre-Approved" || modalStatus === "Approved") && approveActionType === "Reject")) && (
+                <div className="df-field" style={{ marginBottom: "16px" }}>
+                  <label className="df-label">
+                    Rejection Reason <span className="df-required">*</span>
+                  </label>
+                  <textarea
+                    required
+                    placeholder="Type rejection comments..."
+                    className="df-textarea"
+                    rows={3}
+                    value={rejectReason}
+                    onChange={(e) => setRejectReason(e.target.value)}
+                  />
+                </div>
+              )}
+
+              {/* Close Checklist note */}
+              {modalStatus === "Closed" && (
+                <div className="df-field" style={{ marginBottom: "16px" }}>
+                  <label className="df-label">
+                    Closing Notes / Remarks <span className="df-required">*</span>
+                  </label>
+                  <textarea
+                    placeholder="Enter comments on close-out checklists..."
+                    className="df-textarea"
+                    rows={3}
+                    value={closeNote}
+                    onChange={(e) => setCloseNote(e.target.value)}
+                  />
+                </div>
+              )}
+
+              {/* Close-Out Image upload */}
+              {modalStatus === "Closed" && (
+                <div className="df-field" style={{ marginBottom: "16px" }}>
+                  <label className="df-label">Close-Out Pictures</label>
+                  <div style={{ display: "flex", gap: "12px", alignItems: "center", marginBottom: "12px" }}>
+                    <input
+                      type="file"
+                      multiple
+                      accept=".jpg,.jpeg,.png"
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files);
+                        const newFiles = files.map((file) => ({
+                          file,
+                          preview: URL.createObjectURL(file)
+                        }));
+                        setClosingImageFiles((prev) => [...prev, ...newFiles]);
+                      }}
+                      id="close-image-upload"
+                      style={{ display: "none" }}
+                    />
+                    <label
+                      htmlFor="close-image-upload"
+                      className="df-btn df-btn--secondary"
+                      style={{ cursor: "pointer", margin: 0, padding: "8px 16px" }}
+                    >
+                      Add Image
+                    </label>
+                    {closingImageFiles.length > 0 && (
+                      <span style={{ color: "#9ca3af", fontSize: "13px" }}>
+                        {closingImageFiles.length} image{closingImageFiles.length > 1 ? "s" : ""} selected
+                      </span>
+                    )}
+                  </div>
+                  {closingImageFiles.length > 0 && (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", marginTop: "12px" }}>
+                      {closingImageFiles.map((img, index) => (
+                        <div key={index} style={{ position: "relative", borderRadius: "8px", overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)", width: "100px", height: "100px" }}>
+                          <img src={img.preview} alt={`Preview ${index}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setClosingImageFiles((prev) => prev.filter((_, i) => i !== index));
+                            }}
+                            style={{
+                              position: "absolute",
+                              top: "4px",
+                              right: "4px",
+                              background: "rgba(220, 38, 38, 0.9)",
+                              color: "white",
+                              border: "none",
+                              borderRadius: "50%",
+                              width: "20px",
+                              height: "20px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: "12px",
+                              cursor: "pointer",
+                              padding: 0,
+                              lineHeight: 1
+                            }}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Hot Work closing check list */}
+              {modalStatus === "Closed" && modalTarget.Hot_work === 1 && (
+                <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: "16px", background: "rgba(255,255,255,0.02)", marginBottom: "16px" }}>
+                  <h4 style={{ color: "#00e5a0", fontSize: "13px", margin: "0 0 12px 0", textTransform: "uppercase", letterSpacing: "0.5px" }}>Hot Work Closing Workplace Check</h4>
+
+                  <div className="df-field" style={{ marginBottom: "12px" }}>
+                    <label className="df-label">Has the work area been inspected for smoldering materials or residual heat?</label>
+                    <select
+                      className="df-select"
+                      value={hHeatSource}
+                      onChange={(e) => setHHeatSource(Number(e.target.value))}
+                    >
+                      <option value={0}>No</option>
+                      <option value={1}>Yes</option>
+                    </select>
+                  </div>
+
+                  <div className="df-field" style={{ marginBottom: "12px" }}>
+                    <label className="df-label">Have all tools and hot work equipment been safely removed from the work area?</label>
+                    <select
+                      className="df-select"
+                      value={hWorkplaceCheck}
+                      onChange={(e) => setHWorkplaceCheck(Number(e.target.value))}
+                    >
+                      <option value={0}>No</option>
+                      <option value={1}>Yes</option>
+                    </select>
+                  </div>
+
+                  <div className="df-field" style={{ marginBottom: "12px" }}>
+                    <label className="df-label">Has the area been cleaned and restored to its original safe condition?</label>
+                    <select
+                      className="df-select"
+                      value={hFireDetectors}
+                      onChange={(e) => setHFireDetectors(Number(e.target.value))}
+                    >
+                      <option value={0}>No</option>
+                      <option value={1}>Yes</option>
+                    </select>
+                  </div>
+
+                  <div className="df-grid" style={{ gap: "16px" }}>
+                    <div className="df-field" style={{ marginBottom: "12px" }}>
+                      <label className="df-label">1hr time : <span className="df-required">*</span></label>
+                      <input
+                        type="time"
+                        required
+                        className="df-input"
+                        value={hStartTime}
+                        onChange={(e) => setHStartTime(e.target.value)}
+                      />
+                    </div>
+                    <div className="df-field" style={{ marginBottom: "12px" }}>
+                      <label className="df-label">3hrs time : <span className="df-required">*</span></label>
+                      <input
+                        type="time"
+                        required
+                        className="df-input"
+                        value={hEndTime}
+                        onChange={(e) => setHEndTime(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-
-            {/* Initials signature prompt */}
-            {(modalStatus === "Pre-Approved" || modalStatus === "Approved" || modalStatus === "Opened") && (
-              <div className="df-field" style={{ marginBottom: "16px" }}>
-                <label className="df-label">
-                  Initials Signature <span className="df-required">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Enter your initials..."
-                  className="df-input"
-                  value={initials}
-                  onChange={(e) => setInitials(e.target.value)}
-                />
-                <span style={{ color: "#9ca3af", fontSize: "12px", marginTop: "4px", display: "block" }}>
-                  Signing as roles: {currentUser?.role} ({currentUser?.displayName})
-                </span>
-              </div>
-            )}
-
-            {/* Rejection reason */}
-            {modalStatus === "Rejected" && (
-              <div className="df-field" style={{ marginBottom: "16px" }}>
-                <label className="df-label">
-                  Rejection Reason <span className="df-required">*</span>
-                </label>
-                <textarea
-                  required
-                  placeholder="Type rejection comments..."
-                  className="df-textarea"
-                  rows={3}
-                  value={rejectReason}
-                  onChange={(e) => setRejectReason(e.target.value)}
-                />
-              </div>
-            )}
-
-            {/* Close Checklist note */}
-            {modalStatus === "Closed" && (
-              <div className="df-field" style={{ marginBottom: "16px" }}>
-                <label className="df-label">
-                  Closing Notes / Remarks
-                </label>
-                <textarea
-                  placeholder="Enter comments on close-out checklists..."
-                  className="df-textarea"
-                  rows={3}
-                  value={closeNote}
-                  onChange={(e) => setCloseNote(e.target.value)}
-                />
-              </div>
-            )}
 
             <div className="df-footer">
               <button type="button" className="df-btn df-btn--cancel" onClick={() => setActiveModal(null)}>
                 Cancel
               </button>
-              <button type="submit" className="df-btn df-btn--submit">
-                Confirm Status Transition
-              </button>
+              {modalStatus === "Closed" ? (
+                <>
+                  <button
+                    type="submit"
+                    className="df-btn df-btn--secondary"
+                    onClick={() => setSubmitStatusOverride("Opened")}
+                  >
+                    Update Status
+                  </button>
+                  <button
+                    type="submit"
+                    className="df-btn df-btn--submit"
+                    disabled={
+                      !closeNote.trim() ||
+                      (modalTarget.Hot_work === 1 &&
+                        (hHeatSource === null ||
+                          hHeatSource === undefined ||
+                          hWorkplaceCheck === null ||
+                          hWorkplaceCheck === undefined ||
+                          hFireDetectors === null ||
+                          hFireDetectors === undefined ||
+                          !hStartTime ||
+                          !hEndTime))
+                    }
+                    onClick={() => setSubmitStatusOverride("Closed")}
+                  >
+                    Close Permit
+                  </button>
+                </>
+              ) : (
+                <button type="submit" className="df-btn df-btn--submit">
+                  Confirm Status Transition
+                </button>
+              )}
             </div>
           </form>
         )}

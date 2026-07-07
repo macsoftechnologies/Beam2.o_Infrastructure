@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Chart, registerables } from 'chart.js';
-import { getRequestCounts, getPlans, getGraphCountsPerDay, getGraphSummary, getZoneStatusCounts, getEmployeeAnalyticsCounts, searchDashboardRequests } from '../../services/authService';
+import { getRequestCounts, getPlans, getGraphCountsPerDay, getGraphSummary, getZoneStatusCounts, getEmployeeAnalyticsCounts, searchDashboardRequests, getUserLogs } from '../../services/authService';
 import Modal from '../../components/common/Modal/Modal';
 import EmployeeForm from '../../forms/Employeesform/Employeesform';
 import ContractorForm from '../../forms/Contractorsform/Contractorform';
@@ -172,14 +172,47 @@ const pendingApprovals = [
   { permit: '220969065042450', activity: 'Roofing', contractor: 'Top Build' },
 ]
 
-/* ── RECENT LOGS DATA ──────────────────────── */
-const recentLogs = [
-  { dot: '#3B82F6', user: 'John Doe', action: 'created request', category: 'Requests', catColor: '#3B82F6', time: '2m' },
-  { dot: '#10B981', user: 'Admin', action: 'approved PRM-1024', category: 'Approvals', catColor: '#10B981', time: '15m' },
-  { dot: '#06B6D4', user: 'System', action: 'generated report', category: 'Reports', catColor: '#06B6D4', time: '1h' },
-  { dot: '#FB7185', user: 'Sara K.', action: 'rejected PRM-2088', category: 'Rejections', catColor: '#FB7185', time: '2h' },
-  { dot: '#F97316', user: 'Ali M.', action: 'added new contractor', category: 'Contractors', catColor: '#F97316', time: '3h' },
-]
+/* ── LOG COLOR HELPER ───────────────────────── */
+function getLogStyle(action) {
+  if (!action) return { dot: '#64748B', catColor: '#64748B', category: 'Log' };
+  const a = action.toUpperCase();
+
+  // Errors / Failures
+  if (a.includes('FAILURE') || a.includes('ERROR') || a.includes('FAIL'))
+    return { dot: '#EF4444', catColor: '#EF4444', category: 'Failure' };
+
+  // Deletes — red-orange
+  if (a.includes('DELETED') || a.includes('DELETE'))
+    return { dot: '#F97316', catColor: '#F97316', category: 'Deleted' };
+
+  // Created — green
+  if (a.includes('CREATED') || a.includes('SUCCESS'))
+    return { dot: '#10B981', catColor: '#10B981', category: 'Created' };
+
+  // Updated — amber
+  if (a.includes('UPDATED') || a.includes('UPDATE'))
+    return { dot: '#F59E0B', catColor: '#F59E0B', category: 'Updated' };
+
+  // Permit / Request actions — purple
+  if (a.includes('PERMIT') || a.includes('REQUEST'))
+    return { dot: '#8B5CF6', catColor: '#8B5CF6', category: 'Permit' };
+
+  // Auth — blue
+  if (a.includes('LOGIN'))
+    return { dot: '#3B82F6', catColor: '#3B82F6', category: 'Login' };
+  if (a.includes('LOGOUT'))
+    return { dot: '#F97316', catColor: '#F97316', category: 'Logout' };
+  if (a.includes('OTP'))
+    return { dot: '#6366F1', catColor: '#6366F1', category: 'OTP' };
+
+  // Search / List — slate
+  if (a.includes('SEARCH') || a.includes('LIST'))
+    return { dot: '#64748B', catColor: '#64748B', category: 'Search' };
+
+  // Default — cyan
+  return { dot: '#06B6D4', catColor: '#06B6D4', category: 'API' };
+}
+
 
 /* ═══════════════════════════════════════════ */
 function Dashboard() {
@@ -225,6 +258,7 @@ function Dashboard() {
   const [employeeCounts, setEmployeeCounts] = useState({ departments: 0, contractors: 0, observers: 0, total: 0 });
   const [recentRequestsList, setRecentRequestsList] = useState(recentRequests);
   const [pendingApprovalsList, setPendingApprovalsList] = useState(pendingApprovals);
+  const [recentLogsData, setRecentLogsData] = useState([]);
   const [weekOffset, setWeekOffset] = useState(0);
   const [weekLabel, setWeekLabel] = useState("");
   const [graphData, setGraphData] = useState(null);
@@ -611,11 +645,22 @@ function Dashboard() {
       }
     };
 
+    const fetchRecentLogs = async () => {
+      try {
+        const res = await getUserLogs(1, 4);
+        const rows = res?.data ?? [];
+        setRecentLogsData(rows.slice(0, 4));
+      } catch (err) {
+        console.error('Failed to load recent logs', err);
+      }
+    };
+
     fetchCounts();
     fetchSummary();
     fetchZoneCounts();
     fetchEmployeeCounts();
     fetchPlansList();
+    fetchRecentLogs();
   }, []);
 
   // ─── RENDER DONUT CHART ────────────────────
@@ -941,21 +986,45 @@ function Dashboard() {
 
         {/* Recent Logs */}
         <div className="logs-card">
-          <div className="card-title">
-            <Icons.Clock /> Recent Logs
+          <div className="card-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Icons.Clock /> Recent Logs</span>
+            <a href="/logs-reports" style={{ fontSize: '12px', color: '#8B5CF6', textDecoration: 'none', fontWeight: 600 }}>View All</a>
           </div>
-          {recentLogs.map((log, i) => (
-            <div key={i} className="log-item">
-              <span className="log-dot" style={{ background: log.dot }}></span>
-              <div className="log-body">
-                <p className="log-title">
-                  {log.user} <span>{log.action}</span>
-                </p>
-                <span className="log-category" style={{ color: log.catColor }}>{log.category}</span>
-              </div>
-              <span className="log-time">{log.time}</span>
-            </div>
-          ))}
+          {recentLogsData.length === 0 ? (
+            <p style={{ color: 'var(--text-muted)', fontSize: '13px', padding: '12px 0' }}>No logs available</p>
+          ) : (
+            recentLogsData.map((log, i) => {
+              const { dot, catColor, category } = getLogStyle(log.action);
+              let displayName = log.user || '—';
+              try {
+                const u = JSON.parse(log.user);
+                displayName = u.displayName || u.email || u.username || displayName;
+              } catch { /* keep raw */ }
+              const timeAgo = log.timestamp
+                ? (() => {
+                    const diff = Date.now() - new Date(log.timestamp).getTime();
+                    const m = Math.floor(diff / 60000);
+                    if (m < 1) return 'just now';
+                    if (m < 60) return `${m}m ago`;
+                    const h = Math.floor(m / 60);
+                    if (h < 24) return `${h}h ago`;
+                    return `${Math.floor(h / 24)}d ago`;
+                  })()
+                : '';
+              return (
+                <div key={log.id ?? i} className="log-item">
+                  <span className="log-dot" style={{ background: dot }}></span>
+                  <div className="log-body">
+                    <p className="log-title">
+                      {displayName} <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>— {log.action}</span>
+                    </p>
+                    <span className="log-category" style={{ color: catColor }}>{category} · {log.method} {log.status}</span>
+                  </div>
+                  <span className="log-time">{timeAgo}</span>
+                </div>
+              );
+            })
+          )}
         </div>
 
       </div>

@@ -43,6 +43,11 @@ const TESTINGS_SELECT = [
   { id: "0", TESTINGsval: "No" }
 ];
 
+const formatDbValue = (val) => {
+  if (val === undefined || val === null) return "";
+  return String(val);
+};
+
 function NewRequest() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -348,14 +353,92 @@ function NewRequest() {
       setBuilding(String(editRequest.Building_Id || ""));
       setLevel(editRequest.Room_Type || "");
 
-      // Match room IDs to room names to render correctly in FloorDrawing
+      // Match room IDs to room names to render correctly in FloorDrawing.
+      // Also normalise casing: DB may store "ZONE 1" but ZONE_MAPPING uses "Zone 1".
       if (editRequest.Room_Nos) {
         const editRoomIds = String(editRequest.Room_Nos).split(",");
-        const matchedNames = roomsList
-          .filter(r => editRoomIds.includes(String(r.room_id ?? r.id)))
-          .map(r => r.room_name);
+        const matchedRooms = roomsList.filter(r =>
+          editRoomIds.includes(String(r.room_id ?? r.id))
+        );
+
+        // Build a lookup of all canonical room names from ZONE_MAPPING (all levels)
+        const allZoneMappingRooms = Object.values(ZONE_MAPPING)
+          .flat()
+          .flatMap(zoneGroup => zoneGroup.rooms)
+          .map(r => (typeof r === "object" ? r.name : r));
+
+        const matchedNames = matchedRooms.map(r => {
+          const dbName = r.room_name || "";
+          // Try exact match first
+          const exact = allZoneMappingRooms.find(n => n === dbName);
+          if (exact) return exact;
+          // Try case-insensitive match
+          const caseMatch = allZoneMappingRooms.find(
+            n => n.toLowerCase().trim() === dbName.toLowerCase().trim()
+          );
+          return caseMatch || dbName;
+        });
+
         setSelectedRooms(matchedNames);
-      }
+
+        // Auto-set selectedZone by matching zone_name from the fetched request
+        // against the zone entries for the selected level in ZONE_MAPPING
+        const levelKey = editRequest.Room_Type || "";
+        let zonesForLevel = ZONE_MAPPING[levelKey] || [];
+        if (zonesForLevel.length === 0) {
+          // Try case-insensitive level key match
+          const levelLower = levelKey.toLowerCase().trim();
+          const foundKey = Object.keys(ZONE_MAPPING).find(k =>
+            k.toLowerCase().trim().includes(levelLower) || levelLower.includes(k.toLowerCase().trim())
+          );
+          if (foundKey) zonesForLevel = ZONE_MAPPING[foundKey];
+        }
+
+        if (zonesForLevel.length > 0) {
+          // Resolve zone_name from the fetched request
+          const dbZoneName =
+            editRequest.zone_name ||
+            (editRequest.zone && typeof editRequest.zone === "object"
+              ? editRequest.zone.zone
+              : editRequest.zone) ||
+            "";
+
+          if (dbZoneName) {
+            // Search across zone groups for a matching zone object
+            let matchedZoneObj = null;
+            outer: for (const zoneGroup of zonesForLevel) {
+              for (const room of zoneGroup.rooms) {
+                const roomName = typeof room === "object" ? room.name : room;
+                if (
+                  roomName.toLowerCase().trim() === dbZoneName.toLowerCase().trim()
+                ) {
+                  matchedZoneObj = zoneGroup;
+                  break outer;
+                }
+              }
+              // Also check if the zone group name itself matches
+              if (
+                zoneGroup.name &&
+                zoneGroup.name.toLowerCase().trim() === dbZoneName.toLowerCase().trim()
+              ) {
+                matchedZoneObj = zoneGroup;
+                break;
+              }
+            }
+            if (matchedZoneObj) setSelectedZone(matchedZoneObj);
+          } else if (matchedNames.length > 0) {
+            // Fallback: find zone group that contains any of the matched rooms
+            const matchedNamesLower = matchedNames.map(n => n.toLowerCase().trim());
+            const fallbackZone = zonesForLevel.find(zg =>
+              zg.rooms.some(r => {
+                const rName = typeof r === "object" ? r.name : r;
+                return matchedNamesLower.includes(rName.toLowerCase().trim());
+              })
+            );
+            if (fallbackZone) setSelectedZone(fallbackZone);
+          }
+        }
+      } // end if (editRequest.Room_Nos)
 
       // Display existing file attachments
       if (editRequest.files) {
@@ -392,162 +475,162 @@ function NewRequest() {
         Tools: editRequest.Tools || "",
         Machinery: editRequest.Machinery || "",
         work_type: editRequest.work_type || "",
-        electrical_works: editRequest.electrical_works ? String(editRequest.electrical_works).split(",") : [],
-        mechanical_works: editRequest.mechanical_works ? String(editRequest.mechanical_works).split(",") : [],
+        electrical_works: editRequest.electrical_works ? String(editRequest.electrical_works).split(",").map(x => x.trim()) : [],
+        mechanical_works: editRequest.mechanical_works ? String(editRequest.mechanical_works).split(",").map(x => x.trim()) : [],
 
         // General Safety Questions
-        floatLabel11: editRequest.affecting_other_contractors || "",
-        floatLabel12: editRequest.other_conditions || "",
+        floatLabel11: formatDbValue(editRequest.affecting_other_contractors),
+        floatLabel12: formatDbValue(editRequest.other_conditions),
         other_conditions_input: editRequest.other_conditions_input || "",
-        floatLabel13: editRequest.lighting_begin_work || "",
-        floatLabel14: editRequest.specific_risks || "",
-        floatLabel15: editRequest.environment_ensured || "",
-        floatLabel16: editRequest.course_of_action || "",
+        floatLabel13: formatDbValue(editRequest.lighting_begin_work),
+        floatLabel14: formatDbValue(editRequest.specific_risks),
+        floatLabel15: formatDbValue(editRequest.environment_ensured),
+        floatLabel16: formatDbValue(editRequest.course_of_action),
 
         // Hot Work
-        Hot_work: String(editRequest.Hot_work ?? "0"),
-        floatLabel1: editRequest.tasks_in_progress_in_the_area || "",
-        floatLabel3: editRequest.lighting_sufficiently || "",
-        floatLabel4: editRequest.specific_risks_based_on_task || "",
-        floatLabel5: editRequest.work_environment_safety_ensured || "",
-        floatLabel6: editRequest.course_of_action_in_emergencies || "",
-        floatLabel7: editRequest.fire_watch_establish || "",
-        floatLabel8: editRequest.combustible_material || "",
-        floatLabel9: editRequest.safety_measures || "",
-        floatLabel10: editRequest.extinguishers_and_fire_blanket || "",
-        NEWHOTWORK: String(editRequest.welding_activitiy ?? "0"),
-        NEWHOTWORK1: editRequest.heat_treatment || "",
-        NEWHOTWORK2: editRequest.air_extraction_be_established || "",
+        Hot_work: formatDbValue(editRequest.Hot_work ?? "0"),
+        floatLabel1: formatDbValue(editRequest.tasks_in_progress_in_the_area),
+        floatLabel3: formatDbValue(editRequest.lighting_sufficiently),
+        floatLabel4: formatDbValue(editRequest.specific_risks_based_on_task),
+        floatLabel5: formatDbValue(editRequest.work_environment_safety_ensured),
+        floatLabel6: formatDbValue(editRequest.course_of_action_in_emergencies),
+        floatLabel7: formatDbValue(editRequest.fire_watch_establish),
+        floatLabel8: formatDbValue(editRequest.combustible_material),
+        floatLabel9: formatDbValue(editRequest.safety_measures),
+        floatLabel10: formatDbValue(editRequest.extinguishers_and_fire_blanket),
+        NEWHOTWORK: formatDbValue(editRequest.welding_activitiy ?? "0"),
+        NEWHOTWORK1: formatDbValue(editRequest.heat_treatment),
+        NEWHOTWORK2: formatDbValue(editRequest.air_extraction_be_established),
 
         // Temporary Electrical Systems
-        working_on_electrical_system: String(editRequest.working_on_electrical_system ?? "0"),
-        floatLabel17: editRequest.responsible_for_the_informed || "",
-        floatLabel18: editRequest.de_energized || "",
-        floatLabel19: editRequest.if_no_loto || "",
-        floatLabel20: editRequest.do_risk_assessment || "",
-        floatLabel22: editRequest.electricity_have_isulation || "",
+        working_on_electrical_system: formatDbValue(editRequest.working_on_electrical_system ?? "0"),
+        floatLabel17: formatDbValue(editRequest.responsible_for_the_informed),
+        floatLabel18: formatDbValue(editRequest.de_energized),
+        floatLabel19: formatDbValue(editRequest.if_no_loto),
+        floatLabel20: formatDbValue(editRequest.do_risk_assessment),
+        floatLabel22: formatDbValue(editRequest.electricity_have_isulation),
 
         // Hazardous Substances
-        working_hazardious_substen: String(editRequest.working_hazardious_substen ?? "0"),
-        floatLabel24: editRequest.relevant_mal || "",
-        floatLabel25: editRequest.msds || "",
-        floatLabel26: editRequest.equipment_taken_account || "",
-        floatLabel27: editRequest.ventilation || "",
-        floatLabel28: editRequest.hazardaus_substances || "",
-        floatLabel29: editRequest.storage_and_disposal || "",
-        floatLabel30: editRequest.reachable_case || "",
-        floatLabel31: editRequest.checical_risk_assessment || "",
+        working_hazardious_substen: formatDbValue(editRequest.working_hazardious_substen ?? "0"),
+        floatLabel24: formatDbValue(editRequest.relevant_mal),
+        floatLabel25: formatDbValue(editRequest.msds),
+        floatLabel26: formatDbValue(editRequest.equipment_taken_account),
+        floatLabel27: formatDbValue(editRequest.ventilation),
+        floatLabel28: formatDbValue(editRequest.hazardaus_substances),
+        floatLabel29: formatDbValue(editRequest.storage_and_disposal),
+        floatLabel30: formatDbValue(editRequest.reachable_case),
+        floatLabel31: formatDbValue(editRequest.checical_risk_assessment),
 
         // Working at Height
-        working_at_height: String(editRequest.working_at_height ?? "0"),
-        segragated_demarkated: editRequest.segragated_demarkated || "",
-        floatLabel39: editRequest.lanyard_attachments || "",
-        floatLabel40: editRequest.rescue_plan || "",
-        floatLabel41: editRequest.avoid_hazards || "",
-        floatLabel42: editRequest.height_training || "",
-        floatLabel43: editRequest.supervision || "",
-        floatLabel44: editRequest.shock_absorbing || "",
-        floatLabel45: editRequest.height_equipments || "",
-        floatLabel46: editRequest.vertical_life || "",
-        floatLabel47: editRequest.secured_falling || "",
-        floatLabel48: editRequest.dropped_objects || "",
-        floatLabel49: editRequest.safe_acces || "",
-        floatLabel50: editRequest.weather_acceptable || "",
+        working_at_height: formatDbValue(editRequest.working_at_height ?? "0"),
+        segragated_demarkated: formatDbValue(editRequest.segragated_demarkated),
+        floatLabel39: formatDbValue(editRequest.lanyard_attachments),
+        floatLabel40: formatDbValue(editRequest.rescue_plan),
+        floatLabel41: formatDbValue(editRequest.avoid_hazards),
+        floatLabel42: formatDbValue(editRequest.height_training),
+        floatLabel43: formatDbValue(editRequest.supervision),
+        floatLabel44: formatDbValue(editRequest.shock_absorbing),
+        floatLabel45: formatDbValue(editRequest.height_equipments),
+        floatLabel46: formatDbValue(editRequest.vertical_life),
+        floatLabel47: formatDbValue(editRequest.secured_falling),
+        floatLabel48: formatDbValue(editRequest.dropped_objects),
+        floatLabel49: formatDbValue(editRequest.safe_acces),
+        floatLabel50: formatDbValue(editRequest.weather_acceptable),
 
         // Working in Confined Spaces
-        working_confined_spaces: String(editRequest.working_confined_spaces ?? "0"),
-        floatLabel51: editRequest.vapours_gases || "",
-        floatLabel52: editRequest.lel_measurement || "",
-        floatLabel53: editRequest.all_equipment || "",
-        floatLabel54: editRequest.exit_conditions || "",
-        floatLabel55: editRequest.communication_emergency || "",
-        floatLabel56: editRequest.rescue_equipments || "",
-        floatLabel57: editRequest.space_ventilation || "",
-        floatLabel58: editRequest.oxygen_meter || "",
+        working_confined_spaces: formatDbValue(editRequest.working_confined_spaces ?? "0"),
+        floatLabel51: formatDbValue(editRequest.vapours_gases),
+        floatLabel52: formatDbValue(editRequest.lel_measurement),
+        floatLabel53: formatDbValue(editRequest.all_equipment),
+        floatLabel54: formatDbValue(editRequest.exit_conditions),
+        floatLabel55: formatDbValue(editRequest.communication_emergency),
+        floatLabel56: formatDbValue(editRequest.rescue_equipments),
+        floatLabel57: formatDbValue(editRequest.space_ventilation),
+        floatLabel58: formatDbValue(editRequest.oxygen_meter),
 
         // Excavation Works
-        excavation_works: String(editRequest.excavation_works ?? "0"),
-        floatLabel71: editRequest.excavation_segregated || "",
-        floatLabel72: editRequest.nn_standards || "",
-        excavation_shoring: editRequest.excavation_shoring || "",
-        floatLabel74: editRequest.danish_regulation || "",
-        floatLabel75: editRequest.safe_access_and_egress || "",
-        floatLabel76: editRequest.correctly_sloped || "",
-        floatLabel77: editRequest.inspection_dates || "",
-        floatLabel78: editRequest.marked_drawings || "",
-        floatLabel79: editRequest.underground_areas_cleared || "",
+        excavation_works: formatDbValue(editRequest.excavation_works ?? "0"),
+        floatLabel71: formatDbValue(editRequest.excavation_segregated),
+        floatLabel72: formatDbValue(editRequest.nn_standards),
+        excavation_shoring: formatDbValue(editRequest.excavation_shoring),
+        floatLabel74: formatDbValue(editRequest.danish_regulation),
+        floatLabel75: formatDbValue(editRequest.safe_access_and_egress),
+        floatLabel76: formatDbValue(editRequest.correctly_sloped),
+        floatLabel77: formatDbValue(editRequest.inspection_dates),
+        floatLabel78: formatDbValue(editRequest.marked_drawings),
+        floatLabel79: formatDbValue(editRequest.underground_areas_cleared),
 
         // Using Crane or Lifting
-        using_cranes_or_lifting: String(editRequest.using_cranes_or_lifting ?? "0"),
-        floatLabel80: editRequest.appointed_person || "",
-        floatLabel81: editRequest.vendor_supplier || "",
-        floatLabel82: editRequest.lift_plan || "",
-        floatLabel83: editRequest.supplied_and_inspected || "",
-        floatLabel84: editRequest.legal_required_certificates || "",
-        floatLabel85: editRequest.prapared_lifting || "",
-        floatLabel86: editRequest.lifting_task_fenced || "",
-        floatLabel87: editRequest.overhead_risks || "",
+        using_cranes_or_lifting: formatDbValue(editRequest.using_cranes_or_lifting ?? "0"),
+        floatLabel80: formatDbValue(editRequest.appointed_person),
+        floatLabel81: formatDbValue(editRequest.vendor_supplier),
+        floatLabel82: formatDbValue(editRequest.lift_plan),
+        floatLabel83: formatDbValue(editRequest.supplied_and_inspected),
+        floatLabel84: formatDbValue(editRequest.legal_required_certificates),
+        floatLabel85: formatDbValue(editRequest.prapared_lifting),
+        floatLabel86: formatDbValue(editRequest.lifting_task_fenced),
+        floatLabel87: formatDbValue(editRequest.overhead_risks),
 
         // pressurization Power On fields
-        power_on: String(editRequest.power_on ?? "0"),
-        EnergisingEquipment: String(editRequest.energising_equipment ?? "0"),
-        IsolatingLive: String(editRequest.isolating_live ?? "0"),
-        WorkingNearLive: String(editRequest.working_near_live ?? "0"),
-        floatLabel88: editRequest.responsible_for_the_area || "",
-        floatLabel89: editRequest.risk_assessment_done || "",
-        floatLabel90: editRequest.barriers_signage || "",
-        floatLabel110: String(editRequest.arc_flash ?? "0"),
-        floatLabel91: editRequest.energized_been_tested || "",
-        floatLabel92: editRequest.punches_been_closed || "",
-        floatLabel93: editRequest.toct_checklist || "",
-        floatLabel94: editRequest.informed_aligned || "",
-        floatLabel111: editRequest.isolating_resposible || "",
-        floatLabel112: editRequest.isolating_risk_assessment || "",
-        floatLabel113: editRequest.cq_informed || "",
-        floatLabel114: editRequest.cq_provided || "",
-        floatLabel115: editRequest.de_energisation_request || "",
-        floatLabel116: editRequest.ppe_prepared || "",
-        floatLabel117: editRequest.absence_of_voltage || "",
-        floatLabel118: editRequest.stored_energy || "",
-        floatLabel119: editRequest.backup_power || "",
-        floatLabel120: editRequest.unavoidable || "",
-        floatLabel121: editRequest.reasonably_practicable || "",
-        floatLabel122: editRequest.work_authorised || "",
-        floatLabel123: editRequest.working_risk_assessment || "",
-        floatLabel124: editRequest.working_arc_boundary || "",
-        floatLabel125: editRequest.working_barriers || "",
-        floatLabel126: editRequest.insulated_tools || "",
-        floatLabel127: editRequest.event_of_emergency || "",
+        power_on: formatDbValue(editRequest.power_on ?? "0"),
+        EnergisingEquipment: formatDbValue(editRequest.energising_equipment ?? "0"),
+        IsolatingLive: formatDbValue(editRequest.isolating_live ?? "0"),
+        WorkingNearLive: formatDbValue(editRequest.working_near_live ?? "0"),
+        floatLabel88: formatDbValue(editRequest.responsible_for_the_area),
+        floatLabel89: formatDbValue(editRequest.risk_assessment_done),
+        floatLabel90: formatDbValue(editRequest.barriers_signage),
+        floatLabel110: formatDbValue(editRequest.arc_flash ?? "0"),
+        floatLabel91: formatDbValue(editRequest.energized_been_tested),
+        floatLabel92: formatDbValue(editRequest.punches_been_closed),
+        floatLabel93: formatDbValue(editRequest.toct_checklist),
+        floatLabel94: formatDbValue(editRequest.informed_aligned),
+        floatLabel111: formatDbValue(editRequest.isolating_resposible),
+        floatLabel112: formatDbValue(editRequest.isolating_risk_assessment),
+        floatLabel113: formatDbValue(editRequest.cq_informed),
+        floatLabel114: formatDbValue(editRequest.cq_provided),
+        floatLabel115: formatDbValue(editRequest.de_energisation_request),
+        floatLabel116: formatDbValue(editRequest.ppe_prepared),
+        floatLabel117: formatDbValue(editRequest.absence_of_voltage),
+        floatLabel118: formatDbValue(editRequest.stored_energy),
+        floatLabel119: formatDbValue(editRequest.backup_power),
+        floatLabel120: formatDbValue(editRequest.unavoidable),
+        floatLabel121: formatDbValue(editRequest.reasonably_practicable),
+        floatLabel122: formatDbValue(editRequest.work_authorised),
+        floatLabel123: formatDbValue(editRequest.working_risk_assessment),
+        floatLabel124: formatDbValue(editRequest.working_arc_boundary),
+        floatLabel125: formatDbValue(editRequest.working_barriers),
+        floatLabel126: formatDbValue(editRequest.insulated_tools),
+        floatLabel127: formatDbValue(editRequest.event_of_emergency),
 
         // pressurization fields
-        pressurization: String(editRequest.pressurization ?? "0"),
-        floatLabel95: editRequest.performed_approved || "",
-        floatLabel96: editRequest.flushing_approved || "",
-        floatLabel97: editRequest.mc_approved || "",
+        pressurization: formatDbValue(editRequest.pressurization ?? "0"),
+        floatLabel95: formatDbValue(editRequest.performed_approved),
+        floatLabel96: formatDbValue(editRequest.flushing_approved),
+        floatLabel97: formatDbValue(editRequest.mc_approved),
         mc_number_text: editRequest.mc_number_text || "",
-        floatLabel98: editRequest.visual_inspection || "",
-        floatLabel99: editRequest.loto_plan_approved || "",
-        floatLabel100: editRequest.follow_media_code || "",
-        floatLabel101: editRequest.cq_safety_signs || "",
+        floatLabel98: formatDbValue(editRequest.visual_inspection),
+        floatLabel99: formatDbValue(editRequest.loto_plan_approved),
+        floatLabel100: formatDbValue(editRequest.follow_media_code),
+        floatLabel101: formatDbValue(editRequest.cq_safety_signs),
 
         // Pressure Testing
-        pressure_testing_of_equipment: String(editRequest.pressure_testing_of_equipment ?? "0"),
-        floatLabel102: editRequest.line_walk || "",
-        floatLabel103: editRequest.pressure_test_coordinated || "",
-        floatLabel104: editRequest.pipework_mic || "",
-        floatLabel105: editRequest.loto_plan_attached || "",
-        floatLabel106: editRequest.exclusion_zone_calculated || "",
-        floatLabel107: editRequest.pneumatic_hydrostatic || "",
+        pressure_testing_of_equipment: formatDbValue(editRequest.pressure_testing_of_equipment ?? "0"),
+        floatLabel102: formatDbValue(editRequest.line_walk),
+        floatLabel103: formatDbValue(editRequest.pressure_test_coordinated),
+        floatLabel104: formatDbValue(editRequest.pipework_mic),
+        floatLabel105: formatDbValue(editRequest.loto_plan_attached),
+        floatLabel106: formatDbValue(editRequest.exclusion_zone_calculated),
+        floatLabel107: formatDbValue(editRequest.pneumatic_hydrostatic),
         pressure_pneumatic: editRequest.pressure_pneumatic || "",
-        floatLabel108: editRequest.pressure_of_the_test || "",
+        floatLabel108: formatDbValue(editRequest.pressure_of_the_test),
         pressure_hydrostatic: editRequest.pressure_hydrostatic || "",
-        floatLabel109: editRequest.safety_valves_calibrated || "",
+        floatLabel109: formatDbValue(editRequest.safety_valves_calibrated),
 
         // Task Specific PPE
-        eye_protection: editRequest.eye_protection || "",
-        fall_protection: editRequest.fall_protection || "",
-        hearing_protection: editRequest.hearing_protection || "",
-        respiratory_protection: editRequest.respiratory_protection || "",
+        eye_protection: formatDbValue(editRequest.eye_protection),
+        fall_protection: formatDbValue(editRequest.fall_protection),
+        hearing_protection: formatDbValue(editRequest.hearing_protection),
+        respiratory_protection: formatDbValue(editRequest.respiratory_protection),
         other_ppe: editRequest.other_ppe || "",
         Number_Of_Workers: editRequest.Number_Of_Workers || "",
         notes: "",
@@ -694,12 +777,20 @@ function NewRequest() {
         return selectedRooms.includes(roomName);
       })
     );
-    const zoneVal = selectedZoneObjects.map((z) => z.name).join(",");
+    let zoneVal = selectedZoneObjects.map((z) => z.name).join(",");
+    if (!zoneVal && isEditMode && editRequest?.zone) {
+      zoneVal = typeof editRequest.zone === "object" ? (editRequest.zone.zone || "") : String(editRequest.zone);
+    } else if (!zoneVal && isEditMode && editRequest?.zone_name) {
+      zoneVal = String(editRequest.zone_name);
+    }
 
     const matchedZoneIds = zonesList
       .filter((z) => String(z.floor_id) === String(Floor_Id) && selectedZoneObjects.some((zo) => zo.name === z.zone))
       .map((z) => z.id ?? z.zoneStatusId);
-    const Zone_Id = matchedZoneIds.join(",");
+    let Zone_Id = matchedZoneIds.join(",");
+    if (!Zone_Id && isEditMode && editRequest?.Zone_Id) {
+      Zone_Id = String(editRequest.Zone_Id);
+    }
 
     // Find Room IDs — multi-strategy matching
     // Strategy 1: Match by zone_id + case-insensitive room_name
@@ -728,7 +819,32 @@ function NewRequest() {
         .map((r) => r.room_id ?? r.id);
     }
 
-    const Room_Nos = matchedRoomIds.join(",");
+    let Room_Nos = matchedRoomIds.join(",");
+    if (!Room_Nos && isEditMode && editRequest?.Room_Nos) {
+      Room_Nos = String(editRequest.Room_Nos);
+    }
+
+    // Frontend validations
+    if (!Zone_Id) {
+      showError("Please select at least one zone or room on the floor layout.");
+      return;
+    }
+    if (formData.floatLabel97 === "1" && (!formData.mc_number_text || !formData.mc_number_text.trim())) {
+      showError("MC Number is required when MC Approved is Yes.");
+      return;
+    }
+    if (formData.pressure_testing_of_equipment === "1" && formData.floatLabel107 === "1" && (!formData.pressure_pneumatic || !formData.pressure_pneumatic.trim())) {
+      showError("Pressure of Pneumatic Test is required when Pneumatic Test is Yes.");
+      return;
+    }
+    if (formData.pressure_testing_of_equipment === "1" && formData.floatLabel108 === "1" && (!formData.pressure_hydrostatic || !formData.pressure_hydrostatic.trim())) {
+      showError("Pressure of Hydrostatic Test is required when Hydrostatic Test is Yes.");
+      return;
+    }
+    if (formData.floatLabel16 === undefined || formData.floatLabel16 === null || formData.floatLabel16 === "") {
+      showError("Please answer the 'course of action in any emergency situation' question in the General Safety Checklist.");
+      return;
+    }
 
     // Debug log — remove after confirming Room_Nos works correctly
     console.log("[Room_Nos Debug]", {
@@ -955,6 +1071,17 @@ function NewRequest() {
     ];
     keysToDelete.forEach(k => delete payload[k]);
 
+    // Clean up conditional text values if their corresponding switches are not Yes (1)
+    if (formData.floatLabel97 !== "1") {
+      payload.mc_number_text = "N/A";
+    }
+    if (formData.pressure_testing_of_equipment !== "1" || formData.floatLabel107 !== "1") {
+      payload.pressure_pneumatic = "N/A";
+    }
+    if (formData.pressure_testing_of_equipment !== "1" || formData.floatLabel108 !== "1") {
+      payload.pressure_hydrostatic = "N/A";
+    }
+
     // Construct FormData object
     const fd = new FormData();
     for (const [key, value] of Object.entries(payload)) {
@@ -973,7 +1100,11 @@ function NewRequest() {
     try {
       if (isEditMode) {
         // Submit update request
-        await updateRequest(editRequest.id, fd);
+        const res = await updateRequest(editRequest.id, fd);
+        if (res && (res.status === 500 || res.status === 400 || res.statusCode === 500 || res.statusCode === 400)) {
+          showError(res.message || "Operation failed. Please try again.");
+          return;
+        }
 
         // Submit notes if typed
         if (formData.notes && formData.notes.trim()) {
@@ -988,7 +1119,11 @@ function NewRequest() {
         }
         showSuccess("Work Permit Request updated successfully");
       } else {
-        await createRequest(fd);
+        const res = await createRequest(fd);
+        if (res && (res.status === 500 || res.status === 400 || res.statusCode === 500 || res.statusCode === 400)) {
+          showError(res.message || "Operation failed. Please try again.");
+          return;
+        }
         showSuccess("Work Permit Request created successfully");
       }
 
@@ -1001,7 +1136,8 @@ function NewRequest() {
       navigate("/list-request");
     } catch (err) {
       console.error(err);
-      showError("Operation failed. Please try again.");
+      const errMsg = err.response?.data?.message || err.message || "Operation failed. Please try again.";
+      showError(errMsg);
     }
   };
 
@@ -1440,7 +1576,7 @@ function NewRequest() {
                         placeholder="Click to select electrical works..."
                         value={
                           formData.electrical_works?.length > 0
-                            ? formData.electrical_works.map(id => electricalWorksList.find(x => String(x.id) === String(id))?.name || id).join(", ")
+                            ? formData.electrical_works.map(id => electricalWorksList.find(x => String(x.id) === String(id))?.electrical_works || id).join(", ")
                             : ""
                         }
                         readOnly
@@ -3005,28 +3141,76 @@ function NewRequest() {
 
           {/* Action Buttons */}
           <div className="df-footer" style={{ marginTop: "24px" }}>
-            <button
-              type="button"
-              className="nr-btn nr-btn--ghost"
-              onClick={() => setIsnewrequestcreated(false)}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              className="nr-btn nr-btn--ghost"
-              style={{ background: "#2563eb", color: "#fff", borderColor: "#2563eb", boxShadow: "0 0 18px rgba(37, 99, 235, 0.2)" }}
-              onClick={(e) => handleSubmit(e, "Hold")}
-            >
-              Change to Hold
-            </button>
-            <button
-              type="button"
-              className="nr-btn nr-btn--primary"
-              onClick={(e) => handleSubmit(e, "Draft")}
-            >
-              Save
-            </button>
+            {isEditMode ? (
+              editRequest?.Request_status === "Draft" ? (
+                <>
+                  <button
+                    type="button"
+                    className="nr-btn nr-btn--ghost"
+                    onClick={() => navigate("/list-request")}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="nr-btn nr-btn--ghost"
+                    style={{ background: "#2563eb", color: "#fff", borderColor: "#2563eb", boxShadow: "0 0 18px rgba(37, 99, 235, 0.2)" }}
+                    onClick={(e) => handleSubmit(e, "Hold")}
+                  >
+                    Change to Hold
+                  </button>
+                  <button
+                    type="button"
+                    className="nr-btn nr-btn--primary"
+                    onClick={(e) => handleSubmit(e, "Draft")}
+                  >
+                    Save as Draft
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="nr-btn nr-btn--ghost"
+                    onClick={() => navigate("/list-request")}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="nr-btn nr-btn--primary"
+                    onClick={(e) => handleSubmit(e, editRequest?.Request_status || "Draft")}
+                  >
+                    Update
+                  </button>
+                </>
+              )
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="nr-btn nr-btn--ghost"
+                  onClick={() => setIsnewrequestcreated(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="nr-btn nr-btn--ghost"
+                  style={{ background: "#2563eb", color: "#fff", borderColor: "#2563eb", boxShadow: "0 0 18px rgba(37, 99, 235, 0.2)" }}
+                  onClick={(e) => handleSubmit(e, "Hold")}
+                >
+                  Change to Hold
+                </button>
+                <button
+                  type="button"
+                  className="nr-btn nr-btn--primary"
+                  onClick={(e) => handleSubmit(e, "Draft")}
+                >
+                  Save
+                </button>
+              </>
+            )}
           </div>
         </form>
       </div>
