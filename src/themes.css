@@ -166,8 +166,8 @@ html[data-theme="light"] .departments-page,
 html[data-theme="light"] .content-inner,
 html[data-theme="light"] .route-outlet,
 html[data-theme="light"] .page-body {
-  background-color: #080B12 !important;
-  color:#F9FAFB!important;
+  background-color: var(--main-bg) !important;
+  color: var(--text-main) !important;
 }
 
 
@@ -201,8 +201,7 @@ html[data-theme="light"] .today-card,
 html[data-theme="light"] .zone-card,
 html[data-theme="light"] .stats-card,
 html[data-theme="light"] .logs-card,
-html[data-theme="light"] .dept-table-card,
-html[data-theme="light"] .dept-page {
+html[data-theme="light"] .dept-table-card {
   background: var(--bg-card) !important;
   border-color: var(--border-color) !important;
   color: var(--text-main) !important;
@@ -228,8 +227,8 @@ html[data-theme="light"] .beam-modal-footer    { background-color: var(--bg-dark
 html[data-theme="light"] .beam-modal-close     { background: var(--bg-card-hover) !important; border-color: var(--border-light) !important; color: var(--text-muted) !important; }
 
 /* Light: text */
-html[data-theme="light"] .dept-page-title      { color: #F9FAFB !important; }
-html[data-theme="light"] .dept-page-subtitle   { color: #F9FAFB !important; }
+html[data-theme="light"] .dept-page-title      { color: var(--text-main) !important; margin-bottom: 6px !important; }
+html[data-theme="light"] .dept-page-subtitle   { color: var(--text-muted) !important; }
 html[data-theme="light"] .dept-view-label      { color: var(--text-dark)  !important; }
 html[data-theme="light"] .dept-view-value      { color: var(--text-main)  !important; }
 html[data-theme="light"] .dept-view-item       { background: var(--bg-card-hover) !important; border-color: var(--border-color) !important; }

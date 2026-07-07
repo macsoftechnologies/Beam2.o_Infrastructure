@@ -332,6 +332,6 @@ export const getEmployeeAnalyticsCounts = async () => {
 
 // Search/retrieve filtered requests
 export const searchDashboardRequests = async (payload) => {
-  const res = await api.post("/requests/search", payload);
-  return res.data;
+    const res = await api.post("/requests/search", payload);
+    return res.data;
 };

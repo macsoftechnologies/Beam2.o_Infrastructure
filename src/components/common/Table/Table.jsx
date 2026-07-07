@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useRef } from "react";
 import "./Table.css";
 import Loader from "../Loader/Loader";
 
@@ -40,6 +40,32 @@ const Table = ({
   isLoading = false,
 }) => {
   const pages = buildPageList(currentPage, totalPages);
+  const [columnWidths, setColumnWidths] = useState({});
+
+  const handleResizeStart = (e, accessor) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const startX = e.clientX;
+    const th = e.target.closest("th");
+    const startWidth = th.getBoundingClientRect().width;
+
+    const onMouseMove = (moveEvent) => {
+      const newWidth = Math.max(50, startWidth + (moveEvent.clientX - startX));
+      setColumnWidths(prev => ({
+        ...prev,
+        [accessor]: newWidth
+      }));
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
+
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+  };
 
   return (
     <div className="beam-table-wrapper">
@@ -52,8 +78,17 @@ const Table = ({
           <thead>
             <tr>
               {columns.map((col) => (
-                <th key={col.accessor} className={`beam-th ${col.className || ""}`} style={col.style}>
+                <th 
+                  key={col.accessor} 
+                  className={`beam-th ${col.className || ""}`} 
+                  style={{ ...col.style, width: columnWidths[col.accessor] || col.style?.width }}
+                >
                   {col.header}
+                  <div 
+                    className="beam-th-resizer"
+                    onMouseDown={(e) => handleResizeStart(e, col.accessor)}
+                    title="Drag to resize"
+                  />
                 </th>
               ))}
             </tr>

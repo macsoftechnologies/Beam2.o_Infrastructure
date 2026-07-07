@@ -3,14 +3,14 @@
    § 1.  FOOTER SHELL
 ───────────────────────────────────────── */
 .site-footer {
-  background: #080B12;
-  border-top: 1px solid #080B12;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-color);
   padding: 13px 22px;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 46px;
-  color: #ffffff;
+  color: var(--text-main);
 }
 
 

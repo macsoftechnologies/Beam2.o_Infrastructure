@@ -37,6 +37,18 @@
 }
 
 /* ── Header ──────────────────────────────────────────────── */
+/* ── Table Cells ─────────────────────────────────────────── */
+.beam-td {
+  padding: 14px 18px;
+  font-size: 0.88rem;
+  color: var(--text-main);
+  font-weight: 500;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .beam-th {
   padding: 14px 18px;
   text-align: left;
@@ -48,6 +60,25 @@
   border-bottom: 1px solid var(--border-light);
   background-color: var(--bg-dark);
   white-space: nowrap;
+  position: relative;
+  user-select: none;
+}
+
+.beam-th-resizer {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+  background-color: transparent;
+  transition: background-color 0.2s ease;
+  z-index: 10;
+}
+
+.beam-th-resizer:hover,
+.beam-th-resizer:active {
+  background-color: var(--accent-primary);
 }
 
 .beam-th:first-child { border-radius: 12px 0 0 0; }
@@ -69,15 +100,6 @@
 @keyframes beamRowIn {
   from { opacity: 0; transform: translateX(-6px); }
   to   { opacity: 1; transform: translateX(0);    }
-}
-
-/* ── Table Cells ─────────────────────────────────────────── */
-.beam-td {
-  padding: 14px 18px;
-  font-size: 0.88rem;
-  color: var(--text-main);
-  font-weight: 500;
-  vertical-align: middle;
 }
 
 /* ── Loader Cell ─────────────────────────────────────────── */
