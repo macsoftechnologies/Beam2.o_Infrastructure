@@ -523,7 +523,7 @@
 .ppe-mandatory-row {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   gap: 100px;
   background: #0e163b;
   /* White background */

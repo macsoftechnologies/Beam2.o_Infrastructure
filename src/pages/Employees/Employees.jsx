@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { showSuccess, showError, showDeleteConfirm, showDeleteSuccess } from "../../components/common/Toast/Toast";
 import Table from "../../components/common/Table/Table";
 import Modal from "../../components/common/Modal/Modal";
-import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
+import { FaEye, FaEdit, FaTrash, FaFilter, FaFileCsv, FaArrowDown, FaTimes } from "react-icons/fa";
 import EmployeeForm from "../../forms/Employeesform/Employeesform";
 import { getEmployees, addEmployee, updateEmployee, deleteEmployee, getRoles } from "../../services/authService";
 import "../styles/pages.css";
@@ -17,9 +17,9 @@ const ActionButtons = ({ onView, onEdit, onDelete }) => (
     <button className="dept-action-btn dept-action-btn--edit" title="Edit" onClick={onEdit}>
       <FaEdit />
     </button>
-    <button className="dept-action-btn dept-action-btn--delete" title="Delete" onClick={onDelete}>
+    {/* <button className="dept-action-btn dept-action-btn--delete" title="Delete" onClick={onDelete}>
       <FaTrash />
-    </button>
+    </button> */}
   </div>
 );
 
@@ -168,6 +168,40 @@ const Employees = () => {
             <span className="dept-add-btn__icon">＋</span>
             Add Employee
           </button>
+        </div>
+      </div>
+
+      {/* Filters Card */}
+      <div className="dept-table-card" style={{ marginBottom: "16px", padding: "16px 24px" }}>
+        <h3 style={{ margin: "0 0 12px 0", fontSize: "1rem", fontWeight: "600", color: "#F9FAFB" }}>Filters</h3>
+        <div className="df-form" style={{ padding: "0" }}>
+          <div className="df-grid">
+            <div className="df-field">
+              <label className="df-label" style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>EMPLOYEE NAME</label>
+              <input type="text" className="df-input" placeholder="Search by name" />
+            </div>
+            <div className="df-field">
+              <label className="df-label" style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>COMPANY NAME</label>
+              <select className="df-select">
+                <option value="">All</option>
+              </select>
+            </div>
+          </div>
+          
+          <div className="df-footer" style={{ justifyContent: "flex-end", marginTop: "12px", gap: "12px", display: "flex" }}>
+            <button type="button" className="dept-add-btn" style={{ backgroundColor: '#CA8A04', color: '#fff', border: 'none' }}>
+              <FaFilter style={{ marginRight: '6px' }} /> Filter
+            </button>
+            <button type="button" className="dept-add-btn" style={{ backgroundColor: '#4B5563', border: 'none' }}>
+              <FaTimes style={{ marginRight: '6px' }} /> Clear
+            </button>
+            <button className="dept-add-btn" style={{ backgroundColor: '#22C55E', border: 'none' }}>
+              <FaFileCsv style={{ marginRight: '6px', fontSize: '1.1rem' }} /> CSV
+            </button>
+            <button className="dept-add-btn" style={{ backgroundColor: '#3B82F6', border: 'none' }}>
+              <FaArrowDown style={{ marginRight: '6px' }} /> Excel
+            </button>
+          </div>
         </div>
       </div>
 

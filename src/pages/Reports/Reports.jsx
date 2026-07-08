@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import Table from "../../components/common/Table/Table";
+import { FaFileCsv, FaArrowDown } from "react-icons/fa";
 import {
   getContractors,
   getBuildings,
@@ -1200,18 +1201,17 @@ const Reports = () => {
               className="dept-add-btn"
               onClick={handleDownload}
               disabled={tableData.length === 0}
+              style={{ backgroundColor: '#22C55E', border: 'none' }}
             >
-              <span className="dept-add-btn__icon">⬇</span>
-              Download CSV
+              <FaFileCsv style={{ marginRight: '6px', fontSize: '1.1rem' }} /> CSV
             </button>
             <button
               className="dept-add-btn"
               onClick={handleDownloadExcel}
               disabled={tableData.length === 0}
-              style={{ backgroundColor: "#10b981", color: "#fff" }}
+              style={{ backgroundColor: '#3B82F6', border: 'none' }}
             >
-              <span className="dept-add-btn__icon">⬇</span>
-              Download Excel
+              <FaArrowDown style={{ marginRight: '6px' }} /> Excel
             </button>
           </div>
         </div>

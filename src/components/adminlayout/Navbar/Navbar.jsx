@@ -158,13 +158,13 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
 
       {/* ── CENTER — Status + Clock ── */}
       <div className="navbar-center">
-        <div className="navbar-status-row">
+        {/* <div className="navbar-status-row">
           <div className="status-pill">
             <span className="status-dot" />
             System Online
           </div>
           <SyncLabel />
-        </div>
+        </div> */}
         <LiveClock />
       </div>
 

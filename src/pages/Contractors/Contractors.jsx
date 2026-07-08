@@ -2,13 +2,58 @@ import React, { useState, useEffect, useCallback } from "react";
 import { showSuccess, showError, showDeleteConfirm, showDeleteSuccess } from "../../components/common/Toast/Toast";
 import Table from "../../components/common/Table/Table";
 import Modal from "../../components/common/Modal/Modal";
-import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
+import { FaEye, FaEdit, FaTrash, FaFilter, FaFileCsv, FaArrowDown, FaTimes } from "react-icons/fa";
 import ContractorForm from "../../forms/Contractorsform/Contractorform";
 import { getContractors, addContractor, updateContractor, deleteContractor, getDepartments } from "../../services/authService";
 import { API_BASE_URL } from "../../services/api";
 import "../styles/pages.css";
 
 const PAGE_LIMIT_DEFAULT = 10;
+
+const LogoCell = ({ logoUrl, name, size = 45 }) => {
+  const [hasError, setHasError] = useState(false);
+
+  const getInitials = (name) => {
+    if (!name) return "??";
+    const words = name.trim().split(/\s+/);
+    if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
+    return (words[0][0] + (words[1] ? words[1][0] : "")).toUpperCase();
+  };
+
+  const roundedSize = Math.max(8, Math.floor(size * 0.22));
+
+  if (logoUrl && !hasError) {
+    return (
+      <img
+        src={logoUrl}
+        alt={`${name} logo`}
+        className="dept-logo-thumb"
+        style={{ width: `${size}px`, height: `${size}px`, objectFit: 'contain', borderRadius: `${roundedSize}px` }}
+        onError={() => setHasError(true)}
+      />
+    );
+  }
+
+  return (
+    <div
+      style={{
+        width: `${size}px`,
+        height: `${size}px`,
+        backgroundColor: '#4285F4',
+        color: '#111827',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: `${roundedSize}px`,
+        fontWeight: 'bold',
+        fontSize: `${Math.floor(size * 0.4)}px`,
+        letterSpacing: '1px'
+      }}
+    >
+      {getInitials(name)}
+    </div>
+  );
+};
 
 const ActionButtons = ({ onView, onEdit, onDelete }) => (
   <div className="dept-action-btns">
@@ -18,9 +63,9 @@ const ActionButtons = ({ onView, onEdit, onDelete }) => (
     <button className="dept-action-btn dept-action-btn--edit" title="Edit" onClick={onEdit}>
       <FaEdit />
     </button>
-    <button className="dept-action-btn dept-action-btn--delete" title="Delete" onClick={onDelete}>
+    {/* <button className="dept-action-btn dept-action-btn--delete" title="Delete" onClick={onDelete}>
       <FaTrash />
-    </button>
+    </button> */}
   </div>
 );
 
@@ -149,11 +194,7 @@ const Contractors = () => {
       serial: startIndex + index + 1,
       name: item.subContractorName,
       department: deptName,
-      logoCell: logoUrl ? (
-        <img src={logoUrl} alt={`${item.subContractorName} logo`} className="dept-logo-thumb" style={{ width: '60px', height: '60px', objectFit: 'contain' }} />
-      ) : (
-        <span className="dept-no-logo">No Logo</span>
-      ),
+      logoCell: <LogoCell logoUrl={logoUrl} name={item.subContractorName} size={45} />,
       actions: (
         <ActionButtons
           onView={() => handleView(item, index)}
@@ -182,6 +223,14 @@ const Contractors = () => {
       </div>
 
       <div className="dept-table-card">
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px', gap: '12px' }}>
+          <button className="dept-add-btn" style={{ backgroundColor: '#22C55E', border: 'none' }}>
+            <FaFileCsv style={{ marginRight: '6px', fontSize: '1.1rem' }} /> CSV
+          </button>
+          <button className="dept-add-btn" style={{ backgroundColor: '#3B82F6', border: 'none' }}>
+            <FaArrowDown style={{ marginRight: '6px' }} /> Excel
+          </button>
+        </div>
         <Table
           columns={columns}
           data={tableData}
@@ -215,11 +264,7 @@ const Contractors = () => {
             </div>
             <div className="dept-view-item">
               <span className="dept-view-label">Logo</span>
-              {getLogoUrl(selectedContractor.logo) ? (
-                <img src={getLogoUrl(selectedContractor.logo)} alt="logo" className="dept-view-logo" />
-              ) : (
-                <span className="dept-view-value">No logo uploaded</span>
-              )}
+              <LogoCell logoUrl={getLogoUrl(selectedContractor.logo)} name={selectedContractor.subContractorName} size={80} />
             </div>
             {/* Status removed */}
             <div className="dept-view-item">

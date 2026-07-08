@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { showSuccess, showError, showDeleteConfirm, showDeleteSuccess } from "../../components/common/Toast/Toast";
 import Table from "../../components/common/Table/Table";
 import Modal from "../../components/common/Modal/Modal";
-import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
+import { FaEye, FaEdit, FaTrash, FaFilter, FaFileCsv, FaArrowDown, FaTimes } from "react-icons/fa";
 import DepartmentForm from "../../forms/Departmentform/Departmentform";
 import { addDepartments, getDepartments, updateDepartment, deleteDepartment } from "../.././services/authService";
 import "../styles/pages.css";
@@ -116,13 +116,13 @@ const Departments = () => {
         >
           <FaEdit />
         </button>
-        <button
+        {/* <button
           className="dept-action-btn dept-action-btn--delete"
           title="Delete"
           onClick={() => handleDelete(item)}
         >
           <FaTrash />
-        </button>
+        </button> */}
       </div>
     ),
   }));
@@ -155,6 +155,14 @@ const Departments = () => {
 
       {/* ── Table Card ── */}
       <div className="dept-table-card">
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px', gap: '12px' }}>
+          <button className="dept-add-btn" style={{ backgroundColor: '#22C55E', border: 'none' }}>
+            <FaFileCsv style={{ marginRight: '6px', fontSize: '1.1rem' }} /> CSV
+          </button>
+          <button className="dept-add-btn" style={{ backgroundColor: '#3B82F6', border: 'none' }}>
+            <FaArrowDown style={{ marginRight: '6px' }} /> Excel
+          </button>
+        </div>
         <Table
           columns={columns}
           data={tableData}
