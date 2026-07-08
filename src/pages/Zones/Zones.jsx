@@ -114,10 +114,17 @@ const Zones = () => {
     { header: "Actions", accessor: "actions" },
   ];
 
+  const statusLabelMap = {
+    UC: "Construction",
+    C: "Commissioning",
+    HO: "Hand Over",
+  };
+
   const tableData = zoneList.map((item, index) => ({
     ...item,
     serial: startIndex + index + 1,
     buildingName: buildingMap[item.building_id] || "—",
+    status: statusLabelMap[item.status] ?? item.status,
     actions: (
       <div className="dept-action-btns">
         <button

@@ -825,6 +825,15 @@ function NewRequest() {
     }
 
     // Frontend validations
+    if (!isEditMode && formData.Working_Date) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const selected = new Date(formData.Working_Date);
+      if (selected < today) {
+        showError("Working date cannot be a past date.");
+        return;
+      }
+    }
     if (!Zone_Id) {
       showError("Please select at least one zone or room on the floor layout.");
       return;
@@ -911,7 +920,7 @@ function NewRequest() {
       lighting_begin_work: formData.floatLabel13 || 0,
       specific_risks: formData.floatLabel14 || 0,
       environment_ensured: formData.floatLabel15 || 0,
-      course_of_action: formData.floatLabel16 || 0,
+      course_of_action: (formData.floatLabel16 !== undefined && formData.floatLabel16 !== null && formData.floatLabel16 !== "") ? Number(formData.floatLabel16) : null,
 
       // Hot Work
       tasks_in_progress_in_the_area: formData.floatLabel1 || 0,
@@ -1317,6 +1326,7 @@ function NewRequest() {
                   type="date"
                   className="df-input"
                   value={formData.Working_Date}
+                  min={!isEditMode ? new Date().toISOString().split("T")[0] : undefined}
                   onChange={(e) => handleFieldChange("Working_Date", e.target.value)}
                 />
               </div>
