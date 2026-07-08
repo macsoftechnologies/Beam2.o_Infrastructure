@@ -672,7 +672,13 @@ const ListRequest = () => {
     e.preventDefault();
     if (!modalTarget) return;
 
-    const nextStatus = submitStatusOverride || modalStatus;
+    let nextStatus = submitStatusOverride || modalStatus;
+    if ((modalStatus === "Pre-Approved" || modalStatus === "Approved") && approveActionType === "Reject") {
+      nextStatus = "Rejected";
+    }
+    if (modalStatus === "Opened" && openActionType === "Cancel") {
+      nextStatus = "Cancelled";
+    }
 
     const payload = {
       userId: currentUser?.id || 1,
@@ -905,8 +911,14 @@ const ListRequest = () => {
     const oneDay = 24 * 60 * 60 * 1000;
     const fromVal = new Date(copyDates.from);
     const toVal = new Date(copyDates.to);
-    
+
     if (toVal < fromVal) return showError("End date cannot be earlier than start date.");
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (fromVal < today || toVal < today) {
+      return showError("Dates cannot be in the past.");
+    }
     const diffDays = Math.round(Math.abs((toVal - fromVal) / oneDay)) + 1;
 
     // Build zone array matching backend ZoneItemDto: { Zone_Id: number, zone: string }
@@ -2069,6 +2081,7 @@ const ListRequest = () => {
                   type="date"
                   required
                   className="df-input"
+                  min={new Date().toISOString().split("T")[0]}
                   value={copyDates.from}
                   onChange={(e) => setCopyDates(p => ({ ...p, from: e.target.value }))}
                 />
@@ -2079,6 +2092,7 @@ const ListRequest = () => {
                   type="date"
                   required
                   className="df-input"
+                  min={new Date().toISOString().split("T")[0]}
                   value={copyDates.to}
                   onChange={(e) => setCopyDates(p => ({ ...p, to: e.target.value }))}
                 />

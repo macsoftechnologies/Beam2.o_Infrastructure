@@ -48,6 +48,23 @@ const formatDbValue = (val) => {
   return String(val);
 };
 
+const getNextDate = (dateStr) => {
+  if (!dateStr) return "";
+  const parts = dateStr.split("-");
+  if (parts.length !== 3) return "";
+  const y = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10) - 1;
+  const d = parseInt(parts[2], 10);
+  
+  const dateObj = new Date(y, m, d);
+  dateObj.setDate(dateObj.getDate() + 1);
+  
+  const nextY = dateObj.getFullYear();
+  const nextM = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const nextD = String(dateObj.getDate()).padStart(2, "0");
+  return `${nextY}-${nextM}-${nextD}`;
+};
+
 function NewRequest() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -706,10 +723,22 @@ function NewRequest() {
   }, [selectedZones, selectedRooms, selectedZone]);
 
   const handleFieldChange = (field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setFormData((prev) => {
+      const updated = { ...prev, [field]: value };
+      
+      if (field === "night_shift" && value === true) {
+        if (prev.Working_Date) {
+          updated.new_date = getNextDate(prev.Working_Date);
+        }
+        updated.End_Time = "23:59";
+      }
+      
+      if (field === "Working_Date" && prev.night_shift === true) {
+        updated.new_date = getNextDate(value);
+      }
+      
+      return updated;
+    });
   };
 
   const handleRoomsSelected = (rooms, zone) => {
@@ -834,6 +863,21 @@ function NewRequest() {
         return;
       }
     }
+
+    const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
+    if (formData.Start_Time && !timeRegex.test(formData.Start_Time)) {
+      showError("Start time must be in 24-hour format (HH:MM).");
+      return;
+    }
+    if (formData.End_Time && !timeRegex.test(formData.End_Time)) {
+      showError("End time must be in 24-hour format (HH:MM).");
+      return;
+    }
+    if (formData.night_shift && formData.new_end_time && !timeRegex.test(formData.new_end_time)) {
+      showError("New End time must be in 24-hour format (HH:MM).");
+      return;
+    }
+
     if (!Zone_Id) {
       showError("Please select at least one zone or room on the floor layout.");
       return;

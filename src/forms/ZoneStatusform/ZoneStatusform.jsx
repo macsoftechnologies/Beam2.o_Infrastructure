@@ -18,20 +18,19 @@ const ZONE_OPTIONS = [
 
 // ─── Status options ───────────────────────────────────────────────────────────
 const STATUS_OPTIONS = [
-  "Construction",
-  "Commissioning",
-  "Completed",
-  "On Hold",
+  { value: "UC", label: "Construction" },
+  { value: "C", label: "Commissioning" },
+  { value: "HO", label: "Hand Over" },
 ];
 
 function ZoneStatusform({ onClose, initialData, isEdit, onSubmit }) {
   const [building, setBuilding] = useState(""); // Stores building_id
-  const [level, setLevel]       = useState(""); // Stores floor_id
-  const [zone, setZone]         = useState("");
-  const [status, setStatus]     = useState("");
+  const [level, setLevel] = useState(""); // Stores floor_id
+  const [zone, setZone] = useState("");
+  const [status, setStatus] = useState("");
 
   const [buildingsList, setBuildingsList] = useState([]);
-  const [floorsList, setFloorsList]       = useState([]);
+  const [floorsList, setFloorsList] = useState([]);
   const [filteredFloorsList, setFilteredFloorsList] = useState([]);
 
   // Fetch buildings and floors
@@ -169,8 +168,8 @@ function ZoneStatusform({ onClose, initialData, isEdit, onSubmit }) {
             required
           >
             <option value="">Status</option>
-            {STATUS_OPTIONS.map((s) => (
-              <option key={s} value={s}>{s}</option>
+            {STATUS_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
         </div>

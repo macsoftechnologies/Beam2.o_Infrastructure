@@ -177,13 +177,13 @@ const Zones = () => {
               <label className="df-label" style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>STATUS</label>
               <select className="df-select">
                 <option value="">All</option>
-                <option value="Under construction">Under construction</option>
-                <option value="Commissioning">Commissioning</option>
-                <option value="Hand Over">Hand Over</option>
+                <option value="UC">Construction</option>
+                <option value="C">Commissioning</option>
+                <option value="HO">Hand Over</option>
               </select>
             </div>
           </div>
-          
+
           <div className="df-footer" style={{ justifyContent: "flex-end", marginTop: "12px", gap: "12px", display: "flex" }}>
             <button type="button" className="dept-add-btn" style={{ backgroundColor: '#CA8A04', color: '#fff', border: 'none' }}>
               <FaFilter style={{ marginRight: '6px' }} /> Filter

@@ -3,16 +3,16 @@ import { getBuildings, getFloors } from "../../services/authService";
 import "../../forms/styles/forms.css";
 
 const STATUS_OPTIONS = [
-  "Under Construction",
-  "Commissioning",
-  "Hand Over",
+  { value: "UC", label: "Construction" },
+  { value: "C", label: "Commissioning" },
+  { value: "HO", label: "Hand Over" },
 ];
 
 function ZoneForm({ onClose, initialData, isEdit, onSubmit }) {
   const [building, setBuilding] = useState(""); // building_id
   const [level, setLevel] = useState(""); // floor_id
   const [zone, setZone] = useState("");
-  const [status, setStatus] = useState("Under Construction");
+  const [status, setStatus] = useState("UC");
 
   const [buildingsList, setBuildingsList] = useState([]);
   const [floorsList, setFloorsList] = useState([]);
@@ -40,7 +40,7 @@ function ZoneForm({ onClose, initialData, isEdit, onSubmit }) {
       setBuilding(initialData.building_id || "");
       setLevel(initialData.floor_id || "");
       setZone(initialData.zone || "");
-      setStatus(initialData.status || "Under Construction");
+      setStatus(initialData.status || "UC");
     }
   }, [initialData, isEdit]);
 
@@ -146,8 +146,8 @@ function ZoneForm({ onClose, initialData, isEdit, onSubmit }) {
             onChange={(e) => setStatus(e.target.value)}
             required
           >
-            {STATUS_OPTIONS.map((s) => (
-              <option key={s} value={s}>{s}</option>
+            {STATUS_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
         </div>
