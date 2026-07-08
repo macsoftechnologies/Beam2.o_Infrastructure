@@ -1194,9 +1194,8 @@ const ListRequest = () => {
         </div>
         <div className="dept-page-header__right">
           <button
-            className="filters-toggle-btn"
+            className="filters-toggle-btn dept-filters-btn"
             onClick={() => setFiltersOpen(p => !p)}
-            style={{ marginRight: "12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "#fff", height: "42px", padding: "0 16px", borderRadius: "6px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "8px" }}
           >
             <FaFilter />
             {filtersOpen ? "Hide Filters" : "Show Filters"}

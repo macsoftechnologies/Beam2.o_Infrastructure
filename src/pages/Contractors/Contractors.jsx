@@ -8,7 +8,7 @@ import { getContractors, addContractor, updateContractor, deleteContractor, getD
 import { API_BASE_URL } from "../../services/api";
 import "../styles/pages.css";
 
-const PAGE_LIMIT_DEFAULT = 10;
+const PAGE_LIMIT_DEFAULT = 10;  
 
 const LogoCell = ({ logoUrl, name, size = 45 }) => {
   const [hasError, setHasError] = useState(false);

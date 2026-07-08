@@ -81,6 +81,34 @@
   font-weight: 700;
 }
 
+/* ── Filters toggle button (Hide / Show Filters) ──────── */
+.dept-filters-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 16px;
+  margin-right: 12px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.2px;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+
+  /* Theme-aware colours via CSS variables */
+  background:   var(--bg-card-hover, rgba(255,255,255,0.08));
+  border:       1px solid var(--border-light, rgba(255,255,255,0.15));
+  color:        var(--text-main, #F9FAFB);
+}
+
+.dept-filters-btn:hover {
+  background:   var(--accent-primary, #3B82F6);
+  border-color: var(--accent-primary, #3B82F6);
+  color:        #ffffff;
+  box-shadow:   0 0 14px rgba(59,130,246,0.25);
+}
+
 /* ── Table Card ──────────────────────────────────────────── */
 .dept-table-card {
   background-color: #111827;

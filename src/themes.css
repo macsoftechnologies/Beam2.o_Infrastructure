@@ -356,6 +356,539 @@ html[data-theme="light"] .zone-modal-footer button.df-btn-secondary:hover {
 
 
 /* ════════════════════════════════════════════════════════
+   LIGHT MODE — pages.css hardcoded colour overrides
+════════════════════════════════════════════════════════ */
+
+/* Page header text */
+html[data-theme="light"] .dept-page-title   { color: var(--text-main)  !important; }
+html[data-theme="light"] .dept-page-subtitle { color: var(--text-muted) !important; }
+html[data-theme="light"] .dept-view-label   { color: var(--text-muted) !important; }
+html[data-theme="light"] .dept-view-value   { color: var(--text-main)  !important; }
+
+/* Table card — was hardcoded #111827 */
+html[data-theme="light"] .dept-table-card {
+  background-color: var(--bg-card)   !important;
+  border-color:     var(--border-color) !important;
+  color:            var(--text-main) !important;
+}
+
+/* View item — was rgba(255,255,255,0.02) */
+html[data-theme="light"] .dept-view-item {
+  background-color: var(--bg-card-hover) !important;
+  border-color:     var(--border-color)  !important;
+}
+
+/* Filter card h3 heading */
+html[data-theme="light"] .dept-table-card h3 { color: var(--text-main) !important; }
+
+/* Count badge */
+html[data-theme="light"] .dept-count-badge {
+  background-color: rgba(37,99,235,0.08) !important;
+  color:            var(--accent-primary) !important;
+  border-color:     rgba(37,99,235,0.2)  !important;
+}
+
+
+/* ════════════════════════════════════════════════════════
+   LIGHT MODE — df-form input / select / textarea
+════════════════════════════════════════════════════════ */
+
+/* Inputs & textareas: use a slightly-off-white background with visible border */
+html[data-theme="light"] .df-form .df-input,
+html[data-theme="light"] .df-form .df-textarea {
+  background:   #F3F4F6 !important;
+  border-color: var(--border-light) !important;
+  color:        var(--text-main) !important;
+}
+html[data-theme="light"] .df-form .df-input::placeholder,
+html[data-theme="light"] .df-form .df-textarea::placeholder {
+  color: var(--text-muted) !important;
+  opacity: 0.8 !important;
+}
+html[data-theme="light"] .df-form .df-input:hover,
+html[data-theme="light"] .df-form .df-textarea:hover {
+  border-color: #9CA3AF !important;
+}
+html[data-theme="light"] .df-form .df-input:focus,
+html[data-theme="light"] .df-form .df-textarea:focus {
+  background:   #FFFFFF !important;
+  border-color: var(--accent-primary) !important;
+  box-shadow:   0 0 0 3px rgba(37,99,235,0.12) !important;
+}
+
+/* Selects */
+html[data-theme="light"] .df-form .df-select {
+  background-color: #F3F4F6 !important;
+  border-color:     var(--border-light) !important;
+  color:            var(--text-main) !important;
+}
+html[data-theme="light"] .df-form .df-select:hover {
+  border-color: #9CA3AF !important;
+}
+html[data-theme="light"] .df-form .df-select:focus {
+  background-color: #FFFFFF !important;
+  border-color:     var(--accent-primary) !important;
+  box-shadow:       0 0 0 3px rgba(37,99,235,0.12) !important;
+}
+html[data-theme="light"] .df-form .df-select option {
+  background: #FFFFFF !important;
+  color:      #111827  !important;
+}
+
+/* Labels */
+html[data-theme="light"] .df-form .df-label {
+  color: var(--text-muted) !important;
+}
+
+/* Footer divider */
+html[data-theme="light"] .df-form .df-footer {
+  border-top-color: var(--border-color) !important;
+}
+
+/* Cancel button */
+html[data-theme="light"] .df-form .df-btn--cancel {
+  background:   var(--bg-card-hover) !important;
+  border-color: var(--border-light)  !important;
+  color:        var(--text-muted)    !important;
+}
+html[data-theme="light"] .df-form .df-btn--cancel:hover {
+  background: var(--border-light) !important;
+  color:      var(--text-main)    !important;
+}
+
+
+/* ════════════════════════════════════════════════════════
+   LIGHT MODE — NewRequest (nr-*) page components
+════════════════════════════════════════════════════════ */
+
+html[data-theme="light"] .nr-selector-bar,
+html[data-theme="light"] .nr-breadcrumb,
+html[data-theme="light"] .nr-form-card,
+html[data-theme="light"] .nr-drawing-card,
+html[data-theme="light"] .nr-empty-state,
+html[data-theme="light"] .nr-modal,
+html[data-theme="light"] .nr-success,
+html[data-theme="light"] .nr-summary-card {
+  background: var(--bg-card)       !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-main)           !important;
+}
+
+html[data-theme="light"] .nr-form-card__header,
+html[data-theme="light"] .nr-drawing-card__header,
+html[data-theme="light"] .nr-modal__header {
+  background:  var(--bg-dark)       !important;
+  border-color: var(--border-color) !important;
+}
+
+html[data-theme="light"] .nr-form-card__title,
+html[data-theme="light"] .nr-drawing-card__title,
+html[data-theme="light"] .nr-modal__title,
+html[data-theme="light"] .nr-modal__section-label {
+  color: var(--text-main)  !important;
+}
+
+html[data-theme="light"] .nr-form-card__sub,
+html[data-theme="light"] .nr-drawing-card__hint,
+html[data-theme="light"] .nr-modal__sub {
+  color: var(--text-muted) !important;
+}
+
+html[data-theme="light"] .nr-modal__footer {
+  background: var(--bg-dark)        !important;
+  border-color: var(--border-color) !important;
+}
+
+html[data-theme="light"] .nr-modal__close {
+  background:   var(--bg-card-hover) !important;
+  border-color: var(--border-light)  !important;
+  color:        var(--text-muted)    !important;
+}
+
+html[data-theme="light"] .nr-selector-group select {
+  background-color: #F3F4F6          !important;
+  border-color:     var(--border-light) !important;
+  color:            var(--text-main) !important;
+}
+html[data-theme="light"] .nr-selector-group select option {
+  background: #FFFFFF !important;
+  color:      #111827 !important;
+}
+
+html[data-theme="light"] .nr-subzone-item {
+  background:   var(--bg-card-hover) !important;
+  border-color: var(--border-light)  !important;
+}
+html[data-theme="light"] .nr-subzone-item:hover {
+  background:   var(--border-color)  !important;
+  border-color: var(--text-dark)     !important;
+}
+html[data-theme="light"] .nr-subzone-item__label {
+  color: var(--text-muted) !important;
+}
+html[data-theme="light"] .nr-subzone-item--sel .nr-subzone-item__label {
+  color: var(--text-main) !important;
+}
+
+html[data-theme="light"] .nr-summary-row {
+  border-bottom-color: var(--border-color) !important;
+}
+html[data-theme="light"] .nr-summary-row__key { color: var(--text-muted) !important; }
+html[data-theme="light"] .nr-summary-row__val { color: var(--text-main)  !important; }
+
+html[data-theme="light"] .nr-success h2 { color: var(--text-main)  !important; }
+html[data-theme="light"] .nr-success p  { color: var(--text-muted) !important; }
+
+
+/* ════════════════════════════════════════════════════════
+   LIGHT MODE — List Request / filter card inputs & selects
+   (these use df-input / df-select OUTSIDE a df-form wrapper)
+════════════════════════════════════════════════════════ */
+html[data-theme="light"] .df-input,
+html[data-theme="light"] .df-select {
+  background:   #F3F4F6            !important;
+  border-color: var(--border-light) !important;
+  color:        var(--text-main)   !important;
+}
+html[data-theme="light"] .df-input::placeholder {
+  color: var(--text-muted) !important;
+}
+html[data-theme="light"] .df-select option {
+  background: #FFFFFF !important;
+  color:      #111827 !important;
+}
+html[data-theme="light"] .df-label {
+  color: var(--text-muted) !important;
+}
+
+
+/* ════════════════════════════════════════════════════════
+   LIGHT MODE — Room-directory panel in NewRequest modal
+   (right-side panel: Rooms Directory header + checkbox list)
+════════════════════════════════════════════════════════ */
+html[data-theme="light"] .modal-room-list,
+html[data-theme="light"] .zones-list-container {
+  background: var(--bg-card) !important;
+}
+html[data-theme="light"] .room-item {
+  background:   var(--bg-card-hover) !important;
+  border-color: var(--border-color)  !important;
+  color:        var(--text-main)     !important;
+}
+
+/* Full-screen zone-select modal (NewRequest drawing modal) */
+html[data-theme="light"] .zone-modal-content {
+  background: var(--bg-card)         !important;
+  border-color: var(--border-color)  !important;
+}
+html[data-theme="light"] .zone-modal-header {
+  background:   var(--bg-dark)       !important;
+  border-color: var(--border-color)  !important;
+  color:        var(--text-main)     !important;
+}
+html[data-theme="light"] .zone-modal-header h3 { color: var(--text-main) !important; }
+
+/* Right sidebar of the zone-select modal */
+html[data-theme="light"] .zone-pdf-container + div {
+  background: var(--bg-card) !important;
+  color:      var(--text-main) !important;
+}
+html[data-theme="light"] .zone-pdf-container + div > div:first-child {
+  background: var(--bg-dark)         !important;
+  border-color: var(--border-color)  !important;
+}
+html[data-theme="light"] .zone-pdf-container + div > div:first-child h4 { color: var(--text-main)  !important; }
+html[data-theme="light"] .zone-pdf-container + div > div:first-child p  { color: var(--text-muted) !important; }
+html[data-theme="light"] .zone-pdf-container + div > div:first-child input {
+  background:   #F3F4F6            !important;
+  border-color: var(--border-light) !important;
+  color:        var(--text-main)   !important;
+}
+
+/* Checkbox text labels in the room/zone list */
+html[data-theme="light"] .zone-pdf-container + div label,
+html[data-theme="light"] .zone-pdf-container + div span,
+html[data-theme="light"] .modal-room-list label,
+html[data-theme="light"] .modal-room-list span {
+  color: var(--text-main) !important;
+}
+
+/* Zone modal footer */
+html[data-theme="light"] .zone-modal-footer {
+  background:   var(--bg-dark)      !important;
+  border-color: var(--border-color) !important;
+}
+html[data-theme="light"] .zone-modal-footer button.df-btn-secondary {
+  background:   var(--bg-card)      !important;
+  border-color: var(--border-color) !important;
+  color:        var(--text-main)    !important;
+}
+
+
+/* ════════════════════════════════════════════════════════
+   LIGHT MODE — NewRequest.css + ListRequest.css hardcoded dark overrides
+   (form-card, zone-modal-content, filters-card-wrapper, etc.)
+════════════════════════════════════════════════════════ */
+
+/* The main form card used by both NewRequest and ListRequest */
+html[data-theme="light"] .form-card {
+  background:   var(--bg-card)      !important;
+  border-color: var(--border-color) !important;
+  color:        var(--text-main)    !important;
+  box-shadow:   var(--shadow-sm)    !important;
+}
+html[data-theme="light"] .form-card-title {
+  color:        var(--text-main)    !important;
+  border-bottom-color: var(--border-color) !important;
+}
+
+/* Filters wrapper card in ListRequest */
+html[data-theme="light"] .filters-card-wrapper {
+  background:   var(--bg-card)      !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Zone-select modal (the full-screen modal in NewRequest) */
+html[data-theme="light"] .zone-modal-content {
+  background:   var(--bg-card)      !important;
+  border-color: var(--border-color) !important;
+}
+html[data-theme="light"] .zone-modal-header {
+  background:   var(--bg-dark)      !important;
+  border-color: var(--border-color) !important;
+  color:        var(--text-main)    !important;
+}
+html[data-theme="light"] .zone-modal-header h3 {
+  color: var(--text-main) !important;
+}
+html[data-theme="light"] .close-btn {
+  color: var(--text-muted) !important;
+}
+html[data-theme="light"] .close-btn:hover {
+  color: var(--text-main) !important;
+}
+
+/* PDF header inside zone modal */
+html[data-theme="light"] .pdf-header {
+  border-bottom-color: var(--border-color) !important;
+}
+html[data-theme="light"] .pdf-header h3 {
+  color: var(--text-main) !important;
+}
+
+/* Checkbox labels */
+html[data-theme="light"] .checkbox-label {
+  color: var(--text-main) !important;
+}
+
+/* Premium form container (ListRequest) */
+html[data-theme="light"] .premium-form-container {
+  background:   var(--bg-card)      !important;
+  border-color: var(--border-color) !important;
+  border-radius: 10px !important;
+  padding: 20px !important;
+}
+
+/* Bulk actions toolbar */
+html[data-theme="light"] .bulk-actions-toolbar {
+  background:   var(--bg-card)      !important;
+  border-color: var(--accent-primary) !important;
+}
+html[data-theme="light"] .bat-info {
+  color: var(--text-main) !important;
+}
+html[data-theme="light"] .bat-btn--cancel {
+  color:        var(--text-muted)    !important;
+  border-color: var(--border-light)  !important;
+}
+html[data-theme="light"] .bat-btn--cancel:hover {
+  background: var(--bg-card-hover) !important;
+  color:      var(--text-main)     !important;
+}
+
+/* Bulk edit dropdown */
+html[data-theme="light"] .bulk-edit-dropdown-menu {
+  background:   var(--bg-card)      !important;
+  border-color: var(--border-color) !important;
+}
+html[data-theme="light"] .bulk-edit-dropdown-menu button {
+  color: var(--text-main) !important;
+}
+html[data-theme="light"] .bulk-edit-dropdown-menu button:hover {
+  background: var(--bg-card-hover) !important;
+  color:      var(--text-main)     !important;
+}
+
+/* Timeline in ListRequest logs modal */
+html[data-theme="light"] .timeline-content {
+  background:   var(--bg-card-hover) !important;
+  border-color: var(--border-color)  !important;
+}
+
+/* ── Closed status badge text fix in light (was white-on-white) ── */
+html[data-theme="light"] .status-badge--closed {
+  color: #6B7280 !important;
+}
+html[data-theme="light"] .status-badge--cancelled {
+  color: #6B7280 !important;
+}
+
+
+/* ════════════════════════════════════════════════════════
+   LIGHT MODE — NewRequest.css component overrides
+   (checklist, radio, checkbox, room-list, PPE row, etc.)
+════════════════════════════════════════════════════════ */
+
+/* Section card headings (General Information, Safety Checklist, etc.) */
+html[data-theme="light"] .form-card h2,
+html[data-theme="light"] .form-card h3,
+html[data-theme="light"] .form-card h4 {
+  color: var(--text-main) !important;
+}
+
+/* Checklist questions text — was #e5e7eb (light on white = invisible) */
+html[data-theme="light"] .checklist-question {
+  color: var(--text-main) !important;
+}
+
+/* Checklist item divider */
+html[data-theme="light"] .checklist-item {
+  border-bottom-color: var(--border-color) !important;
+}
+
+/* Radio group labels — were #fff (white on white = invisible) */
+html[data-theme="light"] .radio-group label {
+  color: var(--text-main) !important;
+}
+
+/* Custom checkbox label & border */
+html[data-theme="light"] .custom-checkbox-label {
+  color: var(--text-main) !important;
+}
+html[data-theme="light"] .custom-checkbox-input {
+  border-color: var(--border-light) !important;
+  background-color: var(--bg-card-hover) !important;
+}
+
+/* Room list bar — was hardcoded #1f2937 */
+html[data-theme="light"] .room-list {
+  background:   var(--bg-card-hover) !important;
+  border-color: var(--border-color)  !important;
+}
+
+/* Room items — were hardcoded #111827 with white text */
+html[data-theme="light"] .room-item {
+  background:   var(--bg-card)       !important;
+  border-color: var(--border-color)  !important;
+  color:        var(--text-main)     !important;
+}
+html[data-theme="light"] .room-item:hover {
+  background:   var(--bg-card-hover) !important;
+  border-color: var(--border-light)  !important;
+}
+html[data-theme="light"] .room-item.checked {
+  background:   rgba(5,150,105,0.08) !important;
+  border-color: var(--color-safe)    !important;
+  color:        var(--color-safe)    !important;
+}
+
+/* Room overlay checkbox background — was dark rgba */
+html[data-theme="light"] .room-overlay-checkbox {
+  background-color: rgba(255,255,255,0.95) !important;
+}
+
+/* Selected rooms tags wrapper */
+html[data-theme="light"] .selected-rooms-tags {
+  background:   var(--bg-card-hover) !important;
+  border-color: var(--border-color)  !important;
+}
+
+/* File items — color was #cbd5e1 (too light on white) */
+html[data-theme="light"] .file-item {
+  color:        var(--text-main)    !important;
+  border-bottom-color: var(--border-color) !important;
+}
+
+/* Upload / logo button — was dark navy #10183b */
+html[data-theme="light"] .logo-btn-sty {
+  background:   var(--bg-card-hover) !important;
+  border-color: var(--border-light)  !important;
+  color:        var(--text-main)     !important;
+}
+html[data-theme="light"] .logo-btn-sty:hover {
+  background:   var(--border-color)  !important;
+  border-color: var(--text-dark)     !important;
+}
+
+/* PPE mandatory row — was dark navy #0e163b */
+html[data-theme="light"] .ppe-mandatory-row {
+  background:   var(--bg-card-hover) !important;
+  border-color: var(--border-color)  !important;
+}
+
+/* Conditional fields separator */
+html[data-theme="light"] .conditional-fields-block {
+  border-top-color: var(--border-color) !important;
+}
+
+/* no-rooms placeholder text */
+html[data-theme="light"] .no-rooms-tag {
+  color: var(--text-muted) !important;
+}
+
+/* df-readonly fields */
+html[data-theme="light"] .df-readonly {
+  background-color: var(--bg-card-hover) !important;
+  color:            var(--text-muted)    !important;
+}
+
+/* ════════════════════════════════════════════════════════
+   LIGHT MODE — NewRequest action footer & button row
+════════════════════════════════════════════════════════ */
+
+/* The df-footer (buttons row) sits between form-cards — give it a
+   light card background with rounded corners so it doesn't look like
+   a floating strip against the page grey */
+html[data-theme="light"] .premium-form-container .df-footer {
+  background:      var(--bg-card)      !important;
+  border:          1px solid var(--border-color) !important;
+  border-radius:   12px !important;
+  padding:         16px 24px !important;
+  margin-top:      0 !important;
+  border-top:      1px solid var(--border-color) !important;
+}
+
+/* Ghost button (Cancel) — was transparent with light border, invisible in light */
+html[data-theme="light"] .nr-btn--ghost {
+  background:   var(--bg-card-hover) !important;
+  border-color: var(--border-light)  !important;
+  color:        var(--text-main)     !important;
+}
+html[data-theme="light"] .nr-btn--ghost:hover {
+  background:   var(--border-color)  !important;
+  color:        var(--text-main)     !important;
+}
+
+/* Back to Drawing link / top right button */
+html[data-theme="light"] .dept-page-header .nr-btn--ghost {
+  background:   var(--bg-card-hover) !important;
+  border-color: var(--border-light)  !important;
+  color:        var(--text-main)     !important;
+}
+
+/* Premium form container — add slight padding so form-cards don't
+   touch the page edge in light mode */
+/* html[data-theme="light"] .premium-form-container {
+  padding: 0 8px !important;
+} */
+
+/* Ensure each form-card has a proper shadow in light */
+html[data-theme="light"] .form-card {
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06), 0 0 0 1px var(--border-color) !important;
+}
+
+
+/* ════════════════════════════════════════════════════════
    3. MIDNIGHT BLUE
    FIX: --sb-bg now #121F44 (matches --navbar-bg)
         --sb-surface now #192C62 (matches --bg-card-hover)
