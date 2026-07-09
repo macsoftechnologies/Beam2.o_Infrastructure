@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Chart, registerables } from 'chart.js';
 import { getRequestCounts, getPlans, getGraphCountsPerDay, getGraphSummary, getZoneStatusCounts, getEmployeeAnalyticsCounts, searchDashboardRequests, getUserLogs } from '../../services/authService';
 import Modal from '../../components/common/Modal/Modal';
@@ -142,9 +143,9 @@ const Icons = {
 }
 
 /* ── STAT CARD ─────────────────────────────── */
-function StatCard({ colorClass, icon: IconComp, value, label }) {
+function StatCard({ colorClass, icon: IconComp, value, label, onClick }) {
   return (
-    <div className={`stat-card-prime ${colorClass}`}>
+    <div className={`stat-card-prime ${colorClass}`} onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default' }}>
       <div className="icon-bubble">
         <IconComp />
       </div>
@@ -216,6 +217,7 @@ function getLogStyle(action) {
 
 /* ═══════════════════════════════════════════ */
 function Dashboard() {
+  const navigate = useNavigate();
   const user = localStorage.getItem("user");
   const parsedUser = user ? JSON.parse(user) : null;
   const userRole = localStorage.getItem("UserType") || parsedUser?.role || parsedUser?.userType || "";
@@ -398,6 +400,35 @@ function Dashboard() {
         responsive: true,
         maintainAspectRatio: false,
         animation: { duration: 500 },
+        onClick: (event, elements) => {
+          if (elements.length > 0 && barChartInst.current) {
+            const firstElement = elements[0];
+            const datasetIndex = firstElement.datasetIndex;
+            const index = firstElement.index;
+            const datasetLabel = barChartInst.current.data.datasets[datasetIndex].label;
+            const status = datasetLabel === 'Open' ? 'Opened' : datasetLabel;
+            
+            const label = barChartInst.current.data.labels[index];
+            let parsedDate = null;
+            const parts = (label ?? "").trim().split(" ");
+            const datePart = parts[parts.length - 1];
+            if (datePart && datePart.includes("/")) {
+              const [day, month, yearShort] = datePart.split("/");
+              parsedDate = `20${yearShort}-${month}-${day}`;
+            }
+
+            navigate('/list-request', {
+              state: {
+                status,
+                fromDate: parsedDate,
+                toDate: parsedDate
+              }
+            });
+          }
+        },
+        onHover: (event, chartElements) => {
+          event.native.target.style.cursor = chartElements.length > 0 ? 'pointer' : 'default';
+        },
         plugins: {
           legend: {
             position: 'bottom',
@@ -743,19 +774,19 @@ function Dashboard() {
 
       {/* ── STAT CARDS ── */}
       <div className="stat-cards-row">
-        <StatCard colorClass="card-slate" icon={Icons.Stack} value={counts.totalCount.toLocaleString()} label="Total" />
-        <StatCard colorClass="card-purple" icon={Icons.Check} value={counts.approvedCount.toLocaleString()} label="Approved" />
-        <StatCard colorClass="card-green" icon={Icons.Shield} value={counts.closedCount.toLocaleString()} label="Closed" />
-        <StatCard colorClass="card-cyan" icon={Icons.DoorOpen} value={counts.openedCount.toLocaleString()} label="Opened" />
-        <StatCard colorClass="card-cyan" icon={Icons.Clock} value={counts.holdCount.toLocaleString()} label="On Hold" />
+        <StatCard colorClass="card-slate" icon={Icons.Stack} value={counts.totalCount.toLocaleString()} label="Total" onClick={() => navigate('/list-request')} />
+        <StatCard colorClass="card-purple" icon={Icons.Check} value={counts.approvedCount.toLocaleString()} label="Approved" onClick={() => navigate('/list-request', { state: { status: 'Approved' } })} />
+        <StatCard colorClass="card-green" icon={Icons.Shield} value={counts.closedCount.toLocaleString()} label="Closed" onClick={() => navigate('/list-request', { state: { status: 'Closed' } })} />
+        <StatCard colorClass="card-cyan" icon={Icons.DoorOpen} value={counts.openedCount.toLocaleString()} label="Opened" onClick={() => navigate('/list-request', { state: { status: 'Opened' } })} />
+        <StatCard colorClass="card-cyan" icon={Icons.Clock} value={counts.holdCount.toLocaleString()} label="On Hold" onClick={() => navigate('/list-request', { state: { status: 'Hold' } })} />
         
         {showAllStats && (
           <>
-            <StatCard colorClass="card-purple" icon={Icons.Check} value={counts.preApprovedCount.toLocaleString()} label="Pre-Approved" />
-            <StatCard colorClass="card-slate" icon={Icons.Clock} value={counts.draftCount.toLocaleString()} label="Drafts" />
-            <StatCard colorClass="card-rose" icon={Icons.XCircle} value={counts.rejectedCount.toLocaleString()} label="Rejected" />
-            <StatCard colorClass="card-rose" icon={Icons.XCircle} value={counts.cancelledCount.toLocaleString()} label="Cancelled" />
-            <StatCard colorClass="card-rose" icon={Icons.XCircle} value={counts.autoCancelledCount.toLocaleString()} label="Auto Cancelled" />
+            <StatCard colorClass="card-purple" icon={Icons.Check} value={counts.preApprovedCount.toLocaleString()} label="Pre-Approved" onClick={() => navigate('/list-request', { state: { status: 'Pre-Approved' } })} />
+            <StatCard colorClass="card-slate" icon={Icons.Clock} value={counts.draftCount.toLocaleString()} label="Drafts" onClick={() => navigate('/list-request', { state: { status: 'Draft' } })} />
+            <StatCard colorClass="card-rose" icon={Icons.XCircle} value={counts.rejectedCount.toLocaleString()} label="Rejected" onClick={() => navigate('/list-request', { state: { status: 'Rejected' } })} />
+            <StatCard colorClass="card-rose" icon={Icons.XCircle} value={counts.cancelledCount.toLocaleString()} label="Cancelled" onClick={() => navigate('/list-request', { state: { status: 'Cancelled' } })} />
+            <StatCard colorClass="card-rose" icon={Icons.XCircle} value={counts.autoCancelledCount.toLocaleString()} label="Auto Cancelled" onClick={() => navigate('/list-request', { state: { status: 'Auto-Cancelled' } })} />
           </>
         )}
       </div>
@@ -836,12 +867,41 @@ function Dashboard() {
             { label: 'Rejected', value: todaySummary.rejectedCount, color: '#EF4444' },
             { label: 'Cancelled', value: todaySummary.cancelledCount, color: '#F43F5E' },
             { label: 'Night Shift', value: todaySummary.nightshiftCount, color: '#FCD34D' },
-          ].map(({ label, value, color }) => (
-            <div key={label} className="today-row">
-              <span>{label}</span>
-              <span style={{ fontWeight: 700, color }}>{value}</span>
-            </div>
-          ))}
+          ].map(({ label, value, color }) => {
+            const handleRowClick = () => {
+              const todayStr = new Date().toISOString().split('T')[0];
+              let status = null;
+              let nightShift = undefined;
+
+              if (label === 'Drafts') status = 'Draft';
+              else if (label === 'On Hold') status = 'Hold';
+              else if (label === 'Pre-Approved') status = 'Pre-Approved';
+              else if (label === 'Approved') status = 'Approved';
+              else if (label === 'Opened') status = 'Opened';
+              else if (label === 'Closed') status = 'Closed';
+              else if (label === 'Rejected') status = 'Rejected';
+              else if (label === 'Cancelled') status = 'Cancelled';
+              else if (label === 'Night Shift') {
+                nightShift = "1";
+              }
+
+              navigate('/list-request', {
+                state: {
+                  status,
+                  fromDate: todayStr,
+                  toDate: todayStr,
+                  nightShift
+                }
+              });
+            };
+
+            return (
+              <div key={label} className="today-row" onClick={handleRowClick} style={{ cursor: 'pointer' }}>
+                <span>{label}</span>
+                <span style={{ fontWeight: 700, color }}>{value}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -851,7 +911,7 @@ function Dashboard() {
         <div className="clean-card">
           <div className="clean-card-header">
             <div className="section-heading">Recent Requests</div>
-            <a href="/list-request" className="btn-view-all">View All</a>
+            <span onClick={() => navigate('/list-request')} className="btn-view-all" style={{ cursor: 'pointer' }}>View All</span>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table className="custom-table">
@@ -884,7 +944,7 @@ function Dashboard() {
           <div className="clean-card">
             <div className="clean-card-header">
               <div className="section-heading">Pending Approvals</div>
-              <a href="/list-request" className="btn-view-all-danger">View All</a>
+              <span onClick={() => navigate('/list-request', { state: { status: 'Hold' } })} className="btn-view-all-danger" style={{ cursor: 'pointer' }}>View All</span>
             </div>
             <div style={{ overflowX: 'auto' }}>
               <table className="custom-table">

@@ -39,8 +39,8 @@ export const addDepartments = async (data) => {
     const response = await api.post("/departments", data);
     return response.data;
 };
-export const getDepartments = async (page = 1, limit = 10) => {
-    const res = await api.get(`/departments/?page=${page}&limit=${limit}`);
+export const getDepartments = async (page = 1, limit = 10, isExport = false) => {
+    const res = await api.get(`/departments/?page=${page}&limit=${limit}&isExport=${isExport}`);
     return res.data;
 };
 export const getDepartmentsById = async (id) => {
@@ -58,8 +58,8 @@ export const deleteDepartment = async (id) => {
 };
 
 // ---------------- Contractors (Subcontractors) APIs ----------------
-export const getContractors = async (page = 1, limit = 10) => {
-    const res = await api.get(`/subcontractors/?page=${page}&limit=${limit}`);
+export const getContractors = async (page = 1, limit = 10, isExport = false) => {
+    const res = await api.get(`/subcontractors/?page=${page}&limit=${limit}&isExport=${isExport}`);
     return res.data;
 };
 
@@ -87,8 +87,8 @@ export const deleteContractor = async (id) => {
 };
 
 // ---------------- Employees APIs ----------------
-export const getEmployees = async (page = 1, limit = 10) => {
-    const res = await api.get(`/employee?page=${page}&limit=${limit}`);
+export const getEmployees = async (page = 1, limit = 10, isExport = false) => {
+    const res = await api.get(`/employee?page=${page}&limit=${limit}&isExport=${isExport}`);
     return res.data;
 };
 
@@ -116,14 +116,20 @@ export const deleteEmployee = async (id) => {
     return res.data;
 };
 
-export const searchEmployees = async (searchQuery) => {
-    const res = await api.post("/employee/search", { search: searchQuery });
+export const searchEmployees = async (searchQuery = "", page = 1, limit = 10, isExport = false, companyName = "") => {
+    const res = await api.post("/employee/search", { search: searchQuery, page, limit, isExport, companyName });
     return res.data;
 };
 
 // ---------------- Zone Status (Zones) APIs ----------------
-export const getZones = async (page = 1, limit = 10) => {
-    const res = await api.get(`/zones?page=${page}&limit=${limit}`);
+export const getZones = async (page = 1, limit = 10, zone = "", level = "", building_id = "", isExport = false, status = "") => {
+    let url = `/zones?page=${page}&limit=${limit}`;
+    if (zone) url += `&zone=${encodeURIComponent(zone)}`;
+    if (level) url += `&level=${encodeURIComponent(level)}`;
+    if (building_id) url += `&building_id=${encodeURIComponent(building_id)}`;
+    if (status) url += `&status=${encodeURIComponent(status)}`;
+    if (isExport) url += `&isExport=${isExport}`;
+    const res = await api.get(url);
     return res.data;
 };
 

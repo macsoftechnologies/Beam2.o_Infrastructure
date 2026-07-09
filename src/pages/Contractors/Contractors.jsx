@@ -92,8 +92,9 @@ const Contractors = () => {
     setIsLoading(true);
     try {
       const res = await getContractors(page, pageLimit);
-      const rows = res?.data?.rows ?? res?.data ?? res ?? [];
-      const count = res?.data?.count ?? res?.total ?? rows.length;
+      const rawData = res?.data ?? (Array.isArray(res) ? res : []);
+      const rows = Array.isArray(rawData) ? rawData : (rawData?.rows ?? []);
+      const count = res?.total ?? (Array.isArray(rawData) ? rawData.length : (rawData?.count ?? 0));
       setContractorList(rows);
       setTotalCount(count);
     } catch {
@@ -174,6 +175,73 @@ const Contractors = () => {
     }
   };
 
+  const handleExportCSV = async () => {
+    try {
+      const res = await getContractors(1, 100000, true);
+      const rows = res?.data?.rows ?? res?.data ?? res ?? [];
+      if (rows.length === 0) {
+        alert("No data available to export.");
+        return;
+      }
+      const headers = ["S.No", "Contractor Name", "Department"];
+      const csvRows = rows.map((item, index) => {
+        const matchedDept = departments.find(d => String(d.id) === String(item.departId));
+        const deptName = matchedDept ? matchedDept.departmentName : "—";
+        return [
+          index + 1,
+          `"${(item.subContractorName || "").replace(/"/g, '""')}"`,
+          `"${(deptName || "").replace(/"/g, '""')}"`
+        ].join(",");
+      });
+      const csvContent = "\uFEFF" + [headers.join(","), ...csvRows].join("\n");
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', `Contractors_Report_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error(err);
+      showError("Export failed");
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      const res = await getContractors(1, 100000, true);
+      const rows = res?.data?.rows ?? res?.data ?? res ?? [];
+      if (rows.length === 0) {
+        alert("No data available to export.");
+        return;
+      }
+      const headers = ["S.No", "Contractor Name", "Department"];
+      let html = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
+      html += '<head><meta charset="UTF-8"></head><body><table border="1">';
+      html += '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+      rows.forEach((item, index) => {
+        const matchedDept = departments.find(d => String(d.id) === String(item.departId));
+        const deptName = matchedDept ? matchedDept.departmentName : "—";
+        html += `<tr>
+          <td>${index + 1}</td>
+          <td>${String(item.subContractorName || "").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
+          <td>${String(deptName || "").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
+        </tr>`;
+      });
+      html += '</table></body></html>';
+      const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', `Contractors_Report_${new Date().toISOString().slice(0, 10)}.xls`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error(err);
+      showError("Export failed");
+    }
+  };
+
   const totalPages = Math.ceil((totalCount || contractorList.length) / pageLimit);
   const startIndex = (currentPage - 1) * pageLimit;
 
@@ -224,10 +292,10 @@ const Contractors = () => {
 
       <div className="dept-table-card">
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px', gap: '12px' }}>
-          <button className="dept-add-btn" style={{ backgroundColor: '#22C55E', border: 'none' }}>
+          <button onClick={handleExportCSV} className="dept-add-btn" style={{ backgroundColor: '#22C55E', border: 'none', cursor: 'pointer' }}>
             <FaFileCsv style={{ marginRight: '6px', fontSize: '1.1rem' }} /> CSV
           </button>
-          <button className="dept-add-btn" style={{ backgroundColor: '#3B82F6', border: 'none' }}>
+          <button onClick={handleExportExcel} className="dept-add-btn" style={{ backgroundColor: '#3B82F6', border: 'none', cursor: 'pointer' }}>
             <FaArrowDown style={{ marginRight: '6px' }} /> Excel
           </button>
         </div>

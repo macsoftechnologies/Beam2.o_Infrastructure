@@ -29,8 +29,9 @@ const Departments = () => {
     setIsLoading(true);
     try {
       const res = await getDepartments(page, pageLimit);
-      const rows = res?.data?.rows ?? res?.data ?? res ?? [];
-      const count = res?.data?.count ?? res?.total ?? rows.length;
+      const rawData = res?.data ?? (Array.isArray(res) ? res : []);
+      const rows = Array.isArray(rawData) ? rawData : (rawData?.rows ?? []);
+      const count = res?.total ?? (Array.isArray(rawData) ? rawData.length : (rawData?.count ?? 0));
       setDepartmentList(rows);
       setTotalCount(count);
     } catch {
@@ -86,6 +87,67 @@ const Departments = () => {
       fetchDepartments(currentPage);
     } catch {
       showError("Operation failed");
+    }
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      const res = await getDepartments(1, 100000, true);
+      const rows = res?.data?.rows ?? res?.data ?? res ?? [];
+      if (rows.length === 0) {
+        alert("No data available to export.");
+        return;
+      }
+      const headers = ["S.No", "Department Name"];
+      const csvRows = rows.map((item, index) => {
+        return [
+          index + 1,
+          `"${(item.departmentName || "").replace(/"/g, '""')}"`
+        ].join(",");
+      });
+      const csvContent = "\uFEFF" + [headers.join(","), ...csvRows].join("\n");
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', `Departments_Report_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error(err);
+      showError("Export failed");
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      const res = await getDepartments(1, 100000, true);
+      const rows = res?.data?.rows ?? res?.data ?? res ?? [];
+      if (rows.length === 0) {
+        alert("No data available to export.");
+        return;
+      }
+      const headers = ["S.No", "Department Name"];
+      let html = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
+      html += '<head><meta charset="UTF-8"></head><body><table border="1">';
+      html += '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+      rows.forEach((item, index) => {
+        html += `<tr>
+          <td>${index + 1}</td>
+          <td>${String(item.departmentName || "").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
+        </tr>`;
+      });
+      html += '</table></body></html>';
+      const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', `Departments_Report_${new Date().toISOString().slice(0, 10)}.xls`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error(err);
+      showError("Export failed");
     }
   };
 
@@ -156,10 +218,10 @@ const Departments = () => {
       {/* ── Table Card ── */}
       <div className="dept-table-card">
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px', gap: '12px' }}>
-          <button className="dept-add-btn" style={{ backgroundColor: '#22C55E', border: 'none' }}>
+          <button onClick={handleExportCSV} className="dept-add-btn" style={{ backgroundColor: '#22C55E', border: 'none', cursor: 'pointer' }}>
             <FaFileCsv style={{ marginRight: '6px', fontSize: '1.1rem' }} /> CSV
           </button>
-          <button className="dept-add-btn" style={{ backgroundColor: '#3B82F6', border: 'none' }}>
+          <button onClick={handleExportExcel} className="dept-add-btn" style={{ backgroundColor: '#3B82F6', border: 'none', cursor: 'pointer' }}>
             <FaArrowDown style={{ marginRight: '6px' }} /> Excel
           </button>
         </div>

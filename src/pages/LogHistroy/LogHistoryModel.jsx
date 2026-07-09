@@ -29,6 +29,10 @@ const LogHistoryModal = ({ permit, onClose }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    const handleViewLogsHtml = () => {
+        window.open(`http://187.127.171.51/requests/logs-design/${permit.PermitNo}`, "_blank");
+    };
+
     useEffect(() => {
         if (!permit?.PermitNo) return;
 
@@ -61,20 +65,21 @@ const LogHistoryModal = ({ permit, onClose }) => {
             <div
                 onClick={onClose}
                 style={{
-                    position: "fixed", inset: 0,
+                    position: "fixed",
+                    top: "70px", left: 0, right: 0, bottom: 0,
                     backgroundColor: "rgba(0,0,0,0.65)",
-                    zIndex: 1000,
+                    zIndex: 9998,
                 }}
             />
 
             {/* Drawer */}
             <div style={{
-                position: "fixed", top: 0, right: 0,
+                position: "fixed", top: "70px", right: 0,
                 width: "500px", maxWidth: "95vw",
-                height: "100vh",
+                height: "calc(100vh - 70px)",
                 backgroundColor: "#0f1a33",
                 borderLeft: "1px solid #2e3f66",
-                zIndex: 1001,
+                zIndex: 9999,
                 display: "flex",
                 flexDirection: "column",
                 boxShadow: "-8px 0 32px rgba(0,0,0,0.5)",
@@ -111,17 +116,42 @@ const LogHistoryModal = ({ permit, onClose }) => {
                             </div>
                         )}
                     </div>
-                    <button
-                        onClick={onClose}
-                        style={{
-                            background: "none", border: "none",
-                            color: "#7a8aab", cursor: "pointer",
-                            fontSize: "20px", lineHeight: 1,
-                            padding: "4px", marginLeft: "12px", flexShrink: 0,
-                        }}
-                    >
-                        ✕
-                    </button>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", flexShrink: 0 }}>
+                        <button
+                            onClick={handleViewLogsHtml}
+                            title="View Logs Page"
+                            style={{
+                                background: "#10b981",
+                                border: "none",
+                                borderRadius: "6px",
+                                color: "#ffffff",
+                                cursor: "pointer",
+                                padding: "6px 12px",
+                                fontSize: "12px",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                fontWeight: 600,
+                            }}
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle" }}>
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                            View Logs
+                        </button>
+                        <button
+                            onClick={onClose}
+                            style={{
+                                background: "none", border: "none",
+                                color: "#7a8aab", cursor: "pointer",
+                                fontSize: "20px", lineHeight: 1,
+                                padding: "4px",
+                            }}
+                        >
+                            ✕
+                        </button>
+                    </div>
                 </div>
 
                 {/* ── Body ── */}

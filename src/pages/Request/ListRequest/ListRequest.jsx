@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { FaEdit, FaEye, FaCopy, FaTrash, FaPlus, FaFilter, FaHistory, FaCheck, FaTimes, FaEllipsisV } from "react-icons/fa";
 import {
   getContractors,
@@ -273,6 +273,30 @@ const MultiSelectDropdown = ({
 const ListRequest = () => {
   const navigate = useNavigate();
   const currentUser = getUser();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state) {
+      const { status, fromDate, toDate } = location.state;
+      setSearchFilters(prev => {
+        const updated = { ...prev };
+        if (status) {
+          updated.statuses = Array.isArray(status) ? status : [status];
+        } else {
+          updated.statuses = [];
+        }
+        if (fromDate !== undefined) {
+          updated.fromDate = fromDate;
+        }
+        if (toDate !== undefined) {
+          updated.toDate = toDate;
+        }
+        return updated;
+      });
+      // Clear location state so they don't persist on page reload
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   // ─── Component States ──────────────────────────────────────────────────────
   const [requests, setRequests] = useState([]);

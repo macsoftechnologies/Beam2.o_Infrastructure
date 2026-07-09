@@ -20,6 +20,15 @@ const Zones = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [buildings, setBuildings] = useState([]);
 
+  const [filterZoneName, setFilterZoneName] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+
+  const statusLabelMap = {
+    UC: "Construction",
+    C: "Commissioning",
+    HO: "Hand Over",
+  };
+
   // ─── Fetch building mapping ───────────────────────────────────────────────
   useEffect(() => {
     const fetchB = async () => {
@@ -45,12 +54,13 @@ const Zones = () => {
   const startIndex = (currentPage - 1) * pageLimit;
 
   // ─── Fetch list ───────────────────────────────────────────────────────────
-  const fetchZonesList = useCallback(async (page = 1) => {
+  const fetchZonesList = useCallback(async (page = 1, zoneKeyword = filterZoneName, statusFilter = filterStatus) => {
     setIsLoading(true);
     try {
-      const res = await getZones(page, pageLimit);
-      const rows = res?.data ?? res ?? [];
-      const count = res?.total ?? rows.length;
+      const res = await getZones(page, pageLimit, zoneKeyword, "", "", false, statusFilter);
+      const rawData = res?.data ?? (Array.isArray(res) ? res : []);
+      const rows = Array.isArray(rawData) ? rawData : (rawData?.rows ?? []);
+      const count = res?.total ?? (Array.isArray(rawData) ? rawData.length : (rawData?.count ?? 0));
       setZoneList(rows);
       setTotalCount(count);
     } catch (err) {
@@ -58,11 +68,90 @@ const Zones = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [pageLimit]);
+  }, [pageLimit, filterZoneName, filterStatus]);
 
   useEffect(() => {
     fetchZonesList(currentPage);
-  }, [currentPage, fetchZonesList]);
+  }, [currentPage]);
+
+  const handleFilter = () => {
+    setCurrentPage(1);
+    fetchZonesList(1, filterZoneName, filterStatus);
+  };
+
+  const handleClear = () => {
+    setFilterZoneName("");
+    setFilterStatus("");
+    setCurrentPage(1);
+    fetchZonesList(1, "", "");
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      const res = await getZones(1, 100000, filterZoneName, "", "", true, filterStatus);
+      const rows = res?.data ?? res ?? [];
+      if (rows.length === 0) {
+        alert("No data available to export.");
+        return;
+      }
+      const headers = ["S.No", "Building", "Level / Floor", "Zone Name", "Status"];
+      const csvRows = rows.map((item, index) => {
+        return [
+          index + 1,
+          `"${(buildingMap[item.building_id] || "—").replace(/"/g, '""')}"`,
+          `"${(item.level || "").replace(/"/g, '""')}"`,
+          `"${(item.zone || "").replace(/"/g, '""')}"`,
+          `"${(statusLabelMap[item.status] ?? item.status ?? "").replace(/"/g, '""')}"`
+        ].join(",");
+      });
+      const csvContent = "\uFEFF" + [headers.join(","), ...csvRows].join("\n");
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', `Zones_Report_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error(err);
+      showError("Export failed");
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      const res = await getZones(1, 100000, filterZoneName, "", "", true, filterStatus);
+      const rows = res?.data ?? res ?? [];
+      if (rows.length === 0) {
+        alert("No data available to export.");
+        return;
+      }
+      const headers = ["S.No", "Building", "Level / Floor", "Zone Name", "Status"];
+      let html = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
+      html += '<head><meta charset="UTF-8"></head><body><table border="1">';
+      html += '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+      rows.forEach((item, index) => {
+        html += `<tr>
+          <td>${index + 1}</td>
+          <td>${String(buildingMap[item.building_id] || "—").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
+          <td>${String(item.level || "").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
+          <td>${String(item.zone || "").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
+          <td>${String(statusLabelMap[item.status] ?? item.status ?? "").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
+        </tr>`;
+      });
+      html += '</table></body></html>';
+      const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', `Zones_Report_${new Date().toISOString().slice(0, 10)}.xls`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error(err);
+      showError("Export failed");
+    }
+  };
 
   // ─── Handlers ─────────────────────────────────────────────────────────────
   const handleEdit = (item, index) => {
@@ -113,12 +202,6 @@ const Zones = () => {
     { header: "Status", accessor: "status" },
     { header: "Actions", accessor: "actions" },
   ];
-
-  const statusLabelMap = {
-    UC: "Construction",
-    C: "Commissioning",
-    HO: "Hand Over",
-  };
 
   const tableData = zoneList.map((item, index) => ({
     ...item,
@@ -171,11 +254,11 @@ const Zones = () => {
           <div className="df-grid">
             <div className="df-field">
               <label className="df-label" style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>ZONE NAME</label>
-              <input type="text" className="df-input" placeholder="Search by zone name" />
+              <input type="text" className="df-input" placeholder="Search by zone name" value={filterZoneName} onChange={(e) => setFilterZoneName(e.target.value)} />
             </div>
             <div className="df-field">
               <label className="df-label" style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>STATUS</label>
-              <select className="df-select">
+              <select className="df-select" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
                 <option value="">All</option>
                 <option value="UC">Construction</option>
                 <option value="C">Commissioning</option>
@@ -185,16 +268,16 @@ const Zones = () => {
           </div>
 
           <div className="df-footer" style={{ justifyContent: "flex-end", marginTop: "12px", gap: "12px", display: "flex" }}>
-            <button type="button" className="dept-add-btn" style={{ backgroundColor: '#CA8A04', color: '#fff', border: 'none' }}>
+            <button onClick={handleFilter} type="button" className="dept-add-btn" style={{ backgroundColor: '#CA8A04', color: '#fff', border: 'none', cursor: 'pointer' }}>
               <FaFilter style={{ marginRight: '6px' }} /> Filter
             </button>
-            <button type="button" className="dept-add-btn" style={{ backgroundColor: '#4B5563', border: 'none' }}>
+            <button onClick={handleClear} type="button" className="dept-add-btn" style={{ backgroundColor: '#4B5563', border: 'none', cursor: 'pointer' }}>
               <FaTimes style={{ marginRight: '6px' }} /> Clear
             </button>
-            <button className="dept-add-btn" style={{ backgroundColor: '#22C55E', border: 'none' }}>
+            <button onClick={handleExportCSV} className="dept-add-btn" style={{ backgroundColor: '#22C55E', border: 'none', cursor: 'pointer' }}>
               <FaFileCsv style={{ marginRight: '6px', fontSize: '1.1rem' }} /> CSV
             </button>
-            <button className="dept-add-btn" style={{ backgroundColor: '#3B82F6', border: 'none' }}>
+            <button onClick={handleExportExcel} className="dept-add-btn" style={{ backgroundColor: '#3B82F6', border: 'none', cursor: 'pointer' }}>
               <FaArrowDown style={{ marginRight: '6px' }} /> Excel
             </button>
           </div>
