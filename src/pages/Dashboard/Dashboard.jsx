@@ -979,7 +979,7 @@ function Dashboard() {
 
           {/* Zone Status */}
           <div className="zone-card">
-            <div className="card-title">
+            <div className="card-title" onClick={() => navigate('/location/zones')} style={{ cursor: 'pointer' }}>
               <Icons.GeoAlt /> Zone Status
             </div>
             {[
@@ -988,21 +988,24 @@ function Dashboard() {
                 iconBg: '#FEF3C7', iconColor: '#D97706',
                 icon: <Icons.ConeStriped />,
                 name: 'Under Construction', sub: 'Active zones', count: zoneCounts.UC,
+                status: 'UC',
               },
               {
                 cls: 'info',
                 iconBg: '#CFFAFE', iconColor: '#0891B2',
                 icon: <Icons.GearWide />,
                 name: 'Commissioning', sub: 'In progress', count: zoneCounts.C,
+                status: 'C',
               },
               {
                 cls: 'success',
                 iconBg: '#D1FAE5', iconColor: '#059669',
                 icon: <Icons.BuildingCheck />,
                 name: 'Hand Over', sub: 'Completed', count: zoneCounts.HO,
+                status: 'HO',
               },
             ].map(z => (
-              <div key={z.name} className={`zone-item ${z.cls}`}>
+              <div key={z.name} className={`zone-item ${z.cls}`} onClick={() => navigate('/location/zones', { state: { status: z.status } })} style={{ cursor: 'pointer' }}>
                 <div className="zone-icon" style={{ background: z.iconBg, color: z.iconColor }}>
                   {z.icon}
                 </div>
@@ -1021,21 +1024,21 @@ function Dashboard() {
               <Icons.BarChart /> System Statistics
             </div>
             <div className="stats-grid">
-              <div>
+              <div onClick={() => navigate('/departments')} style={{ cursor: 'pointer' }}>
                 <div className="stat-circle bg-primary-soft">
                   <Icons.Buildings />
                 </div>
                 <p className="stat-circle-num">{employeeCounts.departments}</p>
                 <p className="stat-circle-label">Departments</p>
               </div>
-              <div>
+              <div onClick={() => navigate('/contractors')} style={{ cursor: 'pointer' }}>
                 <div className="stat-circle bg-success-soft">
                   <Icons.BriefcaseLg />
                 </div>
                 <p className="stat-circle-num">{employeeCounts.contractors}</p>
                 <p className="stat-circle-label">Contractors</p>
               </div>
-              <div>
+              <div onClick={() => navigate('/employees')} style={{ cursor: 'pointer' }}>
                 <div className="stat-circle" style={{ background: 'rgba(6, 182, 212, 0.15)', color: '#0891B2' }}>
                   <Icons.Shield />
                 </div>
@@ -1043,7 +1046,7 @@ function Dashboard() {
                 <p className="stat-circle-label">Observers</p>
               </div>
             </div>
-            <div className="emp-band">
+            <div className="emp-band" onClick={() => navigate('/employees')} style={{ cursor: 'pointer' }}>
               <span className="emp-band-label">
                 <Icons.PeopleFill />
                 Total Employees

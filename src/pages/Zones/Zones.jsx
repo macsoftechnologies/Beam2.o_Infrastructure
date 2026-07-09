@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import { showSuccess, showError, showDeleteConfirm, showDeleteSuccess } from "../../components/common/Toast/Toast";
 import Table from "../../components/common/Table/Table";
 import Modal from "../../components/common/Modal/Modal";
@@ -10,6 +11,7 @@ import "../styles/pages.css";
 const PAGE_LIMIT_DEFAULT = 10;
 
 const Zones = () => {
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [selectedZone, setSelectedZone] = useState(null);
@@ -21,13 +23,19 @@ const Zones = () => {
   const [buildings, setBuildings] = useState([]);
 
   const [filterZoneName, setFilterZoneName] = useState("");
-  const [filterStatus, setFilterStatus] = useState("");
+  const [filterStatus, setFilterStatus] = useState(location.state?.status || "");
 
   const statusLabelMap = {
     UC: "Construction",
     C: "Commissioning",
     HO: "Hand Over",
   };
+
+  useEffect(() => {
+    if (location.state?.status) {
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   // ─── Fetch building mapping ───────────────────────────────────────────────
   useEffect(() => {
