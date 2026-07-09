@@ -8,7 +8,7 @@ import {
   getZones,
   getPlans
 } from "../../services/authService";
-import { searchRequests } from "../../services/requestService";
+import { planRequests, searchRequests } from "../../services/requestService";
 import { buildingDataWithIds } from "../../data/buildingDataWithIds";
 import "../styles/pages.css";
 import "../../forms/styles/forms.css";
@@ -82,7 +82,7 @@ const MultiSelectDropdown = ({
   placeholder,
   options = [],
   selectedValues = [],
-  onChange = () => {},
+  onChange = () => { },
   hasNone = false,
   isHra = false
 }) => {
@@ -129,7 +129,7 @@ const MultiSelectDropdown = ({
       displayText = "None";
     } else {
       const selectedLabels = [];
-      
+
       // Flatten options to easily search labels
       const allOpts = [];
       options.forEach(opt => {
@@ -355,7 +355,7 @@ const MultiSelectDropdown = ({
 const StatusBadge = ({ status }) => {
   let color = "#3b82f6";
   let bg = "rgba(59, 130, 246, 0.1)";
-  
+
   const s = String(status || "").toLowerCase();
   if (s === "approved") {
     color = "#10b981";
@@ -376,7 +376,7 @@ const StatusBadge = ({ status }) => {
     color = "#6b7280";
     bg = "rgba(107, 114, 128, 0.1)";
   }
-  
+
   return (
     <span style={{
       color,
@@ -510,7 +510,7 @@ const Reports = () => {
       setWeeksList([]);
       return;
     }
-    
+
     const weeks = [];
     const dec28 = new Date(Number(yearVal), 11, 28);
     const day = dec28.getDay();
@@ -523,17 +523,17 @@ const Reports = () => {
       const ISOweekStart = new Date(simple);
       const startDayOffset = dow === 0 ? -6 : 1 - dow;
       ISOweekStart.setDate(simple.getDate() + startDayOffset);
-      
+
       const ISOweekEnd = new Date(ISOweekStart);
       ISOweekEnd.setDate(ISOweekStart.getDate() + 6);
-      
+
       const formatDate = (d) => {
         const y = d.getFullYear();
         const m = String(d.getMonth() + 1).padStart(2, '0');
         const dt = String(d.getDate()).padStart(2, '0');
         return `${y}/${m}/${dt}`;
       };
-      
+
       weeks.push(`${formatDate(ISOweekStart)}  -  ${formatDate(ISOweekEnd)}  -  ${w}`);
     }
     setWeeksList(weeks);
@@ -541,6 +541,25 @@ const Reports = () => {
 
   // ─── Search API Query ──────────────────────────────────────────────────────
   const handleShow = async () => {
+    const targetDate = (filters.reportType === "1" && filters.date) ? filters.date : "";
+    const fromDateStr = targetDate || filters.workingDateFrom || "";
+    const toDateStr = targetDate || filters.workingDateTo || "";
+
+    if (fromDateStr && toDateStr) {
+      const fromVal = new Date(fromDateStr);
+      const toVal = new Date(toDateStr);
+      if (toVal < fromVal) {
+        showError("To Date cannot be earlier than From Date.");
+        return;
+      }
+      if (fromDateStr === toDateStr && filters.startTime && filters.endTime) {
+        if (filters.endTime < filters.startTime) {
+          showError("End Time cannot be earlier than Start Time for the same day.");
+          return;
+        }
+      }
+    }
+
     setIsSearching(true);
     setHasSearched(true);
     try {
@@ -548,8 +567,8 @@ const Reports = () => {
 
       // Unified search payload parameters (with fallback/compatible keys)
       searchPayload.Site_Id = 5;
-      searchPayload.Page = 1;
-      searchPayload.End = 5000;
+      // searchPayload.Page = 1;
+      // searchPayload.End = 5000;
       searchPayload.Building_Id = filters.building.length > 0 ? Number(filters.building[0]) : null;
       searchPayload.Sub_Contractor_Id = filters.subContractor ? Number(filters.subContractor) : null;
       searchPayload.Room_Type = filters.level.length > 0 ? filters.level.join(",") : "";
@@ -557,11 +576,11 @@ const Reports = () => {
       searchPayload.permit_type = filters.permitType || "";
       searchPayload.permit_under = filters.permitUnder || "";
       searchPayload.night_shift = filters.nightShift ? "1" : "0";
-      
+
       const targetDate = (filters.reportType === "1" && filters.date) ? filters.date : "";
       searchPayload.fromDate = targetDate || filters.workingDateFrom || "";
       searchPayload.toDate = targetDate || filters.workingDateTo || "";
-      
+
       // Suffix start/end time with :00 if present
       searchPayload.Start_Time = filters.startTime ? (filters.startTime.length === 5 ? `${filters.startTime}:00` : filters.startTime) : "";
       searchPayload.End_Time = filters.endTime ? (filters.endTime.length === 5 ? `${filters.endTime}:00` : filters.endTime) : "";
@@ -570,7 +589,6 @@ const Reports = () => {
       const statusArray = Array.isArray(filters.status) ? filters.status : [];
       const formattedStatus = statusArray
         .filter(val => val !== null && val !== undefined && val !== "")
-        .map(val => `'${val}'`)
         .join(",");
       searchPayload.Request_status = formattedStatus || "";
 
@@ -591,8 +609,8 @@ const Reports = () => {
       searchPayload.new_end_time = filters.newEndTime || "";
 
       // Call Unified Search API
-      const res = await searchRequests(searchPayload);
-      
+      const res = await planRequests(searchPayload);
+
       let rows = [];
       if (res && res.data) {
         if (Array.isArray(res.data) && res.data.length > 0 && res.data[0] && Array.isArray(res.data[0].data)) {
@@ -609,7 +627,7 @@ const Reports = () => {
           rows = res;
         }
       }
-      
+
       setTableData(rows);
       setCurrentPage(1);
     } catch (err) {
@@ -702,7 +720,7 @@ const Reports = () => {
     const rows = tableData.map(x => {
       const dayIndex = x.Working_Date ? new Date(x.Working_Date).getDay() : null;
       const dayName = (dayIndex !== null && !isNaN(dayIndex)) ? daysNames[dayIndex] : "";
-      
+
       const rowData = {
         PermitNo: x.PermitNo || "",
         PermitUnder: x.permit_under || 'Construction',
@@ -806,7 +824,7 @@ const Reports = () => {
     const rowsData = tableData.map(x => {
       const dayIndex = x.Working_Date ? new Date(x.Working_Date).getDay() : null;
       const dayName = (dayIndex !== null && !isNaN(dayIndex)) ? daysNames[dayIndex] : "";
-      
+
       return {
         PermitNo: x.PermitNo || "",
         PermitUnder: x.permit_under || 'Construction',
@@ -919,7 +937,7 @@ const Reports = () => {
       <div className="dept-table-card" style={{ marginBottom: "24px" }}>
         <div className="df-form" style={{ padding: "24px" }}>
           <div className="df-grid">
-            
+
             {/* Row 1: Report Type | Date */}
             <div className="df-field">
               <label className="df-label">Report Type</label>

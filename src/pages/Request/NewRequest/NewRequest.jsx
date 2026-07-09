@@ -8,7 +8,7 @@ import FloorDrawing from "../FloorDrawing/FloorDrawing";
 import { FLOOR_PDFS } from "../../../data/pdfMapping";
 import { ZONE_MAPPING } from "../../../data/zones";
 import { BUILDINGS } from "../../../data/buildings";
-import { getContractors, getActivities, getElectricalWorks, getMechanicalWorks, getBuildings, getFloors, getZones, getRooms, getUser } from "../../../services/authService";
+import { getContractors, getActivities, getElectricalWorks, getMechanicalWorks, getBuildings, getFloors, getZones, getRooms, getUser, getPrecautions } from "../../../services/authService";
 import { createRequest, updateRequest, addRamsFiles, deleteRamsFile, addListReqstNote } from "../../../services/requestService";
 import { showSuccess, showError } from "../../../components/common/Toast/Toast";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -55,10 +55,10 @@ const getNextDate = (dateStr) => {
   const y = parseInt(parts[0], 10);
   const m = parseInt(parts[1], 10) - 1;
   const d = parseInt(parts[2], 10);
-  
+
   const dateObj = new Date(y, m, d);
   dateObj.setDate(dateObj.getDate() + 1);
-  
+
   const nextY = dateObj.getFullYear();
   const nextM = String(dateObj.getMonth() + 1).padStart(2, "0");
   const nextD = String(dateObj.getDate()).padStart(2, "0");
@@ -83,6 +83,7 @@ function NewRequest() {
   const [floorsList, setFloorsList] = useState([]);
   const [zonesList, setZonesList] = useState([]);
   const [roomsList, setRoomsList] = useState([]);
+  const [precautionsList, setPrecautionsList] = useState([]);
   const [isLoadingSelectors, setIsLoadingSelectors] = useState(true);
 
   const shouldShowElectricianCert = () => {
@@ -97,6 +98,7 @@ function NewRequest() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isElectricalDropdownOpen, setIsElectricalDropdownOpen] = useState(false);
   const [isMechanicalDropdownOpen, setIsMechanicalDropdownOpen] = useState(false);
+  const [isPrecautionsDropdownOpen, setIsPrecautionsDropdownOpen] = useState(false);
 
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [fieldErrors, setFieldErrors] = useState({});
@@ -122,6 +124,7 @@ function NewRequest() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+  const precautionsDropdownRef = useRef(null);
 
   const triggerFileInput = () => {
     if (fileInputRef.current) {
@@ -196,6 +199,7 @@ function NewRequest() {
     work_type: "",
     electrical_works: [],
     mechanical_works: [],
+    Safety_Precautions: [],
     // General Safety Questions (Yes=1, No=0, N/A=2)
     floatLabel11: "",
     floatLabel12: "",
@@ -355,7 +359,8 @@ function NewRequest() {
           buildingsRes,
           floorsRes,
           zonesRes,
-          roomsRes
+          roomsRes,
+          precautionsRes
         ] = await Promise.all([
           getContractors(1, 1000),
           getActivities(1, 1000),
@@ -364,7 +369,8 @@ function NewRequest() {
           getBuildings(1, 1000),
           getFloors(1, 1000),
           getZones(1, 1000),
-          getRooms(1, 1000)
+          getRooms(1, 1000),
+          getPrecautions(1, 1000)
         ]);
 
         setContractors(contractorsRes?.data?.rows ?? contractorsRes?.data ?? contractorsRes ?? []);
@@ -375,6 +381,7 @@ function NewRequest() {
         setFloorsList(floorsRes?.data ?? []);
         setZonesList(zonesRes?.data ?? []);
         setRoomsList(roomsRes?.data?.rows ?? roomsRes?.data ?? roomsRes ?? []);
+        setPrecautionsList(precautionsRes?.data?.rows ?? precautionsRes?.data ?? precautionsRes ?? []);
       } catch (err) {
         console.error("Failed to load request form selector data", err);
         showError("Failed to load selector databases.");
@@ -383,6 +390,19 @@ function NewRequest() {
       }
     };
     loadSelectors();
+  }, []);
+
+  // Handle click outside for precautions dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (precautionsDropdownRef.current && !precautionsDropdownRef.current.contains(event.target)) {
+        setIsPrecautionsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   // Bind edit request data once selectors have finished loading
@@ -516,6 +536,9 @@ function NewRequest() {
         work_type: editRequest.work_type || "",
         electrical_works: editRequest.electrical_works ? String(editRequest.electrical_works).split(",").map(x => x.trim()) : [],
         mechanical_works: editRequest.mechanical_works ? String(editRequest.mechanical_works).split(",").map(x => x.trim()) : [],
+        Safety_Precautions: (editRequest.Safety_Precautions || editRequest.safetyPrecautions)
+          ? String(editRequest.Safety_Precautions || editRequest.safetyPrecautions).split(",").map(x => x.trim())
+          : [],
 
         // General Safety Questions
         floatLabel11: formatDbValue(editRequest.affecting_other_contractors),
@@ -754,18 +777,18 @@ function NewRequest() {
     });
     setFormData((prev) => {
       const updated = { ...prev, [field]: value };
-      
+
       if (field === "night_shift" && value === true) {
         if (prev.Working_Date) {
           updated.new_date = getNextDate(prev.Working_Date);
         }
         updated.End_Time = "23:59";
       }
-      
+
       if (field === "Working_Date" && prev.night_shift === true) {
         updated.new_date = getNextDate(value);
       }
-      
+
       return updated;
     });
   };
@@ -822,7 +845,7 @@ function NewRequest() {
     if (!formData.Working_Date) errors.Working_Date = "Please select a working Date.";
     if (!formData.Start_Time) errors.Start_Time = "Please enter Start Time.";
     if (!formData.End_Time) errors.End_Time = "Please enter End Time.";
-    
+
     // Tools & Machinery
     if (!formData.Tools?.trim()) errors.Tools = "Please enter tools used.";
     if (!formData.Machinery?.trim()) errors.Machinery = "Please enter machinery used.";
@@ -1098,6 +1121,24 @@ function NewRequest() {
       return;
     }
 
+    if (formData.Start_Time) {
+      if (formData.night_shift) {
+        if (formData.new_end_time) {
+          if (formData.new_end_time >= formData.Start_Time) {
+            showError("For night shift, new end time must be earlier than start time.");
+            return;
+          }
+        }
+      } else {
+        if (formData.End_Time) {
+          if (formData.Start_Time >= formData.End_Time) {
+            showError("Start time must be earlier than End time.");
+            return;
+          }
+        }
+      }
+    }
+
     if (!Zone_Id) {
       showError("Please select at least one zone or room on the floor layout.");
       return;
@@ -1177,6 +1218,7 @@ function NewRequest() {
       Number_Of_Workers: formData.Number_Of_Workers,
       electrical_works: Array.isArray(formData.electrical_works) ? formData.electrical_works.join(",") : "",
       mechanical_works: Array.isArray(formData.mechanical_works) ? formData.mechanical_works.join(",") : "",
+      Safety_Precautions: Array.isArray(formData.Safety_Precautions) ? formData.Safety_Precautions.join(",") : "",
 
       // General Safety Checklist
       affecting_other_contractors: formData.floatLabel11 || 0,
@@ -1285,6 +1327,7 @@ function NewRequest() {
       responsible_for_the_area: formData.floatLabel88 || 0,
       risk_assessment_done: formData.floatLabel89 || 0,
       barriers_signage: formData.floatLabel90 || 0,
+      arc_flash: formData.floatLabel110 || 0,
       energized_been_tested: formData.floatLabel91 || 0,
       punches_been_closed: formData.floatLabel92 || 0,
       toct_checklist: formData.floatLabel93 || 0,
@@ -1600,7 +1643,7 @@ function NewRequest() {
                   value={formData.Working_Date}
                   min={!isEditMode ? new Date().toISOString().split("T")[0] : undefined}
                   onChange={(e) => handleFieldChange("Working_Date", e.target.value)}
-                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                  onClick={(e) => { try { e.target.showPicker(); } catch (_) { } }}
                 />
                 {fieldErrors.Working_Date && <span className="field-error">{fieldErrors.Working_Date}</span>}
               </div>
@@ -1611,7 +1654,7 @@ function NewRequest() {
                   className={`df-input${fieldErrors.Start_Time ? " field-input-error" : ""}`}
                   value={formData.Start_Time}
                   onChange={(e) => handleFieldChange("Start_Time", e.target.value)}
-                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                  onClick={(e) => { try { e.target.showPicker(); } catch (_) { } }}
                 />
                 {fieldErrors.Start_Time && <span className="field-error">{fieldErrors.Start_Time}</span>}
               </div>
@@ -1625,7 +1668,7 @@ function NewRequest() {
                   className={`df-input${fieldErrors.End_Time ? " field-input-error" : ""}`}
                   value={formData.End_Time}
                   onChange={(e) => handleFieldChange("End_Time", e.target.value)}
-                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                  onClick={(e) => { try { e.target.showPicker(); } catch (_) { } }}
                 />
                 {fieldErrors.End_Time && <span className="field-error">{fieldErrors.End_Time}</span>}
               </div>
@@ -1974,7 +2017,7 @@ function NewRequest() {
                 <label><input type="radio" name="floatLabel11" value="0" checked={formData.floatLabel11 === "0"} onChange={(e) => handleFieldChange("floatLabel11", e.target.value)} /> No</label>
                 <label><input type="radio" name="floatLabel11" value="2" checked={formData.floatLabel11 === "2"} onChange={(e) => handleFieldChange("floatLabel11", e.target.value)} /> N/A</label>
               </div>
-              {fieldErrors.floatLabel11 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+              {fieldErrors.floatLabel11 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
             </div>
 
             <div className="checklist-item">
@@ -1986,7 +2029,7 @@ function NewRequest() {
                 <label><input type="radio" name="floatLabel12" value="0" checked={formData.floatLabel12 === "0"} onChange={(e) => handleFieldChange("floatLabel12", e.target.value)} /> No</label>
                 <label><input type="radio" name="floatLabel12" value="2" checked={formData.floatLabel12 === "2"} onChange={(e) => handleFieldChange("floatLabel12", e.target.value)} /> N/A</label>
               </div>
-              {fieldErrors.floatLabel12 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+              {fieldErrors.floatLabel12 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
               {formData.floatLabel12 === "1" && (
                 <div className="df-field" style={{ marginTop: "8px" }}>
                   <label className="df-label">Note the Other Condition</label>
@@ -2010,7 +2053,7 @@ function NewRequest() {
                 <label><input type="radio" name="floatLabel13" value="0" checked={formData.floatLabel13 === "0"} onChange={(e) => handleFieldChange("floatLabel13", e.target.value)} /> No</label>
                 <label><input type="radio" name="floatLabel13" value="2" checked={formData.floatLabel13 === "2"} onChange={(e) => handleFieldChange("floatLabel13", e.target.value)} /> N/A</label>
               </div>
-              {fieldErrors.floatLabel13 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+              {fieldErrors.floatLabel13 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
             </div>
 
             <div className="checklist-item">
@@ -2022,7 +2065,7 @@ function NewRequest() {
                 <label><input type="radio" name="floatLabel14" value="0" checked={formData.floatLabel14 === "0"} onChange={(e) => handleFieldChange("floatLabel14", e.target.value)} /> No</label>
                 <label><input type="radio" name="floatLabel14" value="2" checked={formData.floatLabel14 === "2"} onChange={(e) => handleFieldChange("floatLabel14", e.target.value)} /> N/A</label>
               </div>
-              {fieldErrors.floatLabel14 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+              {fieldErrors.floatLabel14 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
             </div>
 
             <div className="checklist-item">
@@ -2034,7 +2077,7 @@ function NewRequest() {
                 <label><input type="radio" name="floatLabel15" value="0" checked={formData.floatLabel15 === "0"} onChange={(e) => handleFieldChange("floatLabel15", e.target.value)} /> No</label>
                 <label><input type="radio" name="floatLabel15" value="2" checked={formData.floatLabel15 === "2"} onChange={(e) => handleFieldChange("floatLabel15", e.target.value)} /> N/A</label>
               </div>
-              {fieldErrors.floatLabel15 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+              {fieldErrors.floatLabel15 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
             </div>
 
             <div className="checklist-item">
@@ -2046,7 +2089,7 @@ function NewRequest() {
                 <label><input type="radio" name="floatLabel16" value="0" checked={formData.floatLabel16 === "0"} onChange={(e) => handleFieldChange("floatLabel16", e.target.value)} /> No</label>
                 <label><input type="radio" name="floatLabel16" value="2" checked={formData.floatLabel16 === "2"} onChange={(e) => handleFieldChange("floatLabel16", e.target.value)} /> N/A</label>
               </div>
-              {fieldErrors.floatLabel16 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+              {fieldErrors.floatLabel16 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
             </div>
           </div>
 
@@ -2067,7 +2110,7 @@ function NewRequest() {
                   <option value="0">No</option>
                   <option value="1">Yes</option>
                 </select>
-                {fieldErrors.Hot_work && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                {fieldErrors.Hot_work && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
               </div>
             </div>
 
@@ -2075,110 +2118,110 @@ function NewRequest() {
               <div className="conditional-fields-block" style={{ marginBottom: "20px" }}>
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Are there other tasks in progress in the area? <span className="req-star">*</span>
-              </p>
+                    Are there other tasks in progress in the area? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel1" value="1" checked={formData.floatLabel1 === "1"} onChange={(e) => handleFieldChange("floatLabel1", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel1" value="0" checked={formData.floatLabel1 === "0"} onChange={(e) => handleFieldChange("floatLabel1", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel1" value="2" checked={formData.floatLabel1 === "2"} onChange={(e) => handleFieldChange("floatLabel1", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel1 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel1 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Have you considered any alternative methods to the hot work method? <span className="req-star">*</span>
-              </p>
+                    Have you considered any alternative methods to the hot work method? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel3" value="1" checked={formData.floatLabel3 === "1"} onChange={(e) => handleFieldChange("floatLabel3", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel3" value="0" checked={formData.floatLabel3 === "0"} onChange={(e) => handleFieldChange("floatLabel3", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel3" value="2" checked={formData.floatLabel3 === "2"} onChange={(e) => handleFieldChange("floatLabel3", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel3 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel3 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Have the team been informed about the specific risks based on task? <span className="req-star">*</span>
-              </p>
+                    Have the team been informed about the specific risks based on task? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel4" value="1" checked={formData.floatLabel4 === "1"} onChange={(e) => handleFieldChange("floatLabel4", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel4" value="0" checked={formData.floatLabel4 === "0"} onChange={(e) => handleFieldChange("floatLabel4", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel4" value="2" checked={formData.floatLabel4 === "2"} onChange={(e) => handleFieldChange("floatLabel4", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel4 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel4 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Is the work environment safety ensured? Have the necessary warning signs been placed? <span className="req-star">*</span>
-              </p>
+                    Is the work environment safety ensured? Have the necessary warning signs been placed? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel5" value="1" checked={formData.floatLabel5 === "1"} onChange={(e) => handleFieldChange("floatLabel5", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel5" value="0" checked={formData.floatLabel5 === "0"} onChange={(e) => handleFieldChange("floatLabel5", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel5" value="2" checked={formData.floatLabel5 === "2"} onChange={(e) => handleFieldChange("floatLabel5", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel5 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel5 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Have the team been informed about the course of action in emergencies? <span className="req-star">*</span>
-              </p>
+                    Have the team been informed about the course of action in emergencies? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel6" value="1" checked={formData.floatLabel6 === "1"} onChange={(e) => handleFieldChange("floatLabel6", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel6" value="0" checked={formData.floatLabel6 === "0"} onChange={(e) => handleFieldChange("floatLabel6", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel6" value="2" checked={formData.floatLabel6 === "2"} onChange={(e) => handleFieldChange("floatLabel6", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel6 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel6 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Should a fire watch be established? <span className="req-star">*</span>
-              </p>
+                    Should a fire watch be established? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel7" value="1" checked={formData.floatLabel7 === "1"} onChange={(e) => handleFieldChange("floatLabel7", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel7" value="0" checked={formData.floatLabel7 === "0"} onChange={(e) => handleFieldChange("floatLabel7", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel7" value="2" checked={formData.floatLabel7 === "2"} onChange={(e) => handleFieldChange("floatLabel7", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel7 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel7 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Can you confirm that the flammable material are removed from the work area? <span className="req-star">*</span>
-              </p>
+                    Can you confirm that the flammable material are removed from the work area? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel8" value="1" checked={formData.floatLabel8 === "1"} onChange={(e) => handleFieldChange("floatLabel8", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel8" value="0" checked={formData.floatLabel8 === "0"} onChange={(e) => handleFieldChange("floatLabel8", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel8" value="2" checked={formData.floatLabel8 === "2"} onChange={(e) => handleFieldChange("floatLabel8", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel8 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel8 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Should safety measures implemented to stop sparks from splattering on a flooring or other surfaces? <span className="req-star">*</span>
-              </p>
+                    Should safety measures implemented to stop sparks from splattering on a flooring or other surfaces? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel9" value="1" checked={formData.floatLabel9 === "1"} onChange={(e) => handleFieldChange("floatLabel9", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel9" value="0" checked={formData.floatLabel9 === "0"} onChange={(e) => handleFieldChange("floatLabel9", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel9" value="2" checked={formData.floatLabel9 === "2"} onChange={(e) => handleFieldChange("floatLabel9", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel9 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel9 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Are fire extinguishers and fire blanket ready for use in the area? <span className="req-star">*</span>
-              </p>
+                    Are fire extinguishers and fire blanket ready for use in the area? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel10" value="1" checked={formData.floatLabel10 === "1"} onChange={(e) => handleFieldChange("floatLabel10", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel10" value="0" checked={formData.floatLabel10 === "0"} onChange={(e) => handleFieldChange("floatLabel10", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel10" value="2" checked={formData.floatLabel10 === "2"} onChange={(e) => handleFieldChange("floatLabel10", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel10 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel10 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="df-field" style={{ marginTop: "16px" }}>
@@ -2191,32 +2234,32 @@ function NewRequest() {
                     <option value="0">No</option>
                     <option value="1">Yes</option>
                   </select>
-                {fieldErrors.NEWHOTWORK && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.NEWHOTWORK && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 {formData.NEWHOTWORK === "1" && (
                   <div className="welding-subform" style={{ marginTop: "12px", paddingLeft: "16px", borderLeft: "3px solid #2563eb" }}>
                     <div className="checklist-item">
                       <p className="checklist-question">
-                The people who will do heat treatment, had welder certificates? <span className="req-star">*</span>
-              </p>
+                        The people who will do heat treatment, had welder certificates? <span className="req-star">*</span>
+                      </p>
                       <div className="radio-group">
                         <label><input type="radio" name="NEWHOTWORK1" value="1" checked={formData.NEWHOTWORK1 === "1"} onChange={(e) => handleFieldChange("NEWHOTWORK1", e.target.value)} /> Yes</label>
                         <label><input type="radio" name="NEWHOTWORK1" value="0" checked={formData.NEWHOTWORK1 === "0"} onChange={(e) => handleFieldChange("NEWHOTWORK1", e.target.value)} /> No</label>
                         <label><input type="radio" name="NEWHOTWORK1" value="2" checked={formData.NEWHOTWORK1 === "2"} onChange={(e) => handleFieldChange("NEWHOTWORK1", e.target.value)} /> N/A</label>
                       </div>
-              {fieldErrors.NEWHOTWORK1 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                      {fieldErrors.NEWHOTWORK1 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                     </div>
                     <div className="checklist-item">
                       <p className="checklist-question">
-                Should air extraction be established? <span className="req-star">*</span>
-              </p>
+                        Should air extraction be established? <span className="req-star">*</span>
+                      </p>
                       <div className="radio-group">
                         <label><input type="radio" name="NEWHOTWORK2" value="1" checked={formData.NEWHOTWORK2 === "1"} onChange={(e) => handleFieldChange("NEWHOTWORK2", e.target.value)} /> Yes</label>
                         <label><input type="radio" name="NEWHOTWORK2" value="0" checked={formData.NEWHOTWORK2 === "0"} onChange={(e) => handleFieldChange("NEWHOTWORK2", e.target.value)} /> No</label>
                         <label><input type="radio" name="NEWHOTWORK2" value="2" checked={formData.NEWHOTWORK2 === "2"} onChange={(e) => handleFieldChange("NEWHOTWORK2", e.target.value)} /> N/A</label>
                       </div>
-              {fieldErrors.NEWHOTWORK2 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                      {fieldErrors.NEWHOTWORK2 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                     </div>
                   </div>
                 )}
@@ -2236,7 +2279,7 @@ function NewRequest() {
                   <option value="0">No</option>
                   <option value="1">Yes</option>
                 </select>
-                {fieldErrors.working_on_electrical_system && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                {fieldErrors.working_on_electrical_system && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
               </div>
             </div>
 
@@ -2244,62 +2287,62 @@ function NewRequest() {
               <div className="conditional-fields-block" style={{ marginBottom: "20px" }}>
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Is the responsible for the area informed? <span className="req-star">*</span>
-              </p>
+                    Is the responsible for the area informed? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel17" value="1" checked={formData.floatLabel17 === "1"} onChange={(e) => handleFieldChange("floatLabel17", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel17" value="0" checked={formData.floatLabel17 === "0"} onChange={(e) => handleFieldChange("floatLabel17", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel17" value="2" checked={formData.floatLabel17 === "2"} onChange={(e) => handleFieldChange("floatLabel17", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel17 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel17 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Check if the board is de-energized - is it de-energized? <span className="req-star">*</span>
-              </p>
+                    Check if the board is de-energized - is it de-energized? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel18" value="1" checked={formData.floatLabel18 === "1"} onChange={(e) => handleFieldChange("floatLabel18", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel18" value="0" checked={formData.floatLabel18 === "0"} onChange={(e) => handleFieldChange("floatLabel18", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel18" value="2" checked={formData.floatLabel18 === "2"} onChange={(e) => handleFieldChange("floatLabel18", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel18 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel18 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Secure the area against reconnection using LOTO (Lock-out/Tag-out) with at least a padlock. <span className="req-star">*</span>
-              </p>
+                    Secure the area against reconnection using LOTO (Lock-out/Tag-out) with at least a padlock. <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel19" value="1" checked={formData.floatLabel19 === "1"} onChange={(e) => handleFieldChange("floatLabel19", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel19" value="0" checked={formData.floatLabel19 === "0"} onChange={(e) => handleFieldChange("floatLabel19", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel19" value="2" checked={formData.floatLabel19 === "2"} onChange={(e) => handleFieldChange("floatLabel19", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel19 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel19 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Do you have risk assessment done (RAMS)? <span className="req-star">*</span>
-              </p>
+                    Do you have risk assessment done (RAMS)? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel20" value="1" checked={formData.floatLabel20 === "1"} onChange={(e) => handleFieldChange("floatLabel20", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel20" value="0" checked={formData.floatLabel20 === "0"} onChange={(e) => handleFieldChange("floatLabel20", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel20" value="2" checked={formData.floatLabel20 === "2"} onChange={(e) => handleFieldChange("floatLabel20", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel20 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel20 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Do appliances/devices that run on electricity have insulation? <span className="req-star">*</span>
-              </p>
+                    Do appliances/devices that run on electricity have insulation? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel22" value="1" checked={formData.floatLabel22 === "1"} onChange={(e) => handleFieldChange("floatLabel22", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel22" value="0" checked={formData.floatLabel22 === "0"} onChange={(e) => handleFieldChange("floatLabel22", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel22" value="2" checked={formData.floatLabel22 === "2"} onChange={(e) => handleFieldChange("floatLabel22", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel22 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel22 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
               </div>
             )}
@@ -2324,98 +2367,98 @@ function NewRequest() {
               <div className="conditional-fields-block" style={{ marginBottom: "20px" }}>
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Relevant MAL-codes and safety datasheets for hazardous medias have been presented? <span className="req-star">*</span>
-              </p>
+                    Relevant MAL-codes and safety datasheets for hazardous medias have been presented? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel24" value="1" checked={formData.floatLabel24 === "1"} onChange={(e) => handleFieldChange("floatLabel24", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel24" value="0" checked={formData.floatLabel24 === "0"} onChange={(e) => handleFieldChange("floatLabel24", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel24" value="2" checked={formData.floatLabel24 === "2"} onChange={(e) => handleFieldChange("floatLabel24", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel24 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel24 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Is MSDS (Material Safety Data Sheet) submitted? <span className="req-star">*</span>
-              </p>
+                    Is MSDS (Material Safety Data Sheet) submitted? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel25" value="1" checked={formData.floatLabel25 === "1"} onChange={(e) => handleFieldChange("floatLabel25", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel25" value="0" checked={formData.floatLabel25 === "0"} onChange={(e) => handleFieldChange("floatLabel25", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel25" value="2" checked={formData.floatLabel25 === "2"} onChange={(e) => handleFieldChange("floatLabel25", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel25 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel25 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Has the use of protective equipment been taken into account - and are they present? <span className="req-star">*</span>
-              </p>
+                    Has the use of protective equipment been taken into account - and are they present? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel26" value="1" checked={formData.floatLabel26 === "1"} onChange={(e) => handleFieldChange("floatLabel26", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel26" value="0" checked={formData.floatLabel26 === "0"} onChange={(e) => handleFieldChange("floatLabel26", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel26" value="2" checked={formData.floatLabel26 === "2"} onChange={(e) => handleFieldChange("floatLabel26", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel26 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel26 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Has the use of ventilation been taken into account? <span className="req-star">*</span>
-              </p>
+                    Has the use of ventilation been taken into account? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel27" value="1" checked={formData.floatLabel27 === "1"} onChange={(e) => handleFieldChange("floatLabel27", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel27" value="0" checked={formData.floatLabel27 === "0"} onChange={(e) => handleFieldChange("floatLabel27", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel27" value="2" checked={formData.floatLabel27 === "2"} onChange={(e) => handleFieldChange("floatLabel27", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel27 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel27 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Will the hazardous substances affect people outside the working area? (fumes) <span className="req-star">*</span>
-              </p>
+                    Will the hazardous substances affect people outside the working area? (fumes) <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel28" value="1" checked={formData.floatLabel28 === "1"} onChange={(e) => handleFieldChange("floatLabel28", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel28" value="0" checked={formData.floatLabel28 === "0"} onChange={(e) => handleFieldChange("floatLabel28", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel28" value="2" checked={formData.floatLabel28 === "2"} onChange={(e) => handleFieldChange("floatLabel28", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel28 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel28 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Are there means for safe storage and disposal? Is it mapped on the site plan? <span className="req-star">*</span>
-              </p>
+                    Are there means for safe storage and disposal? Is it mapped on the site plan? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel29" value="1" checked={formData.floatLabel29 === "1"} onChange={(e) => handleFieldChange("floatLabel29", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel29" value="0" checked={formData.floatLabel29 === "0"} onChange={(e) => handleFieldChange("floatLabel29", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel29" value="2" checked={formData.floatLabel29 === "2"} onChange={(e) => handleFieldChange("floatLabel29", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel29 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel29 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Are the spill kits in place and reachable in case of a leak or spill? <span className="req-star">*</span>
-              </p>
+                    Are the spill kits in place and reachable in case of a leak or spill? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel30" value="1" checked={formData.floatLabel30 === "1"} onChange={(e) => handleFieldChange("floatLabel30", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel30" value="0" checked={formData.floatLabel30 === "0"} onChange={(e) => handleFieldChange("floatLabel30", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel30" value="2" checked={formData.floatLabel30 === "2"} onChange={(e) => handleFieldChange("floatLabel30", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel30 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel30 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Is RAMS covering chemicals risk assessment for working with the substance? <span className="req-star">*</span>
-              </p>
+                    Is RAMS covering chemicals risk assessment for working with the substance? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel31" value="1" checked={formData.floatLabel31 === "1"} onChange={(e) => handleFieldChange("floatLabel31", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel31" value="0" checked={formData.floatLabel31 === "0"} onChange={(e) => handleFieldChange("floatLabel31", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel31" value="2" checked={formData.floatLabel31 === "2"} onChange={(e) => handleFieldChange("floatLabel31", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel31 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel31 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
               </div>
             )}
@@ -2433,7 +2476,7 @@ function NewRequest() {
                   <option value="0">No</option>
                   <option value="1">Yes</option>
                 </select>
-                {fieldErrors.working_at_height && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                {fieldErrors.working_at_height && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
               </div>
             </div>
 
@@ -2441,158 +2484,158 @@ function NewRequest() {
               <div className="conditional-fields-block" style={{ marginBottom: "20px" }}>
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Has the working area been segregated or demarkated with hand barriers? <span className="req-star">*</span>
-              </p>
+                    Has the working area been segregated or demarkated with hand barriers? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="segragated_demarkated" value="1" checked={formData.segragated_demarkated === "1"} onChange={(e) => handleFieldChange("segragated_demarkated", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="segragated_demarkated" value="0" checked={formData.segragated_demarkated === "0"} onChange={(e) => handleFieldChange("segragated_demarkated", e.target.value)} /> No</label>
                     <label><input type="radio" name="segragated_demarkated" value="2" checked={formData.segragated_demarkated === "2"} onChange={(e) => handleFieldChange("segragated_demarkated", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.segragated_demarkated && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.segragated_demarkated && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Are suitable anchor points in place for lanyard attachments? <span className="req-star">*</span>
-              </p>
+                    Are suitable anchor points in place for lanyard attachments? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel39" value="1" checked={formData.floatLabel39 === "1"} onChange={(e) => handleFieldChange("floatLabel39", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel39" value="0" checked={formData.floatLabel39 === "0"} onChange={(e) => handleFieldChange("floatLabel39", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel39" value="2" checked={formData.floatLabel39 === "2"} onChange={(e) => handleFieldChange("floatLabel39", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel39 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel39 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                In case of emergency is there a rescue plan in place? <span className="req-star">*</span>
-              </p>
+                    In case of emergency is there a rescue plan in place? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel40" value="1" checked={formData.floatLabel40 === "1"} onChange={(e) => handleFieldChange("floatLabel40", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel40" value="0" checked={formData.floatLabel40 === "0"} onChange={(e) => handleFieldChange("floatLabel40", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel40" value="2" checked={formData.floatLabel40 === "2"} onChange={(e) => handleFieldChange("floatLabel40", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel40 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel40 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Have the work been planned and coordinated to avoid hazards like (falling objects/materials onto other workers, interference between the machines etc.)? <span className="req-star">*</span>
-              </p>
+                    Have the work been planned and coordinated to avoid hazards like (falling objects/materials onto other workers, interference between the machines etc.)? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel41" value="1" checked={formData.floatLabel41 === "1"} onChange={(e) => handleFieldChange("floatLabel41", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel41" value="0" checked={formData.floatLabel41 === "0"} onChange={(e) => handleFieldChange("floatLabel41", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel41" value="2" checked={formData.floatLabel41 === "2"} onChange={(e) => handleFieldChange("floatLabel41", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel41 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel41 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Have the team had certified working at height training? <span className="req-star">*</span>
-              </p>
+                    Have the team had certified working at height training? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel42" value="1" checked={formData.floatLabel42 === "1"} onChange={(e) => handleFieldChange("floatLabel42", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel42" value="0" checked={formData.floatLabel42 === "0"} onChange={(e) => handleFieldChange("floatLabel42", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel42" value="2" checked={formData.floatLabel42 === "2"} onChange={(e) => handleFieldChange("floatLabel42", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel42 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel42 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Will this work be carried out by, and under the supervision of personnel who have received 'Working at Height' training? <span className="req-star">*</span>
-              </p>
+                    Will this work be carried out by, and under the supervision of personnel who have received 'Working at Height' training? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel43" value="1" checked={formData.floatLabel43 === "1"} onChange={(e) => handleFieldChange("floatLabel43", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel43" value="0" checked={formData.floatLabel43 === "0"} onChange={(e) => handleFieldChange("floatLabel43", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel43" value="2" checked={formData.floatLabel43 === "2"} onChange={(e) => handleFieldChange("floatLabel43", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel43 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel43 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Full body harness with fall-preventing system deployed & twin lanyard provided? <span className="req-star">*</span>
-              </p>
+                    Full body harness with fall-preventing system deployed & twin lanyard provided? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel44" value="1" checked={formData.floatLabel44 === "1"} onChange={(e) => handleFieldChange("floatLabel44", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel44" value="0" checked={formData.floatLabel44 === "0"} onChange={(e) => handleFieldChange("floatLabel44", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel44" value="2" checked={formData.floatLabel44 === "2"} onChange={(e) => handleFieldChange("floatLabel44", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel44 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel44 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Are the working at height equipments (Safety harness and lanyard) inspected and suitable to carry out the task? <span className="req-star">*</span>
-              </p>
+                    Are the working at height equipments (Safety harness and lanyard) inspected and suitable to carry out the task? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel45" value="1" checked={formData.floatLabel45 === "1"} onChange={(e) => handleFieldChange("floatLabel45", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel45" value="0" checked={formData.floatLabel45 === "0"} onChange={(e) => handleFieldChange("floatLabel45", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel45" value="2" checked={formData.floatLabel45 === "2"} onChange={(e) => handleFieldChange("floatLabel45", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel45 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel45 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Horizontal or vertical life line systems in place? <span className="req-star">*</span>
-              </p>
+                    Horizontal or vertical life line systems in place? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel46" value="1" checked={formData.floatLabel46 === "1"} onChange={(e) => handleFieldChange("floatLabel46", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel46" value="0" checked={formData.floatLabel46 === "0"} onChange={(e) => handleFieldChange("floatLabel46", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel46" value="2" checked={formData.floatLabel46 === "2"} onChange={(e) => handleFieldChange("floatLabel46", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel46 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel46 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Are all tools secured from falling from height? <span className="req-star">*</span>
-              </p>
+                    Are all tools secured from falling from height? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel47" value="1" checked={formData.floatLabel47 === "1"} onChange={(e) => handleFieldChange("floatLabel47", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel47" value="0" checked={formData.floatLabel47 === "0"} onChange={(e) => handleFieldChange("floatLabel47", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel47" value="2" checked={formData.floatLabel47 === "2"} onChange={(e) => handleFieldChange("floatLabel47", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel47 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel47 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Have protective measures for dropped objects been established (e.g. lanyards, demarcated working area, nets)? <span className="req-star">*</span>
-              </p>
+                    Have protective measures for dropped objects been established (e.g. lanyards, demarcated working area, nets)? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel48" value="1" checked={formData.floatLabel48 === "1"} onChange={(e) => handleFieldChange("floatLabel48", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel48" value="0" checked={formData.floatLabel48 === "0"} onChange={(e) => handleFieldChange("floatLabel48", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel48" value="2" checked={formData.floatLabel48 === "2"} onChange={(e) => handleFieldChange("floatLabel48", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel48 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel48 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Has proper and safe access and egress been ensured? <span className="req-star">*</span>
-              </p>
+                    Has proper and safe access and egress been ensured? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel49" value="1" checked={formData.floatLabel49 === "1"} onChange={(e) => handleFieldChange("floatLabel49", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel49" value="0" checked={formData.floatLabel49 === "0"} onChange={(e) => handleFieldChange("floatLabel49", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel49" value="2" checked={formData.floatLabel49 === "2"} onChange={(e) => handleFieldChange("floatLabel49", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel49 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel49 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Are the weather conditions acceptable? <span className="req-star">*</span>
-              </p>
+                    Are the weather conditions acceptable? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel50" value="1" checked={formData.floatLabel50 === "1"} onChange={(e) => handleFieldChange("floatLabel50", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel50" value="0" checked={formData.floatLabel50 === "0"} onChange={(e) => handleFieldChange("floatLabel50", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel50" value="2" checked={formData.floatLabel50 === "2"} onChange={(e) => handleFieldChange("floatLabel50", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel50 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel50 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
               </div>
             )}
@@ -2617,98 +2660,98 @@ function NewRequest() {
               <div className="conditional-fields-block" style={{ marginBottom: "20px" }}>
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Is the tank/container cleaned so that the task can take place without risk from vapours, gases etc.? <span className="req-star">*</span>
-              </p>
+                    Is the tank/container cleaned so that the task can take place without risk from vapours, gases etc.? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel51" value="1" checked={formData.floatLabel51 === "1"} onChange={(e) => handleFieldChange("floatLabel51", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel51" value="0" checked={formData.floatLabel51 === "0"} onChange={(e) => handleFieldChange("floatLabel51", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel51" value="2" checked={formData.floatLabel51 === "2"} onChange={(e) => handleFieldChange("floatLabel51", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel51 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel51 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Are oxygen measurement and LEL measurement done before starting the work? <span className="req-star">*</span>
-              </p>
+                    Are oxygen measurement and LEL measurement done before starting the work? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel52" value="1" checked={formData.floatLabel52 === "1"} onChange={(e) => handleFieldChange("floatLabel52", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel52" value="0" checked={formData.floatLabel52 === "0"} onChange={(e) => handleFieldChange("floatLabel52", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel52" value="2" checked={formData.floatLabel52 === "2"} onChange={(e) => handleFieldChange("floatLabel52", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel52 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel52 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Are the container and all equipment on the container, including agitator properly secured? <span className="req-star">*</span>
-              </p>
+                    Are the container and all equipment on the container, including agitator properly secured? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel53" value="1" checked={formData.floatLabel53 === "1"} onChange={(e) => handleFieldChange("floatLabel53", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel53" value="0" checked={formData.floatLabel53 === "0"} onChange={(e) => handleFieldChange("floatLabel53", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel53" value="2" checked={formData.floatLabel53 === "2"} onChange={(e) => handleFieldChange("floatLabel53", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel53 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel53 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Are there safe entry and exit conditions? (e.g. ladder) <span className="req-star">*</span>
-              </p>
+                    Are there safe entry and exit conditions? (e.g. ladder) <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel54" value="1" checked={formData.floatLabel54 === "1"} onChange={(e) => handleFieldChange("floatLabel54", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel54" value="0" checked={formData.floatLabel54 === "0"} onChange={(e) => handleFieldChange("floatLabel54", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel54" value="2" checked={formData.floatLabel54 === "2"} onChange={(e) => handleFieldChange("floatLabel54", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel54 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel54 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Are means of communication for emergency rescue determined? (Siren, radio or telephone options for emergency rescue?) <span className="req-star">*</span>
-              </p>
+                    Are means of communication for emergency rescue determined? (Siren, radio or telephone options for emergency rescue?) <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel55" value="1" checked={formData.floatLabel55 === "1"} onChange={(e) => handleFieldChange("floatLabel55", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel55" value="0" checked={formData.floatLabel55 === "0"} onChange={(e) => handleFieldChange("floatLabel55", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel55" value="2" checked={formData.floatLabel55 === "2"} onChange={(e) => handleFieldChange("floatLabel55", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel55 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel55 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Are rescue equipments in place and ready for use? <span className="req-star">*</span>
-              </p>
+                    Are rescue equipments in place and ready for use? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel56" value="1" checked={formData.floatLabel56 === "1"} onChange={(e) => handleFieldChange("floatLabel56", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel56" value="0" checked={formData.floatLabel56 === "0"} onChange={(e) => handleFieldChange("floatLabel56", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel56" value="2" checked={formData.floatLabel56 === "2"} onChange={(e) => handleFieldChange("floatLabel56", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel56 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel56 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Are space and ventilation adequate? <span className="req-star">*</span>
-              </p>
+                    Are space and ventilation adequate? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel57" value="1" checked={formData.floatLabel57 === "1"} onChange={(e) => handleFieldChange("floatLabel57", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel57" value="0" checked={formData.floatLabel57 === "0"} onChange={(e) => handleFieldChange("floatLabel57", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel57" value="2" checked={formData.floatLabel57 === "2"} onChange={(e) => handleFieldChange("floatLabel57", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel57 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel57 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Is an oxygen meter provided for the work? <span className="req-star">*</span>
-              </p>
+                    Is an oxygen meter provided for the work? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel58" value="1" checked={formData.floatLabel58 === "1"} onChange={(e) => handleFieldChange("floatLabel58", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel58" value="0" checked={formData.floatLabel58 === "0"} onChange={(e) => handleFieldChange("floatLabel58", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel58" value="2" checked={formData.floatLabel58 === "2"} onChange={(e) => handleFieldChange("floatLabel58", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel58 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel58 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
               </div>
             )}
@@ -2726,7 +2769,7 @@ function NewRequest() {
                   <option value="0">No</option>
                   <option value="1">Yes</option>
                 </select>
-                {fieldErrors.excavation_works && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                {fieldErrors.excavation_works && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
               </div>
             </div>
 
@@ -2734,110 +2777,110 @@ function NewRequest() {
               <div className="conditional-fields-block" style={{ marginBottom: "20px" }}>
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Is the excavation area segregated (1 meter from edge with hard barriers or 2 meters with soft barriers) before the work begins? <span className="req-star">*</span>
-              </p>
+                    Is the excavation area segregated (1 meter from edge with hard barriers or 2 meters with soft barriers) before the work begins? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel71" value="1" checked={formData.floatLabel71 === "1"} onChange={(e) => handleFieldChange("floatLabel71", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel71" value="0" checked={formData.floatLabel71 === "0"} onChange={(e) => handleFieldChange("floatLabel71", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel71" value="2" checked={formData.floatLabel71 === "2"} onChange={(e) => handleFieldChange("floatLabel71", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel71 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel71 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Has the digging permit been obtained in accordance with Danish regulations and NN standards? <span className="req-star">*</span>
-              </p>
+                    Has the digging permit been obtained in accordance with Danish regulations and NN standards? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel72" value="1" checked={formData.floatLabel72 === "1"} onChange={(e) => handleFieldChange("floatLabel72", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel72" value="0" checked={formData.floatLabel72 === "0"} onChange={(e) => handleFieldChange("floatLabel72", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel72" value="2" checked={formData.floatLabel72 === "2"} onChange={(e) => handleFieldChange("floatLabel72", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel72 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel72 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Does excavation require shoring? <span className="req-star">*</span>
-              </p>
+                    Does excavation require shoring? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="excavation_shoring" value="1" checked={formData.excavation_shoring === "1"} onChange={(e) => handleFieldChange("excavation_shoring", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="excavation_shoring" value="0" checked={formData.excavation_shoring === "0"} onChange={(e) => handleFieldChange("excavation_shoring", e.target.value)} /> No</label>
                     <label><input type="radio" name="excavation_shoring" value="2" checked={formData.excavation_shoring === "2"} onChange={(e) => handleFieldChange("excavation_shoring", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.excavation_shoring && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.excavation_shoring && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Is the sloping correct in relation to the depth of the dig as per Danish regulations? <span className="req-star">*</span>
-              </p>
+                    Is the sloping correct in relation to the depth of the dig as per Danish regulations? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel74" value="1" checked={formData.floatLabel74 === "1"} onChange={(e) => handleFieldChange("floatLabel74", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel74" value="0" checked={formData.floatLabel74 === "0"} onChange={(e) => handleFieldChange("floatLabel74", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel74" value="2" checked={formData.floatLabel74 === "2"} onChange={(e) => handleFieldChange("floatLabel74", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel74 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel74 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Have proper and safe access and egress been provided? <span className="req-star">*</span>
-              </p>
+                    Have proper and safe access and egress been provided? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel75" value="1" checked={formData.floatLabel75 === "1"} onChange={(e) => handleFieldChange("floatLabel75", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel75" value="0" checked={formData.floatLabel75 === "0"} onChange={(e) => handleFieldChange("floatLabel75", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel75" value="2" checked={formData.floatLabel75 === "2"} onChange={(e) => handleFieldChange("floatLabel75", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel75 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel75 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Are correctly positioned ladders or correctly sloped stairways accessible? <span className="req-star">*</span>
-              </p>
+                    Are correctly positioned ladders or correctly sloped stairways accessible? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel76" value="1" checked={formData.floatLabel76 === "1"} onChange={(e) => handleFieldChange("floatLabel76", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel76" value="0" checked={formData.floatLabel76 === "0"} onChange={(e) => handleFieldChange("floatLabel76", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel76" value="2" checked={formData.floatLabel76 === "2"} onChange={(e) => handleFieldChange("floatLabel76", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel76 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel76 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Do all machines have valid inspection dates? <span className="req-star">*</span>
-              </p>
+                    Do all machines have valid inspection dates? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel77" value="1" checked={formData.floatLabel77 === "1"} onChange={(e) => handleFieldChange("floatLabel77", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel77" value="0" checked={formData.floatLabel77 === "0"} onChange={(e) => handleFieldChange("floatLabel77", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel77" value="2" checked={formData.floatLabel77 === "2"} onChange={(e) => handleFieldChange("floatLabel77", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel77 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel77 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Have clearly marked drawings been submitted? <span className="req-star">*</span>
-              </p>
+                    Have clearly marked drawings been submitted? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel78" value="1" checked={formData.floatLabel78 === "1"} onChange={(e) => handleFieldChange("floatLabel78", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel78" value="0" checked={formData.floatLabel78 === "0"} onChange={(e) => handleFieldChange("floatLabel78", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel78" value="2" checked={formData.floatLabel78 === "2"} onChange={(e) => handleFieldChange("floatLabel78", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel78 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel78 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Are the underground areas cleared from all electrical, piping and other services? <span className="req-star">*</span>
-              </p>
+                    Are the underground areas cleared from all electrical, piping and other services? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel79" value="1" checked={formData.floatLabel79 === "1"} onChange={(e) => handleFieldChange("floatLabel79", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel79" value="0" checked={formData.floatLabel79 === "0"} onChange={(e) => handleFieldChange("floatLabel79", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel79" value="2" checked={formData.floatLabel79 === "2"} onChange={(e) => handleFieldChange("floatLabel79", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel79 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel79 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
               </div>
             )}
@@ -2862,98 +2905,98 @@ function NewRequest() {
               <div className="conditional-fields-block" style={{ marginBottom: "20px" }}>
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Is there an appointed person in charge of the lifting/crane operation? <span className="req-star">*</span>
-              </p>
+                    Is there an appointed person in charge of the lifting/crane operation? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel80" value="1" checked={formData.floatLabel80 === "1"} onChange={(e) => handleFieldChange("floatLabel80", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel80" value="0" checked={formData.floatLabel80 === "0"} onChange={(e) => handleFieldChange("floatLabel80", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel80" value="2" checked={formData.floatLabel80 === "2"} onChange={(e) => handleFieldChange("floatLabel80", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel80 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel80 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Are the details of load (dimensions, SWL) and the loading/unloading requirements provided from vendor or supplier? <span className="req-star">*</span>
-              </p>
+                    Are the details of load (dimensions, SWL) and the loading/unloading requirements provided from vendor or supplier? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel81" value="1" checked={formData.floatLabel81 === "1"} onChange={(e) => handleFieldChange("floatLabel81", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel81" value="0" checked={formData.floatLabel81 === "0"} onChange={(e) => handleFieldChange("floatLabel81", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel81" value="2" checked={formData.floatLabel81 === "2"} onChange={(e) => handleFieldChange("floatLabel81", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel81 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel81 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Is lift plan submitted? <span className="req-star">*</span>
-              </p>
+                    Is lift plan submitted? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel82" value="1" checked={formData.floatLabel82 === "1"} onChange={(e) => handleFieldChange("floatLabel82", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel82" value="0" checked={formData.floatLabel82 === "0"} onChange={(e) => handleFieldChange("floatLabel82", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel82" value="2" checked={formData.floatLabel82 === "2"} onChange={(e) => handleFieldChange("floatLabel82", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel82 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel82 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Has the correct crane/lifting equipment as stated in the lift plan been supplied and inspected? <span className="req-star">*</span>
-              </p>
+                    Has the correct crane/lifting equipment as stated in the lift plan been supplied and inspected? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel83" value="1" checked={formData.floatLabel83 === "1"} onChange={(e) => handleFieldChange("floatLabel83", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel83" value="0" checked={formData.floatLabel83 === "0"} onChange={(e) => handleFieldChange("floatLabel83", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel83" value="2" checked={formData.floatLabel83 === "2"} onChange={(e) => handleFieldChange("floatLabel83", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel83 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel83 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Do the crane operators have the legal required certificates? <span className="req-star">*</span>
-              </p>
+                    Do the crane operators have the legal required certificates? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel84" value="1" checked={formData.floatLabel84 === "1"} onChange={(e) => handleFieldChange("floatLabel84", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel84" value="0" checked={formData.floatLabel84 === "0"} onChange={(e) => handleFieldChange("floatLabel84", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel84" value="2" checked={formData.floatLabel84 === "2"} onChange={(e) => handleFieldChange("floatLabel84", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel84 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel84 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Is laydown area suitable and prepared for lifting? <span className="req-star">*</span>
-              </p>
+                    Is laydown area suitable and prepared for lifting? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel85" value="1" checked={formData.floatLabel85 === "1"} onChange={(e) => handleFieldChange("floatLabel85", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel85" value="0" checked={formData.floatLabel85 === "0"} onChange={(e) => handleFieldChange("floatLabel85", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel85" value="2" checked={formData.floatLabel85 === "2"} onChange={(e) => handleFieldChange("floatLabel85", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel85 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel85 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Is the entire area of the lifting task fenced off? <span className="req-star">*</span>
-              </p>
+                    Is the entire area of the lifting task fenced off? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel86" value="1" checked={formData.floatLabel86 === "1"} onChange={(e) => handleFieldChange("floatLabel86", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel86" value="0" checked={formData.floatLabel86 === "0"} onChange={(e) => handleFieldChange("floatLabel86", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel86" value="2" checked={formData.floatLabel86 === "2"} onChange={(e) => handleFieldChange("floatLabel86", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel86 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel86 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div className="checklist-item">
                   <p className="checklist-question">
-                Have all overhead risks (cables, adjacent structures etc.) been identified and suitable precautions implemented? <span className="req-star">*</span>
-              </p>
+                    Have all overhead risks (cables, adjacent structures etc.) been identified and suitable precautions implemented? <span className="req-star">*</span>
+                  </p>
                   <div className="radio-group">
                     <label><input type="radio" name="floatLabel87" value="1" checked={formData.floatLabel87 === "1"} onChange={(e) => handleFieldChange("floatLabel87", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="floatLabel87" value="0" checked={formData.floatLabel87 === "0"} onChange={(e) => handleFieldChange("floatLabel87", e.target.value)} /> No</label>
                     <label><input type="radio" name="floatLabel87" value="2" checked={formData.floatLabel87 === "2"} onChange={(e) => handleFieldChange("floatLabel87", e.target.value)} /> N/A</label>
                   </div>
-              {fieldErrors.floatLabel87 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.floatLabel87 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
               </div>
             )}
@@ -3006,98 +3049,98 @@ function NewRequest() {
                       <div className="conditional-fields-block" style={{ marginBottom: "20px", paddingLeft: "16px", borderLeft: "3px solid #10b981" }}>
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Is the responsible for the area informed? <span className="req-star">*</span>
-              </p>
+                            Is the responsible for the area informed? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel88" value="1" checked={formData.floatLabel88 === "1"} onChange={(e) => handleFieldChange("floatLabel88", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel88" value="0" checked={formData.floatLabel88 === "0"} onChange={(e) => handleFieldChange("floatLabel88", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel88" value="2" checked={formData.floatLabel88 === "2"} onChange={(e) => handleFieldChange("floatLabel88", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel88 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel88 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
 
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Have you completed a risk assessment? <span className="req-star">*</span>
-              </p>
+                            Have you completed a risk assessment? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel89" value="1" checked={formData.floatLabel89 === "1"} onChange={(e) => handleFieldChange("floatLabel89", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel89" value="0" checked={formData.floatLabel89 === "0"} onChange={(e) => handleFieldChange("floatLabel89", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel89" value="2" checked={formData.floatLabel89 === "2"} onChange={(e) => handleFieldChange("floatLabel89", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel89 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel89 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
 
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Barriers & Signage in place? <span className="req-star">*</span>
-              </p>
+                            Barriers & Signage in place? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel90" value="1" checked={formData.floatLabel90 === "1"} onChange={(e) => handleFieldChange("floatLabel90", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel90" value="0" checked={formData.floatLabel90 === "0"} onChange={(e) => handleFieldChange("floatLabel90", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel90" value="2" checked={formData.floatLabel90 === "2"} onChange={(e) => handleFieldChange("floatLabel90", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel90 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel90 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
 
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Arc flash boundary and PPE evaluated? <span className="req-star">*</span>
-              </p>
+                            Arc flash boundary and PPE evaluated? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel110" value="1" checked={formData.floatLabel110 === "1"} onChange={(e) => handleFieldChange("floatLabel110", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel110" value="0" checked={formData.floatLabel110 === "0"} onChange={(e) => handleFieldChange("floatLabel110", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel110" value="2" checked={formData.floatLabel110 === "2"} onChange={(e) => handleFieldChange("floatLabel110", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel110 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel110 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
 
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Have all the cables that need to be energized been tested? <span className="req-star">*</span>
-              </p>
+                            Have all the cables that need to be energized been tested? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel91" value="1" checked={formData.floatLabel91 === "1"} onChange={(e) => handleFieldChange("floatLabel91", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel91" value="0" checked={formData.floatLabel91 === "0"} onChange={(e) => handleFieldChange("floatLabel91", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel91" value="2" checked={formData.floatLabel91 === "2"} onChange={(e) => handleFieldChange("floatLabel91", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel91 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel91 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
 
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Have all punches been closed? <span className="req-star">*</span>
-              </p>
+                            Have all punches been closed? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel92" value="1" checked={formData.floatLabel92 === "1"} onChange={(e) => handleFieldChange("floatLabel92", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel92" value="0" checked={formData.floatLabel92 === "0"} onChange={(e) => handleFieldChange("floatLabel92", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel92" value="2" checked={formData.floatLabel92 === "2"} onChange={(e) => handleFieldChange("floatLabel92", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel92 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel92 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
 
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Has the EIC line walk taken place? <span className="req-star">*</span>
-              </p>
+                            Has the EIC line walk taken place? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel93" value="1" checked={formData.floatLabel93 === "1"} onChange={(e) => handleFieldChange("floatLabel93", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel93" value="0" checked={formData.floatLabel93 === "0"} onChange={(e) => handleFieldChange("floatLabel93", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel93" value="2" checked={formData.floatLabel93 === "2"} onChange={(e) => handleFieldChange("floatLabel93", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel93 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel93 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
 
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Have you Informed and Aligned with EL LOTO Team and provided them with an energisation request form? <span className="req-star">*</span>
-              </p>
+                            Have you Informed and Aligned with EL LOTO Team and provided them with an energisation request form? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel94" value="1" checked={formData.floatLabel94 === "1"} onChange={(e) => handleFieldChange("floatLabel94", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel94" value="0" checked={formData.floatLabel94 === "0"} onChange={(e) => handleFieldChange("floatLabel94", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel94" value="2" checked={formData.floatLabel94 === "2"} onChange={(e) => handleFieldChange("floatLabel94", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel94 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel94 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
                       </div>
                     )}
@@ -3126,110 +3169,110 @@ function NewRequest() {
                       <div className="conditional-fields-block" style={{ marginBottom: "20px", paddingLeft: "16px", borderLeft: "3px solid #10b981" }}>
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Is the responsible for the area informed? <span className="req-star">*</span>
-              </p>
+                            Is the responsible for the area informed? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel111" value="1" checked={formData.floatLabel111 === "1"} onChange={(e) => handleFieldChange("floatLabel111", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel111" value="0" checked={formData.floatLabel111 === "0"} onChange={(e) => handleFieldChange("floatLabel111", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel111" value="2" checked={formData.floatLabel111 === "2"} onChange={(e) => handleFieldChange("floatLabel111", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel111 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel111 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
 
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Has a Risk Assessment been completed? <span className="req-star">*</span>
-              </p>
+                            Has a Risk Assessment been completed? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel112" value="1" checked={formData.floatLabel112 === "1"} onChange={(e) => handleFieldChange("floatLabel112", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel112" value="0" checked={formData.floatLabel112 === "0"} onChange={(e) => handleFieldChange("floatLabel112", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel112" value="2" checked={formData.floatLabel112 === "2"} onChange={(e) => handleFieldChange("floatLabel112", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel112 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel112 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
 
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Have C&Q LOTO been informed and tasks co-ordinated for shutdown work? <span className="req-star">*</span>
-              </p>
+                            Have C&Q LOTO been informed and tasks co-ordinated for shutdown work? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel113" value="1" checked={formData.floatLabel113 === "1"} onChange={(e) => handleFieldChange("floatLabel113", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel113" value="0" checked={formData.floatLabel113 === "0"} onChange={(e) => handleFieldChange("floatLabel113", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel113" value="2" checked={formData.floatLabel113 === "2"} onChange={(e) => handleFieldChange("floatLabel113", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel113 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel113 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
 
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Have C&Q LOTO been provided marked up single line diagrams/electrical drawings? <span className="req-star">*</span>
-              </p>
+                            Have C&Q LOTO been provided marked up single line diagrams/electrical drawings? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel114" value="1" checked={formData.floatLabel114 === "1"} onChange={(e) => handleFieldChange("floatLabel114", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel114" value="0" checked={formData.floatLabel114 === "0"} onChange={(e) => handleFieldChange("floatLabel114", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel114" value="2" checked={formData.floatLabel114 === "2"} onChange={(e) => handleFieldChange("floatLabel114", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel114 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel114 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
 
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Has a De-Energisation Request form and supporting documentation been provided to C&Q LOTO? <span className="req-star">*</span>
-              </p>
+                            Has a De-Energisation Request form and supporting documentation been provided to C&Q LOTO? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel115" value="1" checked={formData.floatLabel115 === "1"} onChange={(e) => handleFieldChange("floatLabel115", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel115" value="0" checked={formData.floatLabel115 === "0"} onChange={(e) => handleFieldChange("floatLabel115", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel115" value="2" checked={formData.floatLabel115 === "2"} onChange={(e) => handleFieldChange("floatLabel115", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel115 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel115 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
 
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Are all barriers, signage and PPE prepared for the task? <span className="req-star">*</span>
-              </p>
+                            Are all barriers, signage and PPE prepared for the task? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel116" value="1" checked={formData.floatLabel116 === "1"} onChange={(e) => handleFieldChange("floatLabel116", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel116" value="0" checked={formData.floatLabel116 === "0"} onChange={(e) => handleFieldChange("floatLabel116", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel116" value="2" checked={formData.floatLabel116 === "2"} onChange={(e) => handleFieldChange("floatLabel116", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel116 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel116 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
 
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Has absence of voltage been verified and proven dead? <span className="req-star">*</span>
-              </p>
+                            Has absence of voltage been verified and proven dead? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel117" value="1" checked={formData.floatLabel117 === "1"} onChange={(e) => handleFieldChange("floatLabel117", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel117" value="0" checked={formData.floatLabel117 === "0"} onChange={(e) => handleFieldChange("floatLabel117", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel117" value="2" checked={formData.floatLabel117 === "2"} onChange={(e) => handleFieldChange("floatLabel117", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel117 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel117 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
 
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Has stored energy been discharged? <span className="req-star">*</span>
-              </p>
+                            Has stored energy been discharged? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel118" value="1" checked={formData.floatLabel118 === "1"} onChange={(e) => handleFieldChange("floatLabel118", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel118" value="0" checked={formData.floatLabel118 === "0"} onChange={(e) => handleFieldChange("floatLabel118", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel118" value="2" checked={formData.floatLabel118 === "2"} onChange={(e) => handleFieldChange("floatLabel118", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel118 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel118 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
 
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Have any secondary or back up power supplies been confirmed and accounted for? <span className="req-star">*</span>
-              </p>
+                            Have any secondary or back up power supplies been confirmed and accounted for? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel119" value="1" checked={formData.floatLabel119 === "1"} onChange={(e) => handleFieldChange("floatLabel119", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel119" value="0" checked={formData.floatLabel119 === "0"} onChange={(e) => handleFieldChange("floatLabel119", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel119" value="2" checked={formData.floatLabel119 === "2"} onChange={(e) => handleFieldChange("floatLabel119", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel119 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel119 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
                       </div>
                     )}
@@ -3258,98 +3301,98 @@ function NewRequest() {
                       <div className="conditional-fields-block" style={{ marginBottom: "20px", paddingLeft: "16px", borderLeft: "3px solid #10b981" }}>
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Live work is unavoidable and justified? <span className="req-star">*</span>
-              </p>
+                            Live work is unavoidable and justified? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel120" value="1" checked={formData.floatLabel120 === "1"} onChange={(e) => handleFieldChange("floatLabel120", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel120" value="0" checked={formData.floatLabel120 === "0"} onChange={(e) => handleFieldChange("floatLabel120", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel120" value="2" checked={formData.floatLabel120 === "2"} onChange={(e) => handleFieldChange("floatLabel120", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel120 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel120 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
 
                         <div className="checklist-item">
                           <p className="checklist-question">
-                De-energisation is not reasonably practicable? <span className="req-star">*</span>
-              </p>
+                            De-energisation is not reasonably practicable? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel121" value="1" checked={formData.floatLabel121 === "1"} onChange={(e) => handleFieldChange("floatLabel121", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel121" value="0" checked={formData.floatLabel121 === "0"} onChange={(e) => handleFieldChange("floatLabel121", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel121" value="2" checked={formData.floatLabel121 === "2"} onChange={(e) => handleFieldChange("floatLabel121", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel121 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel121 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
 
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Live work authorised by electrical responsible person? <span className="req-star">*</span>
-              </p>
+                            Live work authorised by electrical responsible person? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel122" value="1" checked={formData.floatLabel122 === "1"} onChange={(e) => handleFieldChange("floatLabel122", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel122" value="0" checked={formData.floatLabel122 === "0"} onChange={(e) => handleFieldChange("floatLabel122", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel122" value="2" checked={formData.floatLabel122 === "2"} onChange={(e) => handleFieldChange("floatLabel122", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel122 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel122 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
 
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Risk assessment has been completed? <span className="req-star">*</span>
-              </p>
+                            Risk assessment has been completed? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel123" value="1" checked={formData.floatLabel123 === "1"} onChange={(e) => handleFieldChange("floatLabel123", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel123" value="0" checked={formData.floatLabel123 === "0"} onChange={(e) => handleFieldChange("floatLabel123", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel123" value="2" checked={formData.floatLabel123 === "2"} onChange={(e) => handleFieldChange("floatLabel123", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel123 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel123 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
 
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Arc flash boundary and PPE evaluated? <span className="req-star">*</span>
-              </p>
+                            Arc flash boundary and PPE evaluated? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel124" value="1" checked={formData.floatLabel124 === "1"} onChange={(e) => handleFieldChange("floatLabel124", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel124" value="0" checked={formData.floatLabel124 === "0"} onChange={(e) => handleFieldChange("floatLabel124", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel124" value="2" checked={formData.floatLabel124 === "2"} onChange={(e) => handleFieldChange("floatLabel124", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel124 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel124 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
 
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Barriers and Signage in place? <span className="req-star">*</span>
-              </p>
+                            Barriers and Signage in place? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel125" value="1" checked={formData.floatLabel125 === "1"} onChange={(e) => handleFieldChange("floatLabel125", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel125" value="0" checked={formData.floatLabel125 === "0"} onChange={(e) => handleFieldChange("floatLabel125", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel125" value="2" checked={formData.floatLabel125 === "2"} onChange={(e) => handleFieldChange("floatLabel125", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel125 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel125 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
 
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Insulated tools and approved test equipment to be used? <span className="req-star">*</span>
-              </p>
+                            Insulated tools and approved test equipment to be used? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel126" value="1" checked={formData.floatLabel126 === "1"} onChange={(e) => handleFieldChange("floatLabel126", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel126" value="0" checked={formData.floatLabel126 === "0"} onChange={(e) => handleFieldChange("floatLabel126", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel126" value="2" checked={formData.floatLabel126 === "2"} onChange={(e) => handleFieldChange("floatLabel126", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel126 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel126 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
 
                         <div className="checklist-item">
                           <p className="checklist-question">
-                Work will always be carried out with a second person to assist in the event of an emergency? <span className="req-star">*</span>
-              </p>
+                            Work will always be carried out with a second person to assist in the event of an emergency? <span className="req-star">*</span>
+                          </p>
                           <div className="radio-group">
                             <label><input type="radio" name="floatLabel127" value="1" checked={formData.floatLabel127 === "1"} onChange={(e) => handleFieldChange("floatLabel127", e.target.value)} /> Yes</label>
                             <label><input type="radio" name="floatLabel127" value="0" checked={formData.floatLabel127 === "0"} onChange={(e) => handleFieldChange("floatLabel127", e.target.value)} /> No</label>
                             <label><input type="radio" name="floatLabel127" value="2" checked={formData.floatLabel127 === "2"} onChange={(e) => handleFieldChange("floatLabel127", e.target.value)} /> N/A</label>
                           </div>
-              {fieldErrors.floatLabel127 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                          {fieldErrors.floatLabel127 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                         </div>
                       </div>
                     )}
@@ -3384,38 +3427,38 @@ function NewRequest() {
                   <div className="conditional-fields-block" style={{ marginBottom: "20px" }}>
                     <div className="checklist-item">
                       <p className="checklist-question">
-                Pressure test performed and approved? <span className="req-star">*</span>
-              </p>
+                        Pressure test performed and approved? <span className="req-star">*</span>
+                      </p>
                       <div className="radio-group">
                         <label><input type="radio" name="floatLabel95" value="1" checked={formData.floatLabel95 === "1"} onChange={(e) => handleFieldChange("floatLabel95", e.target.value)} /> Yes</label>
                         <label><input type="radio" name="floatLabel95" value="0" checked={formData.floatLabel95 === "0"} onChange={(e) => handleFieldChange("floatLabel95", e.target.value)} /> No</label>
                         <label><input type="radio" name="floatLabel95" value="2" checked={formData.floatLabel95 === "2"} onChange={(e) => handleFieldChange("floatLabel95", e.target.value)} /> N/A</label>
                       </div>
-              {fieldErrors.floatLabel95 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                      {fieldErrors.floatLabel95 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                     </div>
 
                     <div className="checklist-item">
                       <p className="checklist-question">
-                Flushing approved? <span className="req-star">*</span>
-              </p>
+                        Flushing approved? <span className="req-star">*</span>
+                      </p>
                       <div className="radio-group">
                         <label><input type="radio" name="floatLabel96" value="1" checked={formData.floatLabel96 === "1"} onChange={(e) => handleFieldChange("floatLabel96", e.target.value)} /> Yes</label>
                         <label><input type="radio" name="floatLabel96" value="0" checked={formData.floatLabel96 === "0"} onChange={(e) => handleFieldChange("floatLabel96", e.target.value)} /> No</label>
                         <label><input type="radio" name="floatLabel96" value="2" checked={formData.floatLabel96 === "2"} onChange={(e) => handleFieldChange("floatLabel96", e.target.value)} /> N/A</label>
                       </div>
-              {fieldErrors.floatLabel96 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                      {fieldErrors.floatLabel96 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                     </div>
 
                     <div className="checklist-item">
                       <p className="checklist-question">
-                MC approved? <span className="req-star">*</span>
-              </p>
+                        MC approved? <span className="req-star">*</span>
+                      </p>
                       <div className="radio-group">
                         <label><input type="radio" name="floatLabel97" value="1" checked={formData.floatLabel97 === "1"} onChange={(e) => handleFieldChange("floatLabel97", e.target.value)} /> Yes</label>
                         <label><input type="radio" name="floatLabel97" value="0" checked={formData.floatLabel97 === "0"} onChange={(e) => handleFieldChange("floatLabel97", e.target.value)} /> No</label>
                         <label><input type="radio" name="floatLabel97" value="2" checked={formData.floatLabel97 === "2"} onChange={(e) => handleFieldChange("floatLabel97", e.target.value)} /> N/A</label>
                       </div>
-              {fieldErrors.floatLabel97 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                      {fieldErrors.floatLabel97 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                     </div>
 
                     {formData.floatLabel97 === "1" && (
@@ -3433,50 +3476,50 @@ function NewRequest() {
 
                     <div className="checklist-item">
                       <p className="checklist-question">
-                Walkdown with Visual inspection performed? <span className="req-star">*</span>
-              </p>
+                        Walkdown with Visual inspection performed? <span className="req-star">*</span>
+                      </p>
                       <div className="radio-group">
                         <label><input type="radio" name="floatLabel98" value="1" checked={formData.floatLabel98 === "1"} onChange={(e) => handleFieldChange("floatLabel98", e.target.value)} /> Yes</label>
                         <label><input type="radio" name="floatLabel98" value="0" checked={formData.floatLabel98 === "0"} onChange={(e) => handleFieldChange("floatLabel98", e.target.value)} /> No</label>
                         <label><input type="radio" name="floatLabel98" value="2" checked={formData.floatLabel98 === "2"} onChange={(e) => handleFieldChange("floatLabel98", e.target.value)} /> N/A</label>
                       </div>
-              {fieldErrors.floatLabel98 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                      {fieldErrors.floatLabel98 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                     </div>
 
                     <div className="checklist-item">
                       <p className="checklist-question">
-                LOTO plan approved and installed by LOTO officer? <span className="req-star">*</span>
-              </p>
+                        LOTO plan approved and installed by LOTO officer? <span className="req-star">*</span>
+                      </p>
                       <div className="radio-group">
                         <label><input type="radio" name="floatLabel99" value="1" checked={formData.floatLabel99 === "1"} onChange={(e) => handleFieldChange("floatLabel99", e.target.value)} /> Yes</label>
                         <label><input type="radio" name="floatLabel99" value="0" checked={formData.floatLabel99 === "0"} onChange={(e) => handleFieldChange("floatLabel99", e.target.value)} /> No</label>
                         <label><input type="radio" name="floatLabel99" value="2" checked={formData.floatLabel99 === "2"} onChange={(e) => handleFieldChange("floatLabel99", e.target.value)} /> N/A</label>
                       </div>
-              {fieldErrors.floatLabel99 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                      {fieldErrors.floatLabel99 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                     </div>
 
                     <div className="checklist-item">
                       <p className="checklist-question">
-                Ensure Safety Valves follow Media Code? <span className="req-star">*</span>
-              </p>
+                        Ensure Safety Valves follow Media Code? <span className="req-star">*</span>
+                      </p>
                       <div className="radio-group">
                         <label><input type="radio" name="floatLabel100" value="1" checked={formData.floatLabel100 === "1"} onChange={(e) => handleFieldChange("floatLabel100", e.target.value)} /> Yes</label>
                         <label><input type="radio" name="floatLabel100" value="0" checked={formData.floatLabel100 === "0"} onChange={(e) => handleFieldChange("floatLabel100", e.target.value)} /> No</label>
                         <label><input type="radio" name="floatLabel100" value="2" checked={formData.floatLabel100 === "2"} onChange={(e) => handleFieldChange("floatLabel100", e.target.value)} /> N/A</label>
                       </div>
-              {fieldErrors.floatLabel100 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                      {fieldErrors.floatLabel100 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                     </div>
 
                     <div className="checklist-item">
                       <p className="checklist-question">
-                C&Q Safety signs are in place? <span className="req-star">*</span>
-              </p>
+                        C&Q Safety signs are in place? <span className="req-star">*</span>
+                      </p>
                       <div className="radio-group">
                         <label><input type="radio" name="floatLabel101" value="1" checked={formData.floatLabel101 === "1"} onChange={(e) => handleFieldChange("floatLabel101", e.target.value)} /> Yes</label>
                         <label><input type="radio" name="floatLabel101" value="0" checked={formData.floatLabel101 === "0"} onChange={(e) => handleFieldChange("floatLabel101", e.target.value)} /> No</label>
                         <label><input type="radio" name="floatLabel101" value="2" checked={formData.floatLabel101 === "2"} onChange={(e) => handleFieldChange("floatLabel101", e.target.value)} /> N/A</label>
                       </div>
-              {fieldErrors.floatLabel101 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                      {fieldErrors.floatLabel101 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                     </div>
                   </div>
                 )}
@@ -3509,74 +3552,74 @@ function NewRequest() {
                   <div className="conditional-fields-block" style={{ marginBottom: "20px", marginTop: "20px" }}>
                     <div className="checklist-item">
                       <p className="checklist-question">
-                Linewalk of the pipework/equipment done? <span className="req-star">*</span>
-              </p>
+                        Linewalk of the pipework/equipment done? <span className="req-star">*</span>
+                      </p>
                       <div className="radio-group">
                         <label><input type="radio" name="floatLabel102" value="1" checked={formData.floatLabel102 === "1"} onChange={(e) => handleFieldChange("floatLabel102", e.target.value)} /> Yes</label>
                         <label><input type="radio" name="floatLabel102" value="0" checked={formData.floatLabel102 === "0"} onChange={(e) => handleFieldChange("floatLabel102", e.target.value)} /> No</label>
                         <label><input type="radio" name="floatLabel102" value="2" checked={formData.floatLabel102 === "2"} onChange={(e) => handleFieldChange("floatLabel102", e.target.value)} /> N/A</label>
                       </div>
-              {fieldErrors.floatLabel102 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                      {fieldErrors.floatLabel102 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                     </div>
 
                     <div className="checklist-item">
                       <p className="checklist-question">
-                Pressure test is coordinated with NNE C&Q? <span className="req-star">*</span>
-              </p>
+                        Pressure test is coordinated with NNE C&Q? <span className="req-star">*</span>
+                      </p>
                       <div className="radio-group">
                         <label><input type="radio" name="floatLabel103" value="1" checked={formData.floatLabel103 === "1"} onChange={(e) => handleFieldChange("floatLabel103", e.target.value)} /> Yes</label>
                         <label><input type="radio" name="floatLabel103" value="0" checked={formData.floatLabel103 === "0"} onChange={(e) => handleFieldChange("floatLabel103", e.target.value)} /> No</label>
                         <label><input type="radio" name="floatLabel103" value="2" checked={formData.floatLabel103 === "2"} onChange={(e) => handleFieldChange("floatLabel103", e.target.value)} /> N/A</label>
                       </div>
-              {fieldErrors.floatLabel103 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                      {fieldErrors.floatLabel103 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                     </div>
 
                     <div className="checklist-item">
                       <p className="checklist-question">
-                Is the pipework/equipment MIC? (Mechanical Installation Complete)? <span className="req-star">*</span>
-              </p>
+                        Is the pipework/equipment MIC? (Mechanical Installation Complete)? <span className="req-star">*</span>
+                      </p>
                       <div className="radio-group">
                         <label><input type="radio" name="floatLabel104" value="1" checked={formData.floatLabel104 === "1"} onChange={(e) => handleFieldChange("floatLabel104", e.target.value)} /> Yes</label>
                         <label><input type="radio" name="floatLabel104" value="0" checked={formData.floatLabel104 === "0"} onChange={(e) => handleFieldChange("floatLabel104", e.target.value)} /> No</label>
                         <label><input type="radio" name="floatLabel104" value="2" checked={formData.floatLabel104 === "2"} onChange={(e) => handleFieldChange("floatLabel104", e.target.value)} /> N/A</label>
                       </div>
-              {fieldErrors.floatLabel104 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                      {fieldErrors.floatLabel104 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                     </div>
 
                     <div className="checklist-item">
                       <p className="checklist-question">
-                LOTO plan attached to the work permit? <span className="req-star">*</span>
-              </p>
+                        LOTO plan attached to the work permit? <span className="req-star">*</span>
+                      </p>
                       <div className="radio-group">
                         <label><input type="radio" name="floatLabel105" value="1" checked={formData.floatLabel105 === "1"} onChange={(e) => handleFieldChange("floatLabel105", e.target.value)} /> Yes</label>
                         <label><input type="radio" name="floatLabel105" value="0" checked={formData.floatLabel105 === "0"} onChange={(e) => handleFieldChange("floatLabel105", e.target.value)} /> No</label>
                         <label><input type="radio" name="floatLabel105" value="2" checked={formData.floatLabel105 === "2"} onChange={(e) => handleFieldChange("floatLabel105", e.target.value)} /> N/A</label>
                       </div>
-              {fieldErrors.floatLabel105 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                      {fieldErrors.floatLabel105 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                     </div>
 
                     <div className="checklist-item">
                       <p className="checklist-question">
-                Is the exclusion zone calculated and layout attached to work permit? <span className="req-star">*</span>
-              </p>
+                        Is the exclusion zone calculated and layout attached to work permit? <span className="req-star">*</span>
+                      </p>
                       <div className="radio-group">
                         <label><input type="radio" name="floatLabel106" value="1" checked={formData.floatLabel106 === "1"} onChange={(e) => handleFieldChange("floatLabel106", e.target.value)} /> Yes</label>
                         <label><input type="radio" name="floatLabel106" value="0" checked={formData.floatLabel106 === "0"} onChange={(e) => handleFieldChange("floatLabel106", e.target.value)} /> No</label>
                         <label><input type="radio" name="floatLabel106" value="2" checked={formData.floatLabel106 === "2"} onChange={(e) => handleFieldChange("floatLabel106", e.target.value)} /> N/A</label>
                       </div>
-              {fieldErrors.floatLabel106 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                      {fieldErrors.floatLabel106 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                     </div>
 
                     <div className="checklist-item">
                       <p className="checklist-question">
-                Pneumatic Test? <span className="req-star">*</span>
-              </p>
+                        Pneumatic Test? <span className="req-star">*</span>
+                      </p>
                       <div className="radio-group">
                         <label><input type="radio" name="floatLabel107" disabled={formData.floatLabel108 === "1"} value="1" checked={formData.floatLabel107 === "1"} onChange={(e) => handleFieldChange("floatLabel107", e.target.value)} /> Yes</label>
                         <label><input type="radio" name="floatLabel107" value="0" checked={formData.floatLabel107 === "0"} onChange={(e) => handleFieldChange("floatLabel107", e.target.value)} /> No</label>
                         <label><input type="radio" name="floatLabel107" value="2" checked={formData.floatLabel107 === "2"} onChange={(e) => handleFieldChange("floatLabel107", e.target.value)} /> N/A</label>
                       </div>
-              {fieldErrors.floatLabel107 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                      {fieldErrors.floatLabel107 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                     </div>
 
                     {formData.floatLabel107 === "1" && (
@@ -3594,14 +3637,14 @@ function NewRequest() {
 
                     <div className="checklist-item">
                       <p className="checklist-question">
-                Hydrostatic test? <span className="req-star">*</span>
-              </p>
+                        Hydrostatic test? <span className="req-star">*</span>
+                      </p>
                       <div className="radio-group">
                         <label><input type="radio" name="floatLabel108" disabled={formData.floatLabel107 === "1"} value="1" checked={formData.floatLabel108 === "1"} onChange={(e) => handleFieldChange("floatLabel108", e.target.value)} /> Yes</label>
                         <label><input type="radio" name="floatLabel108" value="0" checked={formData.floatLabel108 === "0"} onChange={(e) => handleFieldChange("floatLabel108", e.target.value)} /> No</label>
                         <label><input type="radio" name="floatLabel108" value="2" checked={formData.floatLabel108 === "2"} onChange={(e) => handleFieldChange("floatLabel108", e.target.value)} /> N/A</label>
                       </div>
-              {fieldErrors.floatLabel108 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                      {fieldErrors.floatLabel108 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                     </div>
 
                     {formData.floatLabel108 === "1" && (
@@ -3619,14 +3662,14 @@ function NewRequest() {
 
                     <div className="checklist-item">
                       <p className="checklist-question">
-                Safety Valves are calibrated and attached to the Pressure testing rig? <span className="req-star">*</span>
-              </p>
+                        Safety Valves are calibrated and attached to the Pressure testing rig? <span className="req-star">*</span>
+                      </p>
                       <div className="radio-group">
                         <label><input type="radio" name="floatLabel109" value="1" checked={formData.floatLabel109 === "1"} onChange={(e) => handleFieldChange("floatLabel109", e.target.value)} /> Yes</label>
                         <label><input type="radio" name="floatLabel109" value="0" checked={formData.floatLabel109 === "0"} onChange={(e) => handleFieldChange("floatLabel109", e.target.value)} /> No</label>
                         <label><input type="radio" name="floatLabel109" value="2" checked={formData.floatLabel109 === "2"} onChange={(e) => handleFieldChange("floatLabel109", e.target.value)} /> N/A</label>
                       </div>
-              {fieldErrors.floatLabel109 && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                      {fieldErrors.floatLabel109 && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                     </div>
                   </div>
                 )}
@@ -3660,7 +3703,7 @@ function NewRequest() {
                     <label><input type="radio" name="eye_protection" value="1" checked={formData.eye_protection === "1"} onChange={(e) => handleFieldChange("eye_protection", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="eye_protection" value="0" checked={formData.eye_protection === "0"} onChange={(e) => handleFieldChange("eye_protection", e.target.value)} /> No</label>
                   </div>
-              {fieldErrors.eye_protection && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.eye_protection && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", background: "rgba(255,255,255,0.02)", padding: "16px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.05)" }}>
@@ -3670,7 +3713,7 @@ function NewRequest() {
                     <label><input type="radio" name="fall_protection" value="1" checked={formData.fall_protection === "1"} onChange={(e) => handleFieldChange("fall_protection", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="fall_protection" value="0" checked={formData.fall_protection === "0"} onChange={(e) => handleFieldChange("fall_protection", e.target.value)} /> No</label>
                   </div>
-              {fieldErrors.fall_protection && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.fall_protection && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", background: "rgba(255,255,255,0.02)", padding: "16px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.05)" }}>
@@ -3680,7 +3723,7 @@ function NewRequest() {
                     <label><input type="radio" name="hearing_protection" value="1" checked={formData.hearing_protection === "1"} onChange={(e) => handleFieldChange("hearing_protection", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="hearing_protection" value="0" checked={formData.hearing_protection === "0"} onChange={(e) => handleFieldChange("hearing_protection", e.target.value)} /> No</label>
                   </div>
-              {fieldErrors.hearing_protection && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.hearing_protection && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", background: "rgba(255,255,255,0.02)", padding: "16px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.05)" }}>
@@ -3690,7 +3733,7 @@ function NewRequest() {
                     <label><input type="radio" name="respiratory_protection" value="1" checked={formData.respiratory_protection === "1"} onChange={(e) => handleFieldChange("respiratory_protection", e.target.value)} /> Yes</label>
                     <label><input type="radio" name="respiratory_protection" value="0" checked={formData.respiratory_protection === "0"} onChange={(e) => handleFieldChange("respiratory_protection", e.target.value)} /> No</label>
                   </div>
-              {fieldErrors.respiratory_protection && <span className="field-error" style={{marginTop: '4px', display: 'block'}}>Please Select</span>}
+                  {fieldErrors.respiratory_protection && <span className="field-error" style={{ marginTop: '4px', display: 'block' }}>Please Select</span>}
                 </div>
 
               </div>
@@ -3731,6 +3774,57 @@ function NewRequest() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {isEditMode && (
+              <div ref={precautionsDropdownRef} className="df-field" style={{ position: "relative", marginTop: "16px" }}>
+                <label className="df-label">Safety Precautions</label>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type="text"
+                    className="df-input"
+                    style={{ cursor: "pointer", background: "rgba(255, 255, 255, 0.02)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+                    placeholder="Click to select safety precautions..."
+                    value={
+                      formData.Safety_Precautions?.length > 0
+                        ? formData.Safety_Precautions.map(id => precautionsList.find(x => String(x.id) === String(id))?.precaution || id).join(", ")
+                        : ""
+                    }
+                    readOnly
+                    onClick={() => setIsPrecautionsDropdownOpen(prev => !prev)}
+                  />
+                  <span style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: "#9ca3af", pointerEvents: "none", fontSize: "10px" }}>
+                    ▼
+                  </span>
+                </div>
+
+                {isPrecautionsDropdownOpen && precautionsList.length > 0 && (
+                  <div className="zone-rooms-dropdown" style={{ background: "#111827", border: "1px solid rgba(255, 255, 255, 0.15)", borderRadius: "8px", padding: "16px", marginTop: "8px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.3)", position: "absolute", top: "100%", left: 0, width: "100%", zIndex: 100, maxHeight: "250px", overflowY: "auto" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                      {precautionsList.map((p) => {
+                        const isChecked = (formData.Safety_Precautions || []).includes(String(p.id));
+                        return (
+                          <label key={p.id} className="custom-checkbox-label" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <input
+                              type="checkbox"
+                              className="custom-checkbox-input"
+                              checked={isChecked}
+                              onChange={() => {
+                                const current = formData.Safety_Precautions || [];
+                                const newValues = isChecked
+                                  ? current.filter(val => val !== String(p.id))
+                                  : [...current, String(p.id)];
+                                handleFieldChange("Safety_Precautions", newValues);
+                              }}
+                            />
+                            <span>{p.precaution}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

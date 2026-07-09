@@ -417,6 +417,21 @@ const ListRequest = () => {
 
   // ─── Fetch List Data ──────────────────────────────────────────────────────
   const fetchRequests = useCallback(async (page = 1) => {
+    if (searchFilters.fromDate && searchFilters.toDate) {
+      const fromVal = new Date(searchFilters.fromDate);
+      const toVal = new Date(searchFilters.toDate);
+      if (toVal < fromVal) {
+        showError("To Date cannot be earlier than From Date.");
+        return;
+      }
+      if (searchFilters.fromDate === searchFilters.toDate && searchFilters.startTime && searchFilters.endTime) {
+        if (searchFilters.endTime < searchFilters.startTime) {
+          showError("End Time cannot be earlier than Start Time for the same day.");
+          return;
+        }
+      }
+    }
+
     setIsLoading(true);
     try {
       const payload = {
@@ -937,6 +952,13 @@ const ListRequest = () => {
     const toVal = new Date(copyDates.to);
 
     if (toVal < fromVal) return showError("End date cannot be earlier than start date.");
+
+    if (copyDates.from === copyDates.to && modalTarget.Start_Time && modalTarget.End_Time) {
+      const isNightShift = modalTarget.night_shift === 1 || modalTarget.night_shift === true;
+      if (!isNightShift && modalTarget.End_Time < modalTarget.Start_Time) {
+        return showError("The copied request has an invalid time range (Start Time is later than End Time).");
+      }
+    }
     
     const today = new Date();
     today.setHours(0, 0, 0, 0);
