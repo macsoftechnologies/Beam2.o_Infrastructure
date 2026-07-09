@@ -94,11 +94,11 @@ export default function Login() {
                 <span className="dot"></span>Division 01
               </div>
               <h2 className="panel-title">
-                M3 <span>North</span>
+                M3 <span>Infrastructure</span>
                 <br />Operations
               </h2>
               <p className="panel-desc">
-                Your secure gateway to the northern regional operations platform —
+                Your secure gateway to the Infrastructure regional operations platform —
                 project management, field coordination, and real-time reporting.
               </p>
             </div>
@@ -112,7 +112,7 @@ export default function Login() {
               <br />
               <span>Back</span>
             </h1>
-            <p className="form-subtext">Sign in to your M3 North account to continue</p>
+            <p className="form-subtext">Sign in to your M3 Infrastructure account to continue</p>
 
             {error && (
               <div className="error-box show">
@@ -191,7 +191,7 @@ export default function Login() {
               </div>
 
               <div className="form-meta">
-                <label className="remember-wrap">
+                {/* <label className="remember-wrap">
                   <input
                     type="checkbox"
                     id="remember"
@@ -199,7 +199,7 @@ export default function Login() {
                     onChange={(e) => setRemember(e.target.checked)}
                   />
                   <span className="remember-label">Remember me</span>
-                </label>
+                </label> */}
                 <a href="#" className="forgot-link">
                   Forgot password?
                 </a>

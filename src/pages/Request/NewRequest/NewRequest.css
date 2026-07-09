@@ -518,6 +518,18 @@
 .file-remove-btn:hover {
   color: #f87171;
 }
+.field-error{
+  color: #f87171 !important;
+}
+.req-star{
+  color: red;
+  font-size: 16px;
+}
+.checklist-item .field-error {
+  flex-basis: 100%;
+  text-align: right;
+  margin-top: 4px;
+}
 
 /* Mandatory PPE Row Styles */
 .ppe-mandatory-row {
