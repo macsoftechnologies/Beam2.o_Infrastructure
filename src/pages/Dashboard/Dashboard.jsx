@@ -216,6 +216,11 @@ function getLogStyle(action) {
 
 /* ═══════════════════════════════════════════ */
 function Dashboard() {
+  const user = localStorage.getItem("user");
+  const parsedUser = user ? JSON.parse(user) : null;
+  const userRole = localStorage.getItem("UserType") || parsedUser?.role || parsedUser?.userType || "";
+  const isContractor = String(userRole).toLowerCase() === 'subcontractor';
+
   const barChartRef = useRef(null)
   const donutChartRef = useRef(null)
   const barChartInst = useRef(null)
@@ -841,7 +846,7 @@ function Dashboard() {
       </div>
 
       {/* ── RECENT REQUESTS + PENDING APPROVALS ── */}
-      <div className="tables-row">
+      <div className={isContractor ? "tables-row-single" : "tables-row"}>
         {/* Recent Requests */}
         <div className="clean-card">
           <div className="clean-card-header">
@@ -875,159 +880,163 @@ function Dashboard() {
         </div>
 
         {/* Pending Approvals */}
-        <div className="clean-card">
-          <div className="clean-card-header">
-            <div className="section-heading">Pending Approvals</div>
-            <a href="/list-request" className="btn-view-all-danger">View All</a>
-          </div>
-          <div style={{ overflowX: 'auto' }}>
-            <table className="custom-table">
-              <thead>
-                <tr>
-                  <th>Permit No</th>
-                  <th>Activity</th>
-                  <th>Contractor</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pendingApprovalsList.map(r => (
-                  <tr key={r.permit}>
-                    <td className="td-permit">{r.permit}</td>
-                    <td>{r.activity}</td>
-                    <td>{r.contractor}</td>
-                    <td>
-                      <button className="btn-review" onClick={() => window.location.href = `/new-request?permit=${r.permit}`}>Review</button>
-                    </td>
+        {!isContractor && (
+          <div className="clean-card">
+            <div className="clean-card-header">
+              <div className="section-heading">Pending Approvals</div>
+              <a href="/list-request" className="btn-view-all-danger">View All</a>
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table className="custom-table">
+                <thead>
+                  <tr>
+                    <th>Permit No</th>
+                    <th>Activity</th>
+                    <th>Contractor</th>
+                    <th>Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {pendingApprovalsList.map(r => (
+                    <tr key={r.permit}>
+                      <td className="td-permit">{r.permit}</td>
+                      <td>{r.activity}</td>
+                      <td>{r.contractor}</td>
+                      <td>
+                        <button className="btn-review" onClick={() => window.location.href = `/new-request?permit=${r.permit}`}>Review</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        )}
       </div>
       {/* ── ZONE STATUS | SYSTEM STATISTICS | RECENT LOGS ── */}
-      <div className="bottom-row">
+      {!isContractor && (
+        <div className="bottom-row">
 
-        {/* Zone Status */}
-        <div className="zone-card">
-          <div className="card-title">
-            <Icons.GeoAlt /> Zone Status
-          </div>
-          {[
-            {
-              cls: 'warning',
-              iconBg: '#FEF3C7', iconColor: '#D97706',
-              icon: <Icons.ConeStriped />,
-              name: 'Under Construction', sub: 'Active zones', count: zoneCounts.UC,
-            },
-            {
-              cls: 'info',
-              iconBg: '#CFFAFE', iconColor: '#0891B2',
-              icon: <Icons.GearWide />,
-              name: 'Commissioning', sub: 'In progress', count: zoneCounts.C,
-            },
-            {
-              cls: 'success',
-              iconBg: '#D1FAE5', iconColor: '#059669',
-              icon: <Icons.BuildingCheck />,
-              name: 'Hand Over', sub: 'Completed', count: zoneCounts.HO,
-            },
-          ].map(z => (
-            <div key={z.name} className={`zone-item ${z.cls}`}>
-              <div className="zone-icon" style={{ background: z.iconBg, color: z.iconColor }}>
-                {z.icon}
-              </div>
-              <div className="zone-label">
-                <p className="zone-name">{z.name}</p>
-                <small>{z.sub}</small>
-              </div>
-              <span className="zone-count">{z.count}</span>
+          {/* Zone Status */}
+          <div className="zone-card">
+            <div className="card-title">
+              <Icons.GeoAlt /> Zone Status
             </div>
-          ))}
-        </div>
-
-        {/* System Statistics */}
-        <div className="stats-card">
-          <div className="card-title">
-            <Icons.BarChart /> System Statistics
-          </div>
-          <div className="stats-grid">
-            <div>
-              <div className="stat-circle bg-primary-soft">
-                <Icons.Buildings />
-              </div>
-              <p className="stat-circle-num">{employeeCounts.departments}</p>
-              <p className="stat-circle-label">Departments</p>
-            </div>
-            <div>
-              <div className="stat-circle bg-success-soft">
-                <Icons.BriefcaseLg />
-              </div>
-              <p className="stat-circle-num">{employeeCounts.contractors}</p>
-              <p className="stat-circle-label">Contractors</p>
-            </div>
-            <div>
-              <div className="stat-circle" style={{ background: 'rgba(6, 182, 212, 0.15)', color: '#0891B2' }}>
-                <Icons.Shield />
-              </div>
-              <p className="stat-circle-num">{employeeCounts.observers}</p>
-              <p className="stat-circle-label">Observers</p>
-            </div>
-          </div>
-          <div className="emp-band">
-            <span className="emp-band-label">
-              <Icons.PeopleFill />
-              Total Employees
-            </span>
-            <span className="emp-band-val">{employeeCounts.total.toLocaleString()}</span>
-          </div>
-        </div>
-
-        {/* Recent Logs */}
-        <div className="logs-card">
-          <div className="card-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Icons.Clock /> Recent Logs</span>
-            <a href="/logs-reports" style={{ fontSize: '12px', color: '#8B5CF6', textDecoration: 'none', fontWeight: 600 }}>View All</a>
-          </div>
-          {recentLogsData.length === 0 ? (
-            <p style={{ color: 'var(--text-muted)', fontSize: '13px', padding: '12px 0' }}>No logs available</p>
-          ) : (
-            recentLogsData.map((log, i) => {
-              const { dot, catColor, category } = getLogStyle(log.action);
-              let displayName = log.user || '—';
-              try {
-                const u = JSON.parse(log.user);
-                displayName = u.displayName || u.email || u.username || displayName;
-              } catch { /* keep raw */ }
-              const timeAgo = log.timestamp
-                ? (() => {
-                    const diff = Date.now() - new Date(log.timestamp).getTime();
-                    const m = Math.floor(diff / 60000);
-                    if (m < 1) return 'just now';
-                    if (m < 60) return `${m}m ago`;
-                    const h = Math.floor(m / 60);
-                    if (h < 24) return `${h}h ago`;
-                    return `${Math.floor(h / 24)}d ago`;
-                  })()
-                : '';
-              return (
-                <div key={log.id ?? i} className="log-item">
-                  <span className="log-dot" style={{ background: dot }}></span>
-                  <div className="log-body">
-                    <p className="log-title">
-                      {displayName} <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>— {log.action}</span>
-                    </p>
-                    <span className="log-category" style={{ color: catColor }}>{category} · {log.method} {log.status}</span>
-                  </div>
-                  <span className="log-time">{timeAgo}</span>
+            {[
+              {
+                cls: 'warning',
+                iconBg: '#FEF3C7', iconColor: '#D97706',
+                icon: <Icons.ConeStriped />,
+                name: 'Under Construction', sub: 'Active zones', count: zoneCounts.UC,
+              },
+              {
+                cls: 'info',
+                iconBg: '#CFFAFE', iconColor: '#0891B2',
+                icon: <Icons.GearWide />,
+                name: 'Commissioning', sub: 'In progress', count: zoneCounts.C,
+              },
+              {
+                cls: 'success',
+                iconBg: '#D1FAE5', iconColor: '#059669',
+                icon: <Icons.BuildingCheck />,
+                name: 'Hand Over', sub: 'Completed', count: zoneCounts.HO,
+              },
+            ].map(z => (
+              <div key={z.name} className={`zone-item ${z.cls}`}>
+                <div className="zone-icon" style={{ background: z.iconBg, color: z.iconColor }}>
+                  {z.icon}
                 </div>
-              );
-            })
-          )}
-        </div>
+                <div className="zone-label">
+                  <p className="zone-name">{z.name}</p>
+                  <small>{z.sub}</small>
+                </div>
+                <span className="zone-count">{z.count}</span>
+              </div>
+            ))}
+          </div>
 
-      </div>
+          {/* System Statistics */}
+          <div className="stats-card">
+            <div className="card-title">
+              <Icons.BarChart /> System Statistics
+            </div>
+            <div className="stats-grid">
+              <div>
+                <div className="stat-circle bg-primary-soft">
+                  <Icons.Buildings />
+                </div>
+                <p className="stat-circle-num">{employeeCounts.departments}</p>
+                <p className="stat-circle-label">Departments</p>
+              </div>
+              <div>
+                <div className="stat-circle bg-success-soft">
+                  <Icons.BriefcaseLg />
+                </div>
+                <p className="stat-circle-num">{employeeCounts.contractors}</p>
+                <p className="stat-circle-label">Contractors</p>
+              </div>
+              <div>
+                <div className="stat-circle" style={{ background: 'rgba(6, 182, 212, 0.15)', color: '#0891B2' }}>
+                  <Icons.Shield />
+                </div>
+                <p className="stat-circle-num">{employeeCounts.observers}</p>
+                <p className="stat-circle-label">Observers</p>
+              </div>
+            </div>
+            <div className="emp-band">
+              <span className="emp-band-label">
+                <Icons.PeopleFill />
+                Total Employees
+              </span>
+              <span className="emp-band-val">{employeeCounts.total.toLocaleString()}</span>
+            </div>
+          </div>
+
+          {/* Recent Logs */}
+          <div className="logs-card">
+            <div className="card-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Icons.Clock /> Recent Logs</span>
+              <a href="/logs-reports" style={{ fontSize: '12px', color: '#8B5CF6', textDecoration: 'none', fontWeight: 600 }}>View All</a>
+            </div>
+            {recentLogsData.length === 0 ? (
+              <p style={{ color: 'var(--text-muted)', fontSize: '13px', padding: '12px 0' }}>No logs available</p>
+            ) : (
+              recentLogsData.map((log, i) => {
+                const { dot, catColor, category } = getLogStyle(log.action);
+                let displayName = log.user || '—';
+                try {
+                  const u = JSON.parse(log.user);
+                  displayName = u.displayName || u.email || u.username || displayName;
+                } catch { /* keep raw */ }
+                const timeAgo = log.timestamp
+                  ? (() => {
+                      const diff = Date.now() - new Date(log.timestamp).getTime();
+                      const m = Math.floor(diff / 60000);
+                      if (m < 1) return 'just now';
+                      if (m < 60) return `${m}m ago`;
+                      const h = Math.floor(m / 60);
+                      if (h < 24) return `${h}h ago`;
+                      return `${Math.floor(h / 24)}d ago`;
+                    })()
+                  : '';
+                return (
+                  <div key={log.id ?? i} className="log-item">
+                    <span className="log-dot" style={{ background: dot }}></span>
+                    <div className="log-body">
+                      <p className="log-title">
+                        {displayName} <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>— {log.action}</span>
+                      </p>
+                      <span className="log-category" style={{ color: catColor }}>{category} · {log.method} {log.status}</span>
+                    </div>
+                    <span className="log-time">{timeAgo}</span>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+        </div>
+      )}
 
       <Modal open={isEmployeeModalOpen} onClose={() => setIsEmployeeModalOpen(false)} title="Add Employee" size="lg" type="default">
         <EmployeeForm onClose={() => setIsEmployeeModalOpen(false)} onSubmit={() => setIsEmployeeModalOpen(false)} />

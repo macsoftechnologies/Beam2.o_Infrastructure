@@ -1112,6 +1112,9 @@ const ListRequest = () => {
         row.Request_status !== "Cancelled" &&
         row.Request_status !== "Closed" &&
         row.Request_status !== "Rejected" &&
+        row.Request_status !== "Opened" &&
+        row.Request_status !== "Auto-Cancelled" &&
+        row.Request_status !== "Auto Cancelled" &&
         currentUser?.role !== "Observer";
 
       const isEditLoading = loadingEditId === row.id;
