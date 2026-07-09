@@ -101,6 +101,27 @@ function NewRequest() {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [fieldErrors, setFieldErrors] = useState({});
   const fileInputRef = useRef(null);
+  const roomsDropdownRef = useRef(null);
+  const electricalDropdownRef = useRef(null);
+  const mechanicalDropdownRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (roomsDropdownRef.current && !roomsDropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+      if (electricalDropdownRef.current && !electricalDropdownRef.current.contains(event.target)) {
+        setIsElectricalDropdownOpen(false);
+      }
+      if (mechanicalDropdownRef.current && !mechanicalDropdownRef.current.contains(event.target)) {
+        setIsMechanicalDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const triggerFileInput = () => {
     if (fileInputRef.current) {
@@ -1681,7 +1702,7 @@ function NewRequest() {
           <div className="form-card" style={{ position: "relative" }}>
             <h2 className="form-card-title">Selected Area / Rooms</h2>
 
-            <div className="df-field">
+            <div className="df-field" ref={roomsDropdownRef} style={{ position: "relative" }}>
               <label className="df-label">Rooms Selection</label>
               <div style={{ position: "relative" }}>
                 <input
@@ -1693,40 +1714,38 @@ function NewRequest() {
                   readOnly
                   onClick={() => setIsDropdownOpen(prev => !prev)}
                 />
-                <span style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: "#9ca3af", pointerEvents: "none", fontSize: "10px" }}>
-                  ▼
-                </span>
+                <i className="ti ti-chevron-down" style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: "#9ca3af", pointerEvents: "none", fontSize: "16px" }} />
               </div>
-            </div>
 
-            {isDropdownOpen && zonesToDisplay.length > 0 && (
-              <div className="zone-rooms-dropdown" style={{ background: "#111827", border: "1px solid rgba(255, 255, 255, 0.15)", borderRadius: "8px", padding: "16px", marginTop: "8px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.3)", zIndex: 100 }}>
-                {zonesToDisplay.map((zoneToDraw) => (
-                  <div key={zoneToDraw.name} style={{ marginBottom: "20px" }}>
-                    <div style={{ fontWeight: "bold", color: "#00e5a0", marginBottom: "12px", fontSize: "14px" }}>
-                      Zone {zoneToDraw.name}
+              {isDropdownOpen && zonesToDisplay.length > 0 && (
+                <div className="zone-rooms-dropdown" style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "16px", marginTop: "8px", boxShadow: "var(--shadow-md)", zIndex: 100 }}>
+                  {zonesToDisplay.map((zoneToDraw) => (
+                    <div key={zoneToDraw.name} style={{ marginBottom: "20px" }}>
+                      <div style={{ fontWeight: "bold", color: "var(--color-safe, #00e5a0)", marginBottom: "12px", fontSize: "14px" }}>
+                        Zone {zoneToDraw.name}
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "12px", paddingLeft: "8px" }}>
+                        {zoneToDraw.rooms.map((room) => {
+                          const roomName = typeof room === "object" ? room.name : room;
+                          const isChecked = selectedRooms.includes(roomName);
+                          return (
+                            <label key={roomName} className="custom-checkbox-label" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <input
+                                type="checkbox"
+                                className="custom-checkbox-input"
+                                checked={isChecked}
+                                onChange={() => toggleRoomSelection(roomName)}
+                              />
+                              <span>{roomName}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "12px", paddingLeft: "8px" }}>
-                      {zoneToDraw.rooms.map((room) => {
-                        const roomName = typeof room === "object" ? room.name : room;
-                        const isChecked = selectedRooms.includes(roomName);
-                        return (
-                          <label key={roomName} className="custom-checkbox-label" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <input
-                              type="checkbox"
-                              className="custom-checkbox-input"
-                              checked={isChecked}
-                              onChange={() => toggleRoomSelection(roomName)}
-                            />
-                            <span>{roomName}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Tools & Equipment */}
@@ -1835,7 +1854,7 @@ function NewRequest() {
                 </div>
 
                 {formData.work_type === "Electrical Works" && (
-                  <div className="df-field" style={{ position: "relative" }}>
+                  <div className="df-field" ref={electricalDropdownRef} style={{ position: "relative" }}>
                     <label className="df-label">Electrical Works</label>
                     <div style={{ position: "relative" }}>
                       <input
@@ -1851,16 +1870,14 @@ function NewRequest() {
                         readOnly
                         onClick={() => setIsElectricalDropdownOpen(prev => !prev)}
                       />
-                      <span style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: "#9ca3af", pointerEvents: "none", fontSize: "10px" }}>
-                        ▼
-                      </span>
+                      <i className="ti ti-chevron-down" style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: "#9ca3af", pointerEvents: "none", fontSize: "16px" }} />
                     </div>
 
                     {isElectricalDropdownOpen && groupedElectrical.length > 0 && (
-                      <div className="zone-rooms-dropdown" style={{ background: "#111827", border: "1px solid rgba(255, 255, 255, 0.15)", borderRadius: "8px", padding: "16px", marginTop: "8px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.3)", position: "absolute", top: "100%", left: 0, width: "100%", zIndex: 100, maxHeight: "300px", overflowY: "auto" }}>
+                      <div className="zone-rooms-dropdown" style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "16px", marginTop: "8px", boxShadow: "var(--shadow-md)", position: "absolute", top: "100%", left: 0, width: "100%", zIndex: 100, maxHeight: "300px", overflowY: "auto" }}>
                         {groupedElectrical.map((g) => (
                           <div key={g.module} style={{ marginBottom: "20px" }}>
-                            <div style={{ fontWeight: "bold", color: "#00e5a0", marginBottom: "12px", fontSize: "14px", textTransform: "uppercase" }}>
+                            <div style={{ fontWeight: "bold", color: "var(--color-safe, #00e5a0)", marginBottom: "12px", fontSize: "14px", textTransform: "uppercase" }}>
                               {g.module}
                             </div>
                             <div style={{ display: "flex", flexDirection: "column", gap: "12px", paddingLeft: "8px" }}>
@@ -1893,7 +1910,7 @@ function NewRequest() {
                 )}
 
                 {formData.work_type === "Mechanical Works" && (
-                  <div className="df-field" style={{ position: "relative" }}>
+                  <div className="df-field" ref={mechanicalDropdownRef} style={{ position: "relative" }}>
                     <label className="df-label">Mechanical Works</label>
                     <div style={{ position: "relative" }}>
                       <input
@@ -1909,13 +1926,11 @@ function NewRequest() {
                         readOnly
                         onClick={() => setIsMechanicalDropdownOpen(prev => !prev)}
                       />
-                      <span style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: "#9ca3af", pointerEvents: "none", fontSize: "10px" }}>
-                        ▼
-                      </span>
+                      <i className="ti ti-chevron-down" style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: "#9ca3af", pointerEvents: "none", fontSize: "16px" }} />
                     </div>
 
                     {isMechanicalDropdownOpen && mechanicalWorksOptions.length > 0 && (
-                      <div className="zone-rooms-dropdown" style={{ background: "#111827", border: "1px solid rgba(255, 255, 255, 0.15)", borderRadius: "8px", padding: "16px", marginTop: "8px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.3)", position: "absolute", top: "100%", left: 0, width: "100%", zIndex: 100, maxHeight: "300px", overflowY: "auto" }}>
+                      <div className="zone-rooms-dropdown" style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "16px", marginTop: "8px", boxShadow: "var(--shadow-md)", position: "absolute", top: "100%", left: 0, width: "100%", zIndex: 100, maxHeight: "300px", overflowY: "auto" }}>
                         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                           {mechanicalWorksOptions.map((m) => {
                             const isChecked = (formData.mechanical_works || []).includes(String(m.id));

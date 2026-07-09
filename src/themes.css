@@ -419,6 +419,9 @@ html[data-theme="light"] .df-form .df-textarea:focus {
 /* Selects */
 html[data-theme="light"] .df-form .df-select {
   background-color: #F3F4F6 !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234B5563' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 14px center !important;
   border-color:     var(--border-light) !important;
   color:            var(--text-main) !important;
 }
@@ -544,9 +547,16 @@ html[data-theme="light"] .nr-success p  { color: var(--text-muted) !important; }
    LIGHT MODE — List Request / filter card inputs & selects
    (these use df-input / df-select OUTSIDE a df-form wrapper)
 ════════════════════════════════════════════════════════ */
-html[data-theme="light"] .df-input,
-html[data-theme="light"] .df-select {
+html[data-theme="light"] .df-input {
   background:   #F3F4F6            !important;
+  border-color: var(--border-light) !important;
+  color:        var(--text-main)   !important;
+}
+html[data-theme="light"] .df-select {
+  background-color: #F3F4F6            !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234B5563' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 14px center !important;
   border-color: var(--border-light) !important;
   color:        var(--text-main)   !important;
 }
@@ -765,8 +775,8 @@ html[data-theme="light"] .radio-group label {
 html[data-theme="light"] .custom-checkbox-label {
   color: var(--text-main) !important;
 }
-html[data-theme="light"] .custom-checkbox-input {
-  border-color: var(--border-light) !important;
+html[data-theme="light"] .custom-checkbox-input:not(:checked) {
+  border-color: var(--text-muted) !important;
   background-color: var(--bg-card-hover) !important;
 }
 
