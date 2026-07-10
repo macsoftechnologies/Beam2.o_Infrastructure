@@ -4,6 +4,31 @@ import { searchRequests } from "../../services/requestService";
 import "../styles/pages.css";
 import LogHistoryModal from "./LogHistoryModel";
 
+// Helper to convert yyyy-mm-dd date to dd-mm-yyyy format
+const formatDateToDDMMYYYY = (dateStr) => {
+  if (!dateStr || dateStr === "—") return "—";
+  const dateOnly = String(dateStr).split(/[ T]/)[0];
+  const match = dateOnly.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (match) {
+    return `${match[3]}-${match[2]}-${match[1]}`;
+  }
+  return dateStr;
+};
+
+// Helper to truncate long string values and attach title for hover info
+const trimLongValue = (value, maxLen) => {
+  if (!value || value === "—") return "—";
+  const valStr = String(value);
+  if (valStr.length > maxLen) {
+    return (
+      <span title={valStr}>
+        {valStr.slice(0, maxLen)}...
+      </span>
+    );
+  }
+  return valStr;
+};
+
 const PAGE_LIMIT_DEFAULT = 30;
 
 const SearchIcon = () => (
@@ -81,6 +106,7 @@ const LogHistory = () => {
 
   const tableData = requests.map((item) => ({
     ...item,
+    _rowonClick: () => setSelectedPermit(item),
     // permitNumber: item.PermitNo || "—",
     permitNumber: (
       <span
@@ -90,14 +116,14 @@ const LogHistory = () => {
         {item.PermitNo || "—"}
       </span>
     ),
-    activity: item.Activity || "—",
-    contractor: item.subContractorName || item.Company_Name || "—",
-    building: item.building_name || "—",
-    area: item.zone_name || item.room_names || item.Room_Nos || "—",
-    level: item.Room_Type || "—",
-    workingDate: item.Working_Date || "—",
+    activity: trimLongValue(item.Activity, 30),
+    contractor: trimLongValue(item.subContractorName || item.Company_Name, 25),
+    building: trimLongValue(item.building_name, 20),
+    area: trimLongValue(item.zone_name || item.room_names || item.Room_Nos, 25),
+    level: trimLongValue(item.Room_Type, 20),
+    workingDate: formatDateToDDMMYYYY(item.Working_Date),
     nightShift: (item.night_shift === 1 || item.night_shift === "1") ? "Yes" : "No",
-    newDate: item.new_date || "—",
+    newDate: formatDateToDDMMYYYY(item.new_date),
     actions: (
       <div className="dept-action-btns">
         <button

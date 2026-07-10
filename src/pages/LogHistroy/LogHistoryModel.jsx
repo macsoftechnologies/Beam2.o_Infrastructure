@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 const TYPE_STYLES = {
     Hold: { color: "#f59e0b", bg: "#f59e0b22", icon: "⏸" },
@@ -77,8 +77,8 @@ const LogHistoryModal = ({ permit, onClose }) => {
                 position: "fixed", top: "70px", right: 0,
                 width: "500px", maxWidth: "95vw",
                 height: "calc(100vh - 70px)",
-                backgroundColor: "#0f1a33",
-                borderLeft: "1px solid #2e3f66",
+                backgroundColor: "var(--bg-card)",
+                borderLeft: "1px solid var(--border-color)",
                 zIndex: 9999,
                 display: "flex",
                 flexDirection: "column",
@@ -88,29 +88,29 @@ const LogHistoryModal = ({ permit, onClose }) => {
                 {/* ── Header ── */}
                 <div style={{
                     padding: "20px 24px",
-                    borderBottom: "1px solid #2e3f66",
+                    borderBottom: "1px solid var(--border-color)",
                     display: "flex",
                     alignItems: "flex-start",
                     justifyContent: "space-between",
-                    backgroundColor: "#0f1a33",
+                    backgroundColor: "var(--bg-card)",
                     flexShrink: 0,
                 }}>
                     <div>
-                        <h2 style={{ margin: 0, fontSize: "16px", color: "#ffffff", fontWeight: 600 }}>
+                        <h2 style={{ margin: 0, fontSize: "16px", color: "var(--text-main)", fontWeight: 600 }}>
                             Permit Activity Log
                         </h2>
                         <span style={{
-                            fontSize: "13px", color: "#7a8aab",
+                            fontSize: "13px", color: "var(--text-muted)",
                             fontFamily: "monospace", marginTop: "4px", display: "block",
                         }}>
                             #{permit.PermitNo}
                         </span>
                         {logs.length > 0 && (
                             <div style={{ marginTop: "8px", display: "flex", gap: "12px", flexWrap: "wrap" }}>
-                                <span style={{ fontSize: "12px", color: "#7a8aab" }}>
+                                <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
                                     🏢 {logs[0].Company_Name}
                                 </span>
-                                <span style={{ fontSize: "12px", color: "#7a8aab" }}>
+                                <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
                                     👷 {logs[0].contractor_name}
                                 </span>
                             </div>
@@ -144,7 +144,7 @@ const LogHistoryModal = ({ permit, onClose }) => {
                             onClick={onClose}
                             style={{
                                 background: "none", border: "none",
-                                color: "#7a8aab", cursor: "pointer",
+                                color: "var(--text-muted)", cursor: "pointer",
                                 fontSize: "20px", lineHeight: 1,
                                 padding: "4px",
                             }}
@@ -162,13 +162,13 @@ const LogHistoryModal = ({ permit, onClose }) => {
                         <div style={{ textAlign: "center", padding: "48px 0" }}>
                             <div style={{
                                 width: "36px", height: "36px",
-                                border: "3px solid #2e3f66",
-                                borderTopColor: "#4a9eff",
+                                border: "3px solid var(--border-color)",
+                                borderTopColor: "var(--accent)",
                                 borderRadius: "50%",
                                 animation: "spin 0.8s linear infinite",
                                 margin: "0 auto 12px",
                             }} />
-                            <p style={{ color: "#7a8aab", fontSize: "14px", margin: 0 }}>
+                            <p style={{ color: "var(--text-muted)", fontSize: "14px", margin: 0 }}>
                                 Loading activity log…
                             </p>
                             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -194,7 +194,7 @@ const LogHistoryModal = ({ permit, onClose }) => {
                     {!isLoading && !error && logs.length === 0 && (
                         <div style={{
                             textAlign: "center", padding: "48px 0",
-                            color: "#7a8aab", fontSize: "14px",
+                            color: "var(--text-muted)", fontSize: "14px",
                         }}>
                             No activity found for this permit.
                         </div>
@@ -210,7 +210,7 @@ const LogHistoryModal = ({ permit, onClose }) => {
                                 left: "19px", top: "8px",
                                 bottom: "8px",
                                 width: "2px",
-                                backgroundColor: "#2e3f66",
+                                backgroundColor: "var(--border-color)",
                             }} />
 
                             {logs.map((log, index) => {
@@ -250,8 +250,8 @@ const LogHistoryModal = ({ permit, onClose }) => {
                                         {/* Card */}
                                         <div style={{
                                             flex: 1,
-                                            backgroundColor: "#1a2744",
-                                            border: "1px solid #2e3f66",
+                                            backgroundColor: "var(--bg-card-hover)",
+                                            border: "1px solid var(--border-color)",
                                             borderRadius: "10px",
                                             padding: "14px 16px",
                                         }}>
@@ -277,7 +277,7 @@ const LogHistoryModal = ({ permit, onClose }) => {
                                                 }}>
                                                     {log.requestType}
                                                 </span>
-                                                <span style={{ fontSize: "11px", color: "#7a8aab" }}>
+                                                <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
                                                     🕐 {formatDateTime(log.createdTime)}
                                                 </span>
                                             </div>
@@ -293,23 +293,23 @@ const LogHistoryModal = ({ permit, onClose }) => {
                                                 <div style={{
                                                     width: "28px", height: "28px",
                                                     borderRadius: "50%",
-                                                    backgroundColor: "#0f1a33",
-                                                    border: "1px solid #2e3f66",
+                                                    backgroundColor: "var(--bg-card)",
+                                                    border: "1px solid var(--border-color)",
                                                     display: "flex",
                                                     alignItems: "center",
                                                     justifyContent: "center",
                                                     fontSize: "12px",
-                                                    color: "#4a9eff",
+                                                    color: "var(--accent, #4a9eff)",
                                                     fontWeight: 700,
                                                     flexShrink: 0,
                                                 }}>
                                                     {log.username?.[0]?.toUpperCase() || "?"}
                                                 </div>
                                                 <div>
-                                                    <p style={{ margin: 0, fontSize: "13px", color: "#e2e8f0", fontWeight: 500 }}>
+                                                    <p style={{ margin: 0, fontSize: "13px", color: "var(--text-main)", fontWeight: 500 }}>
                                                         {log.username}
                                                     </p>
-                                                    <p style={{ margin: 0, fontSize: "11px", color: "#7a8aab" }}>
+                                                    <p style={{ margin: 0, fontSize: "11px", color: "var(--text-muted)" }}>
                                                         {log.userType}
                                                     </p>
                                                 </div>
@@ -319,13 +319,13 @@ const LogHistoryModal = ({ permit, onClose }) => {
                                             {log.fields?.length > 0 && (
                                                 <div style={{
                                                     marginTop: "10px",
-                                                    borderTop: "1px solid #2e3f66",
+                                                    borderTop: "1px solid var(--border-color)",
                                                     paddingTop: "10px",
                                                 }}>
                                                     <p style={{
                                                         margin: "0 0 8px",
                                                         fontSize: "11px",
-                                                        color: "#7a8aab",
+                                                        color: "var(--text-muted)",
                                                         textTransform: "uppercase",
                                                         letterSpacing: "0.5px",
                                                     }}>
@@ -337,7 +337,7 @@ const LogHistoryModal = ({ permit, onClose }) => {
                                                             alignItems: "center",
                                                             gap: "8px",
                                                             padding: "8px 10px",
-                                                            backgroundColor: "#0f1a33",
+                                                            backgroundColor: "var(--bg-card)",
                                                             borderRadius: "6px",
                                                             marginBottom: "6px",
                                                             flexWrap: "wrap",
@@ -345,7 +345,7 @@ const LogHistoryModal = ({ permit, onClose }) => {
                                                             {/* Field name */}
                                                             <span style={{
                                                                 fontSize: "12px",
-                                                                color: "#94a3b8",
+                                                                color: "var(--text-main)",
                                                                 fontWeight: 600,
                                                                 minWidth: "90px",
                                                             }}>
@@ -366,7 +366,7 @@ const LogHistoryModal = ({ permit, onClose }) => {
                                                             </span>
 
                                                             {/* Arrow */}
-                                                            <span style={{ color: "#7a8aab", fontSize: "14px" }}>→</span>
+                                                            <span style={{ color: "var(--text-muted)", fontSize: "14px" }}>→</span>
 
                                                             {/* Present */}
                                                             <span style={{

@@ -390,7 +390,7 @@ th.sticky-col-operations {
   top: 6px;
   bottom: 6px;
   width: 2px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--border-color, rgba(255, 255, 255, 0.08));
 }
 
 .timeline-item {
@@ -406,15 +406,15 @@ th.sticky-col-operations {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #3b82f6;
-  border: 3px solid #0f172a;
+  background: var(--accent, #3b82f6);
+  border: 3px solid var(--bg-card, #0f172a);
   z-index: 2;
 }
 
 .timeline-content {
   flex: 1;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: var(--bg-card-hover, rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.04));
   padding: 12px;
   border-radius: 6px;
 }

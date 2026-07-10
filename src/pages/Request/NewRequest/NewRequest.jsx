@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import "../../styles/pages.css";
 import "../../../forms/styles/forms.css";
 import "./NewRequest.css";
@@ -770,13 +770,50 @@ function NewRequest() {
   const handleFieldChange = (field, value) => {
     // Clear inline error for this field as user types
     setFieldErrors((prev) => {
-      if (!prev[field]) return prev;
       const next = { ...prev };
       delete next[field];
+
+      // Clear work type errors when switching work types
+      if (field === "work_type") {
+        delete next.work_type;
+        delete next.electrical_works;
+        delete next.mechanical_works;
+      }
+
+      // Real-time time validations
+      const updatedFormData = { ...formData, [field]: value };
+      const start = updatedFormData.Start_Time;
+      const end = updatedFormData.End_Time;
+      const shift = updatedFormData.night_shift;
+      const newEnd = updatedFormData.new_end_time;
+
+      if (field === "Start_Time" || field === "End_Time" || field === "night_shift" || field === "new_end_time") {
+        delete next.Start_Time;
+        delete next.End_Time;
+        delete next.new_end_time;
+      }
+
+      if (start) {
+        if (shift) {
+          if (newEnd && newEnd >= start) {
+            next.new_end_time = "For night shift, new end time must be earlier than start time.";
+          }
+        } else {
+          if (end && start >= end) {
+            next.End_Time = "Start time must be earlier than End time.";
+          }
+        }
+      }
+
       return next;
     });
     setFormData((prev) => {
       const updated = { ...prev, [field]: value };
+
+      if (field === "work_type") {
+        updated.electrical_works = [];
+        updated.mechanical_works = [];
+      }
 
       if (field === "night_shift" && value === true) {
         if (prev.Working_Date) {
@@ -845,6 +882,21 @@ function NewRequest() {
     if (!formData.Working_Date) errors.Working_Date = "Please select a working Date.";
     if (!formData.Start_Time) errors.Start_Time = "Please enter Start Time.";
     if (!formData.End_Time) errors.End_Time = "Please enter End Time.";
+
+    // Commissioning permit type validation
+    if (formData.permit_type === "Commissioning") {
+      if (!formData.work_type) {
+        errors.work_type = "Please select Type of Work.";
+      } else if (formData.work_type === "Electrical Works") {
+        if (!formData.electrical_works || formData.electrical_works.length === 0) {
+          errors.electrical_works = "Please select at least one electrical work.";
+        }
+      } else if (formData.work_type === "Mechanical Works") {
+        if (!formData.mechanical_works || formData.mechanical_works.length === 0) {
+          errors.mechanical_works = "Please select at least one mechanical work.";
+        }
+      }
+    }
 
     // Tools & Machinery
     if (!formData.Tools?.trim()) errors.Tools = "Please enter tools used.";
@@ -1008,7 +1060,34 @@ function NewRequest() {
     if (!formData.respiratory_protection) errors.respiratory_protection = "Please Select";
     if (!formData.other_ppe?.trim()) errors.other_ppe = "Please enter other PPE details.";
     if (!formData.Number_Of_Workers?.trim()) errors.Number_Of_Workers = "Please enter number of workers.";
-    if (!formData.notes?.trim()) errors.notes = "Please enter notes.";
+
+    // Start/End Time validations
+    const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
+    if (formData.Start_Time && !timeRegex.test(formData.Start_Time)) {
+      errors.Start_Time = "Start time must be in 24-hour format (HH:MM).";
+    }
+    if (formData.End_Time && !timeRegex.test(formData.End_Time)) {
+      errors.End_Time = "End time must be in 24-hour format (HH:MM).";
+    }
+    if (formData.night_shift && formData.new_end_time && !timeRegex.test(formData.new_end_time)) {
+      errors.new_end_time = "New End time must be in 24-hour format (HH:MM).";
+    }
+
+    if (formData.Start_Time) {
+      if (formData.night_shift) {
+        if (formData.new_end_time) {
+          if (formData.new_end_time >= formData.Start_Time) {
+            errors.new_end_time = "For night shift, new end time must be earlier than start time.";
+          }
+        }
+      } else {
+        if (formData.End_Time) {
+          if (formData.Start_Time >= formData.End_Time) {
+            errors.End_Time = "Start time must be earlier than End time.";
+          }
+        }
+      }
+    }
 
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) {
@@ -1107,36 +1186,66 @@ function NewRequest() {
       }
     }
 
+    const timeErrors = {};
     const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
     if (formData.Start_Time && !timeRegex.test(formData.Start_Time)) {
-      showError("Start time must be in 24-hour format (HH:MM).");
-      return;
+      timeErrors.Start_Time = "Start time must be in 24-hour format (HH:MM).";
     }
     if (formData.End_Time && !timeRegex.test(formData.End_Time)) {
-      showError("End time must be in 24-hour format (HH:MM).");
-      return;
+      timeErrors.End_Time = "End time must be in 24-hour format (HH:MM).";
     }
     if (formData.night_shift && formData.new_end_time && !timeRegex.test(formData.new_end_time)) {
-      showError("New End time must be in 24-hour format (HH:MM).");
-      return;
+      timeErrors.new_end_time = "New End time must be in 24-hour format (HH:MM).";
     }
 
     if (formData.Start_Time) {
       if (formData.night_shift) {
         if (formData.new_end_time) {
           if (formData.new_end_time >= formData.Start_Time) {
-            showError("For night shift, new end time must be earlier than start time.");
-            return;
+            timeErrors.new_end_time = "For night shift, new end time must be earlier than start time.";
           }
         }
       } else {
         if (formData.End_Time) {
           if (formData.Start_Time >= formData.End_Time) {
-            showError("Start time must be earlier than End time.");
-            return;
+            timeErrors.End_Time = "Start time must be earlier than End time.";
           }
         }
       }
+    }
+
+    if (Object.keys(timeErrors).length > 0) {
+      setFieldErrors(prev => ({ ...prev, ...timeErrors }));
+      setTimeout(() => {
+        const firstErr = document.querySelector(".field-error");
+        if (firstErr) firstErr.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
+      return;
+    }
+
+    // Commissioning permit type validation
+    const commErrors = {};
+    if (formData.permit_type === "Commissioning") {
+      if (!formData.work_type) {
+        commErrors.work_type = "Please select Type of Work.";
+      } else if (formData.work_type === "Electrical Works") {
+        if (!formData.electrical_works || formData.electrical_works.length === 0) {
+          commErrors.electrical_works = "Please select at least one electrical work.";
+        }
+      } else if (formData.work_type === "Mechanical Works") {
+        if (!formData.mechanical_works || formData.mechanical_works.length === 0) {
+          commErrors.mechanical_works = "Please select at least one mechanical work.";
+        }
+      }
+    }
+
+    if (Object.keys(commErrors).length > 0) {
+      setFieldErrors(prev => ({ ...prev, ...commErrors }));
+      setTimeout(() => {
+        const firstErr = document.querySelector(".field-error");
+        if (firstErr) firstErr.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
+      return;
     }
 
     if (!Zone_Id) {
@@ -1643,7 +1752,7 @@ function NewRequest() {
                   value={formData.Working_Date}
                   min={!isEditMode ? new Date().toISOString().split("T")[0] : undefined}
                   onChange={(e) => handleFieldChange("Working_Date", e.target.value)}
-                  onClick={(e) => { try { e.target.showPicker(); } catch (_) { } }}
+                  onClick={(e) => { try { e.target.showPicker(); } catch (err) { void err; } }}
                 />
                 {fieldErrors.Working_Date && <span className="field-error">{fieldErrors.Working_Date}</span>}
               </div>
@@ -1654,7 +1763,7 @@ function NewRequest() {
                   className={`df-input${fieldErrors.Start_Time ? " field-input-error" : ""}`}
                   value={formData.Start_Time}
                   onChange={(e) => handleFieldChange("Start_Time", e.target.value)}
-                  onClick={(e) => { try { e.target.showPicker(); } catch (_) { } }}
+                  onClick={(e) => { try { e.target.showPicker(); } catch (err) { void err; } }}
                 />
                 {fieldErrors.Start_Time && <span className="field-error">{fieldErrors.Start_Time}</span>}
               </div>
@@ -1668,7 +1777,7 @@ function NewRequest() {
                   className={`df-input${fieldErrors.End_Time ? " field-input-error" : ""}`}
                   value={formData.End_Time}
                   onChange={(e) => handleFieldChange("End_Time", e.target.value)}
-                  onClick={(e) => { try { e.target.showPicker(); } catch (_) { } }}
+                  onClick={(e) => { try { e.target.showPicker(); } catch (err) { void err; } }}
                 />
                 {fieldErrors.End_Time && <span className="field-error">{fieldErrors.End_Time}</span>}
               </div>
@@ -1699,10 +1808,12 @@ function NewRequest() {
                   <label className="df-label">New End Time (Night Shift)</label>
                   <input
                     type="time"
-                    className="df-input"
+                    className={`df-input${fieldErrors.new_end_time ? " field-input-error" : ""}`}
                     value={formData.new_end_time}
                     onChange={(e) => handleFieldChange("new_end_time", e.target.value)}
+                    onClick={(e) => { try { e.target.showPicker(); } catch (err) { void err; } }}
                   />
+                  {fieldErrors.new_end_time && <span className="field-error">{fieldErrors.new_end_time}</span>}
                 </div>
               </div>
             )}
@@ -1884,9 +1995,9 @@ function NewRequest() {
               <h2 className="form-card-title">Type of Work</h2>
               <div className="df-grid">
                 <div className="df-field">
-                  <label className="df-label">Type of Work</label>
+                  <label className="df-label">Type of Work <span className="req-star">*</span></label>
                   <select
-                    className="df-select"
+                    className={`df-select${fieldErrors.work_type ? " field-input-error" : ""}`}
                     value={formData.work_type}
                     onChange={(e) => handleFieldChange("work_type", e.target.value)}
                   >
@@ -1894,15 +2005,16 @@ function NewRequest() {
                     <option value="Electrical Works">Electrical Works</option>
                     <option value="Mechanical Works">Mechanical Works</option>
                   </select>
+                  {fieldErrors.work_type && <span className="field-error">{fieldErrors.work_type}</span>}
                 </div>
 
                 {formData.work_type === "Electrical Works" && (
                   <div className="df-field" ref={electricalDropdownRef} style={{ position: "relative" }}>
-                    <label className="df-label">Electrical Works</label>
+                    <label className="df-label">Electrical Works <span className="req-star">*</span></label>
                     <div style={{ position: "relative" }}>
                       <input
                         type="text"
-                        className="df-input"
+                        className={`df-input${fieldErrors.electrical_works ? " field-input-error" : ""}`}
                         style={{ cursor: "pointer", background: "rgba(255, 255, 255, 0.02)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
                         placeholder="Click to select electrical works..."
                         value={
@@ -1915,6 +2027,7 @@ function NewRequest() {
                       />
                       <i className="ti ti-chevron-down" style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: "#9ca3af", pointerEvents: "none", fontSize: "16px" }} />
                     </div>
+                    {fieldErrors.electrical_works && <span className="field-error">{fieldErrors.electrical_works}</span>}
 
                     {isElectricalDropdownOpen && groupedElectrical.length > 0 && (
                       <div className="zone-rooms-dropdown" style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "16px", marginTop: "8px", boxShadow: "var(--shadow-md)", position: "absolute", top: "100%", left: 0, width: "100%", zIndex: 100, maxHeight: "300px", overflowY: "auto" }}>
@@ -1954,11 +2067,11 @@ function NewRequest() {
 
                 {formData.work_type === "Mechanical Works" && (
                   <div className="df-field" ref={mechanicalDropdownRef} style={{ position: "relative" }}>
-                    <label className="df-label">Mechanical Works</label>
+                    <label className="df-label">Mechanical Works <span className="req-star">*</span></label>
                     <div style={{ position: "relative" }}>
                       <input
                         type="text"
-                        className="df-input"
+                        className={`df-input${fieldErrors.mechanical_works ? " field-input-error" : ""}`}
                         style={{ cursor: "pointer", background: "rgba(255, 255, 255, 0.02)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
                         placeholder="Click to select mechanical works..."
                         value={
@@ -1971,6 +2084,7 @@ function NewRequest() {
                       />
                       <i className="ti ti-chevron-down" style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: "#9ca3af", pointerEvents: "none", fontSize: "16px" }} />
                     </div>
+                    {fieldErrors.mechanical_works && <span className="field-error">{fieldErrors.mechanical_works}</span>}
 
                     {isMechanicalDropdownOpen && mechanicalWorksOptions.length > 0 && (
                       <div className="zone-rooms-dropdown" style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "16px", marginTop: "8px", boxShadow: "var(--shadow-md)", position: "absolute", top: "100%", left: 0, width: "100%", zIndex: 100, maxHeight: "300px", overflowY: "auto" }}>
@@ -3829,7 +3943,7 @@ function NewRequest() {
             )}
 
             <div className="df-field" style={{ marginTop: "16px" }}>
-              <label className="df-label">{isEditMode ? "Add New Note" : "Note"} <span className="req-star">*</span></label>
+              <label className="df-label">{isEditMode ? "Add New Note" : "Note"}</label>
               <textarea
                 className={`df-textarea${fieldErrors.notes ? " field-input-error" : ""}`}
                 rows={3}

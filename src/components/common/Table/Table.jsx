@@ -342,7 +342,13 @@ const Table = ({
                 <tr
                   key={index}
                   className={`beam-tr ${row._rowonClick ? "beam-tr--clickable" : ""}`}
-                  onClick={row._rowonClick || undefined}
+                  onClick={(e) => {
+                    if (!row._rowonClick) return;
+                    const target = e.target;
+                    const interactiveElement = target.closest("input, button, a, select, textarea, label, [role='button'], .status-badge, .op-action-btn");
+                    if (interactiveElement) return;
+                    row._rowonClick(e);
+                  }}
                 >
                   {columns.map((col) => (
                     <td key={col.accessor} className={`beam-td ${col.className || ""}`} style={col.style}>

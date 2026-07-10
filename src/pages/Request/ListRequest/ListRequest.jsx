@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FaEdit, FaEye, FaCopy, FaTrash, FaPlus, FaFilter, FaHistory, FaCheck, FaTimes, FaEllipsisV } from "react-icons/fa";
+import Swal from "sweetalert2";
 import {
   getContractors,
   getActivities,
@@ -29,6 +30,84 @@ import Modal from "../../../components/common/Modal/Modal";
 import "./ListRequest.css";
 import "../../styles/pages.css";
 import "../../../forms/styles/forms.css";
+import { ZONE_MAPPING } from "../../../data/zones";
+
+// Helper to convert yyyy-mm-dd date to dd-mm-yyyy format
+const formatDateToDDMMYYYY = (dateStr) => {
+  if (!dateStr || dateStr === "—") return "—";
+  const dateOnly = String(dateStr).split(/[ T]/)[0];
+  const match = dateOnly.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (match) {
+    return `${match[3]}-${match[2]}-${match[1]}`;
+  }
+  return dateStr;
+};
+
+// Helper to truncate long string values and attach title for hover info
+const trimLongValue = (value, maxLen) => {
+  if (!value || value === "—") return "—";
+  const valStr = String(value);
+  if (valStr.length > maxLen) {
+    return (
+      <span title={valStr}>
+        {valStr.slice(0, maxLen)}...
+      </span>
+    );
+  }
+  return valStr;
+};
+
+// Helper to resolve zone name from building, floor/level, and rooms data
+const resolveZoneNameFromRooms = (row) => {
+  // 1. If the request already has a valid zone name from the database, use it
+  const dbZoneName = (row.zone && typeof row.zone === "object")
+    ? row.zone.zone
+    : (row.zone || "");
+  if (dbZoneName && dbZoneName !== "—") {
+    return dbZoneName;
+  }
+
+  // 2. Otherwise, look up from ZONE_MAPPING by matching room names or room IDs
+  const roomStr = row.room_names || row.Room_Nos;
+  if (!roomStr) return "—";
+
+  const roomsToMatch = String(roomStr).split(",").map(r => r.trim().toLowerCase());
+
+  const levelKey = row.Room_Type || "";
+  let zonesToSearch = [];
+
+  if (levelKey) {
+    const levelLower = levelKey.toLowerCase().trim();
+    const foundKey = Object.keys(ZONE_MAPPING).find(k =>
+      k.toLowerCase().trim().includes(levelLower) || levelLower.includes(k.toLowerCase().trim())
+    );
+    if (foundKey) {
+      zonesToSearch = ZONE_MAPPING[foundKey] || [];
+    }
+  }
+
+  if (zonesToSearch.length === 0) {
+    zonesToSearch = Object.values(ZONE_MAPPING).flat();
+  }
+
+  // Find a zoneGroup that contains a room with matching name or ID
+  for (const zoneGroup of zonesToSearch) {
+    if (zoneGroup.rooms) {
+      for (const room of zoneGroup.rooms) {
+        const roomName = (typeof room === "object" ? room.name : room) || "";
+        const roomId = (typeof room === "object" ? room.id : "") || "";
+        if (
+          roomsToMatch.includes(roomName.toLowerCase().trim()) ||
+          (roomId && roomsToMatch.includes(String(roomId).toLowerCase().trim()))
+        ) {
+          return zoneGroup.name || "—";
+        }
+      }
+    }
+  }
+
+  return "—";
+};
 
 const STATUS_OPTIONS = [
   "Hold",
@@ -61,7 +140,7 @@ const MultiSelectDropdown = ({
   placeholder,
   options = [],
   selectedValues = [],
-  onChange = () => {},
+  onChange = () => { },
   hasNone = false,
   isHra = false,
   disabled = false
@@ -110,12 +189,18 @@ const MultiSelectDropdown = ({
       displayText = "None";
     } else {
       const selectedLabels = [];
-      
+
       // Flatten options to easily search labels
       const allOpts = [];
       options.forEach(opt => {
         if (opt.zones) {
-          opt.zones.forEach(z => allOpts.push({ value: z, label: z }));
+          opt.zones.forEach(z => {
+            if (typeof z === "object") {
+              allOpts.push({ value: String(z.id ?? z.value ?? z), label: z.name ?? z.label ?? z });
+            } else {
+              allOpts.push({ value: z, label: z });
+            }
+          });
         } else {
           allOpts.push(opt);
         }
@@ -226,6 +311,65 @@ const MultiSelectDropdown = ({
           )}
 
           {options.map((opt, idx) => {
+            // Support grouped zones/rooms
+            if (opt.zones) {
+              return (
+                <div key={idx}>
+                  <div style={{
+                    padding: "8px 16px 4px 16px",
+                    color: "var(--text-muted, #9ca3af)",
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                    backgroundColor: "rgba(255, 255, 255, 0.02)",
+                    borderTop: idx > 0 ? "1px solid var(--border-color, #374151)" : "none"
+                  }}>
+                    {opt.floorName}
+                  </div>
+                  {opt.zones.map((z, zIdx) => {
+                    const zVal = String(typeof z === "object" ? (z.id ?? z.value ?? z) : z);
+                    const zLabel = typeof z === "object" ? (z.name ?? z.label ?? z) : z;
+                    const isChecked = selectedValues.includes(zVal);
+
+                    return (
+                      <label
+                        key={zIdx}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "12px",
+                          padding: "10px 24px",
+                          cursor: "pointer",
+                          transition: "background-color 0.2s",
+                          color: "var(--text-main, #f9fafb)",
+                          backgroundColor: isChecked ? "rgba(255, 255, 255, 0.05)" : "transparent",
+                          fontSize: "14px",
+                          userSelect: "none"
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.08)"}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = isChecked ? "rgba(255, 255, 255, 0.05)" : "transparent"}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => handleCheckboxChange(zVal, e.target.checked)}
+                          style={{
+                            width: "16px",
+                            height: "16px",
+                            cursor: "pointer",
+                            accentColor: "var(--accent, #00e5a0)",
+                            borderRadius: "4px"
+                          }}
+                        />
+                        <span>{zLabel}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              );
+            }
+
             const val = String(opt.value ?? opt.key ?? opt.id ?? opt.build_id ?? opt);
             const displayLabel = opt.label || opt.building_name || opt.floor_name || opt.subContractorName || opt;
             const isChecked = selectedValues.includes(val);
@@ -313,6 +457,7 @@ const ListRequest = () => {
   const [buildingsList, setBuildingsList] = useState([]);
   const [floorsList, setFloorsList] = useState([]);
   const [zonesList, setZonesList] = useState([]);
+  const [roomsList, setRoomsList] = useState([]);
 
   // Collapsible filters card
   const [filtersOpen, setFiltersOpen] = useState(true);
@@ -380,18 +525,20 @@ const ListRequest = () => {
   useEffect(() => {
     const fetchSelectors = async () => {
       try {
-        const [subRes, actRes, buildRes, floorRes, zoneRes] = await Promise.all([
+        const [subRes, actRes, buildRes, floorRes, zoneRes, roomRes] = await Promise.all([
           getContractors(1, 1000),
           getActivities(1, 1000),
           getBuildings(1, 1000),
           getFloors(1, 1000),
-          getZones(1, 1000)
+          getZones(1, 10000),
+          getRooms(1, 10000)
         ]);
         setContractors(subRes?.data?.rows ?? subRes?.data ?? subRes ?? []);
         setActivitiesList(actRes?.data?.rows ?? actRes?.data ?? actRes ?? []);
         setBuildingsList(buildRes?.data ?? []);
         setFloorsList(floorRes?.data ?? []);
         setZonesList(zoneRes?.data ?? []);
+        setRoomsList(roomRes?.data?.rows ?? roomRes?.data ?? roomRes ?? []);
       } catch (err) {
         console.error("Failed to load selectors lists", err);
       }
@@ -405,15 +552,40 @@ const ListRequest = () => {
     return floorsList.filter(f => searchFilters.buildings.includes(String(f.build_id)));
   }, [searchFilters.buildings, floorsList]);
 
-  // Filter zones based on selected levels
-  const filteredZones = useMemo(() => {
-    if (searchFilters.levels.length === 0) return zonesList;
-    // Match floor IDs where name matches selected level strings
-    const matchedFloorIds = floorsList
-      .filter(f => searchFilters.levels.includes(f.floor_name))
-      .map(f => String(f.fl_id));
-    return zonesList.filter(z => matchedFloorIds.includes(String(z.floor_id)));
-  }, [searchFilters.levels, zonesList, floorsList]);
+  // Filter rooms based on selected levels/floors and group them by zone names
+  const filteredRooms = useMemo(() => {
+    let roomsToGroup = roomsList;
+
+    if (searchFilters.buildings.length > 0) {
+      roomsToGroup = roomsToGroup.filter(r => searchFilters.buildings.includes(String(r.building_id)));
+    }
+
+    if (searchFilters.levels.length > 0) {
+      const matchedFloorIds = floorsList
+        .filter(f => searchFilters.levels.includes(f.floor_name))
+        .map(f => f.fl_id);
+      roomsToGroup = roomsToGroup.filter(r => matchedFloorIds.includes(r.fl_id));
+    }
+
+    const groupMap = {};
+
+    roomsToGroup.forEach(r => {
+      const zoneObj = zonesList.find(z => String(z.id) === String(r.zone_id));
+      const zoneName = zoneObj ? zoneObj.zone : "Other Areas";
+      if (!groupMap[zoneName]) {
+        groupMap[zoneName] = [];
+      }
+      groupMap[zoneName].push({
+        id: r.room_id,
+        name: r.room_name
+      });
+    });
+
+    return Object.keys(groupMap).map(zoneName => ({
+      floorName: zoneName,
+      zones: groupMap[zoneName]
+    }));
+  }, [roomsList, zonesList, floorsList, searchFilters.buildings, searchFilters.levels]);
 
   // ─── Fetch List Data ──────────────────────────────────────────────────────
   const fetchRequests = useCallback(async (page = 1) => {
@@ -441,7 +613,7 @@ const ListRequest = () => {
         Request_status: searchFilters.statuses.length > 0 ? searchFilters.statuses.join(",") : null,
         Building_Id: searchFilters.buildings.length > 0 ? Number(searchFilters.buildings[0]) : null,
         Room_Type: searchFilters.levels.length > 0 ? searchFilters.levels.join(",") : null,
-        area: searchFilters.areas.length > 0 ? searchFilters.areas.join(",") : null,
+        Room_Nos: searchFilters.areas.length > 0 ? searchFilters.areas.join(",") : null,
         permit_type: searchFilters.permitType || "",
         permit_under: searchFilters.permitUnder || "",
         night_shift: searchFilters.nightShift || "",
@@ -601,11 +773,11 @@ const ListRequest = () => {
     if (!row) return "";
     const permitType = row.permit_type || "";
     const permitUnder = row.permit_under || "";
-    
+
     if (status === "Opened") {
       return "Supervisor/CONM (Open Permit)";
     }
-    
+
     if (status === "Pre-Approved") {
       if (permitType === "Construction" && permitUnder === "Commissioning") {
         return "CONM (Pre-Approval)";
@@ -614,7 +786,7 @@ const ListRequest = () => {
         return "COMM (Pre-Approval)";
       }
     }
-    
+
     if (status === "Approved") {
       if (permitType === "Commissioning" && permitUnder === "Commissioning") {
         return "COMM (Approval)";
@@ -629,7 +801,7 @@ const ListRequest = () => {
         return "CONM (Final Approval)";
       }
     }
-    
+
     return currentUser?.role || "";
   };
 
@@ -827,7 +999,7 @@ const ListRequest = () => {
   const handleBulkStatusChange = (status) => {
     if (selectedIds.length === 0) return;
     const targetRequests = requests.filter(r => selectedIds.includes(r.id));
-    
+
     setModalTarget(targetRequests);
     setModalStatus(status);
     setInitials("");
@@ -855,8 +1027,27 @@ const ListRequest = () => {
     }
 
     try {
-      await updateListStatusRequest(payload);
-      showSuccess(`Selected permits status changed to ${modalStatus} successfully`);
+      const result = await updateListStatusRequest(payload);
+      if (result && result.failed && result.failed.length > 0) {
+        Swal.fire({
+          title: "Bulk Status Update Results",
+          html: `<div style="text-align: left;">
+            <p style="color: #22c55e; font-weight: bold; margin-bottom: 4px;">Successfully updated: ${result.successfulIds?.length || 0} permits</p>
+            <p style="color: #ef4444; font-weight: bold; margin-top: 0;">Failed/Skipped: ${result.failed.length} permits</p>
+            <hr style="border: 0; border-top: 1.5px solid #374151; margin: 12px 0;" />
+            <div style="max-height: 200px; overflow-y: auto; font-size: 13px; color: #d1d5db; line-height: 1.5;">
+              ${result.failed.map(f => `<p style="margin: 6px 0;"><strong>ID ${f.id}:</strong> ${f.error}</p>`).join("")}
+            </div>
+          </div>`,
+          icon: "warning",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#ca8a04",
+          background: "#111827",
+          color: "#ffffff"
+        });
+      } else {
+        showSuccess(`Selected permits status changed to ${modalStatus} successfully`);
+      }
       setActiveModal(null);
       fetchRequests(currentPage);
     } catch {
@@ -872,6 +1063,42 @@ const ListRequest = () => {
 
   const handleBulkTimeSubmit = async (e) => {
     e.preventDefault();
+
+    const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+    // Validate input formats if they are entered
+    if (bulkTime.startTime && !timeRegex.test(bulkTime.startTime)) {
+      showError("Start time must be in 24-hour format (HH:MM).");
+      return;
+    }
+    if (bulkTime.endTime && !timeRegex.test(bulkTime.endTime)) {
+      showError("End time must be in 24-hour format (HH:MM).");
+      return;
+    }
+    if (bulkTime.nightShift && bulkTime.newEndTime && !timeRegex.test(bulkTime.newEndTime)) {
+      showError("New End time must be in 24-hour format (HH:MM).");
+      return;
+    }
+
+    // Validate relationships between start and end times (if provided)
+    if (bulkTime.startTime) {
+      if (bulkTime.nightShift) {
+        if (bulkTime.newEndTime) {
+          if (bulkTime.newEndTime >= bulkTime.startTime) {
+            showError("For night shift, new end time must be earlier than start time.");
+            return;
+          }
+        }
+      } else {
+        if (bulkTime.endTime) {
+          if (bulkTime.startTime >= bulkTime.endTime) {
+            showError("Start time must be earlier than End time.");
+            return;
+          }
+        }
+      }
+    }
+
     const payload = {
       id: selectedIds.join(","),
       Start_Time: bulkTime.startTime ? `${bulkTime.startTime}:00` : "",
@@ -881,8 +1108,27 @@ const ListRequest = () => {
       logs: []
     };
     try {
-      await updateListReqstTime(payload);
-      showSuccess("Selected permits time/shift updated successfully");
+      const result = await updateListReqstTime(payload);
+      if (result && result.failed && result.failed.length > 0) {
+        Swal.fire({
+          title: "Bulk Time Update Results",
+          html: `<div style="text-align: left;">
+            <p style="color: #22c55e; font-weight: bold; margin-bottom: 4px;">Successfully updated: ${result.successfulIds?.length || 0} permits</p>
+            <p style="color: #ef4444; font-weight: bold; margin-top: 0;">Failed/Skipped: ${result.failed.length} permits</p>
+            <hr style="border: 0; border-top: 1.5px solid #374151; margin: 12px 0;" />
+            <div style="max-height: 200px; overflow-y: auto; font-size: 13px; color: #d1d5db; line-height: 1.5;">
+              ${result.failed.map(f => `<p style="margin: 6px 0;"><strong>ID ${f.id}:</strong> ${f.error}</p>`).join("")}
+            </div>
+          </div>`,
+          icon: "warning",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#ca8a04",
+          background: "#111827",
+          color: "#ffffff"
+        });
+      } else {
+        showSuccess("Selected permits time/shift updated successfully");
+      }
       setActiveModal(null);
       fetchRequests(currentPage);
     } catch {
@@ -946,7 +1192,7 @@ const ListRequest = () => {
   const handleCopySubmit = async (e) => {
     e.preventDefault();
     if (!copyDates.from || !copyDates.to) return showError("Please select date range.");
-    
+
     const oneDay = 24 * 60 * 60 * 1000;
     const fromVal = new Date(copyDates.from);
     const toVal = new Date(copyDates.to);
@@ -959,7 +1205,7 @@ const ListRequest = () => {
         return showError("The copied request has an invalid time range (Start Time is later than End Time).");
       }
     }
-    
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     if (fromVal < today || toVal < today) {
@@ -1035,8 +1281,9 @@ const ListRequest = () => {
     { header: "Activity", accessor: "Activity" },
     { header: "Contractor", accessor: "contractorName" },
     { header: "Building", accessor: "buildingName" },
-    { header: "Area", accessor: "zone" },
+    { header: "Zone", accessor: "zone" },
     { header: "Level", accessor: "Room_Type" },
+    { header: "Rooms", accessor: "rooms" },
     { header: "Working Date", accessor: "Working_Date" },
     { header: "Time", accessor: "timeCell" },
     { header: "Night Shift", accessor: "nightShiftCell" },
@@ -1056,9 +1303,7 @@ const ListRequest = () => {
       const buildingName = buildObj ? buildObj.building_name : "—";
 
       // Find area (zone) name safely
-      const zoneName = (row.zone && typeof row.zone === "object")
-        ? row.zone.zone
-        : (row.zone || "—");
+      const zoneName = resolveZoneNameFromRooms(row);
 
       // Find Level (Room_Type) name safely
       const roomTypeCell = (row.Room_Type && typeof row.Room_Type === "object")
@@ -1093,9 +1338,17 @@ const ListRequest = () => {
         </div>
       );
 
+      const isEditable = (isAdmin || isSubcontractor) &&
+        row.Request_status !== "Cancelled" &&
+        row.Request_status !== "Closed" &&
+        row.Request_status !== "Rejected" &&
+        row.Request_status !== "Auto-Cancelled" &&
+        row.Request_status !== "Auto Cancelled" &&
+        currentUser?.role !== "Observer";
+
       // Status chip render
       const statusClass = `status-badge status-badge--${row.Request_status?.toLowerCase().replace(" ", "-")}`;
-      
+
       const handleStatusClick = () => {
         // If status is Draft, click opens edit form
         if (row.Request_status === "Draft") {
@@ -1152,16 +1405,6 @@ const ListRequest = () => {
           {row.Request_status}
         </span>
       );
-
-      // Row action Operations rendering
-      const isEditable = (isAdmin || isSubcontractor) &&
-        row.Request_status !== "Cancelled" &&
-        row.Request_status !== "Closed" &&
-        row.Request_status !== "Rejected" &&
-        row.Request_status !== "Opened" &&
-        row.Request_status !== "Auto-Cancelled" &&
-        row.Request_status !== "Auto Cancelled" &&
-        currentUser?.role !== "Observer";
 
       const isEditLoading = loadingEditId === row.id;
 
@@ -1228,10 +1471,14 @@ const ListRequest = () => {
             onChange={(e) => handleSelectRow(e.target.checked, row.id)}
           />
         ),
-        contractorName,
-        buildingName,
-        zone: zoneName,
-        Room_Type: roomTypeCell,
+        contractorName: trimLongValue(contractorName, 25),
+        buildingName: trimLongValue(buildingName, 20),
+        zone: trimLongValue(zoneName, 20),
+        Room_Type: trimLongValue(roomTypeCell, 20),
+        rooms: trimLongValue(row.room_names || row.Room_Nos, 25),
+        Request_Date: formatDateToDDMMYYYY(row.Request_Date),
+        Working_Date: formatDateToDDMMYYYY(row.Working_Date),
+        Activity: trimLongValue(row.Activity, 30),
         timeCell,
         nightShiftCell,
         newEndTimeCell,
@@ -1341,10 +1588,10 @@ const ListRequest = () => {
               </div>
 
               <div className="df-field">
-                <label className="df-label">Area / Zone</label>
+                <label className="df-label">Rooms</label>
                 <MultiSelectDropdown
-                  placeholder="Select Areas"
-                  options={filteredZones.map(z => z.zone)}
+                  placeholder="Select Rooms"
+                  options={filteredRooms}
                   selectedValues={searchFilters.areas}
                   onChange={(vals) => setSearchFilters(prev => ({ ...prev, areas: vals }))}
                   disabled={searchFilters.levels.length === 0}
@@ -1642,7 +1889,7 @@ const ListRequest = () => {
               {modalStatus === "Opened" && openActionType === "Open" && modalTarget.Hot_work === 1 && (
                 <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: "16px", background: "rgba(255,255,255,0.02)", marginBottom: "16px" }}>
                   <h4 style={{ color: "#00e5a0", fontSize: "13px", margin: "0 0 12px 0", textTransform: "uppercase", letterSpacing: "0.5px" }}>Hot Work Opening Checklist</h4>
-                  
+
                   <div className="df-field" style={{ marginBottom: "12px" }}>
                     <label className="df-label">Is it Low Risk Hot Work?</label>
                     <select
@@ -2011,30 +2258,44 @@ const ListRequest = () => {
                 className="df-input"
                 value={bulkTime.endTime}
                 onChange={(e) => setBulkTime(p => ({ ...p, endTime: e.target.value }))}
+                disabled={bulkTime.nightShift}
               />
             </div>
           </div>
           <div className="df-grid" style={{ marginTop: "16px" }}>
-            <div className="df-field">
-              <label className="df-label">New End Time</label>
-              <input
-                type="time"
-                className="df-input"
-                value={bulkTime.newEndTime}
-                onChange={(e) => setBulkTime(p => ({ ...p, newEndTime: e.target.value }))}
-              />
-            </div>
-            <div className="df-field" style={{ display: "flex", alignItems: "center", paddingTop: "24px" }}>
-              <label style={{ display: "inline-flex", alignItems: "center", gap: "8px", color: "#fff", cursor: "pointer", fontSize: "14px" }}>
+            <div className="df-field night-shift-field" style={{ display: "flex", alignItems: "center", paddingTop: "24px" }}>
+              <label className="checkbox-container" style={{ display: "inline-flex", alignItems: "center", gap: "8px", color: "#fff", cursor: "pointer", fontSize: "14px" }}>
                 <input
                   type="checkbox"
                   checked={bulkTime.nightShift}
-                  onChange={(e) => setBulkTime(p => ({ ...p, nightShift: e.target.checked }))}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setBulkTime(p => ({
+                      ...p,
+                      nightShift: checked,
+                      endTime: checked ? "23:59" : "",
+                      newEndTime: checked ? p.newEndTime : ""
+                    }));
+                  }}
                 />
-                Night Shift
+                <span className="checkbox-label">Is this a night shift?</span>
               </label>
             </div>
           </div>
+
+          {bulkTime.nightShift && (
+            <div className="df-grid night-shift-subform" style={{ marginTop: "16px" }}>
+              <div className="df-field">
+                <label className="df-label">New End Time (Night Shift)</label>
+                <input
+                  type="time"
+                  className="df-input"
+                  value={bulkTime.newEndTime}
+                  onChange={(e) => setBulkTime(p => ({ ...p, newEndTime: e.target.value }))}
+                />
+              </div>
+            </div>
+          )}
 
           <div className="df-footer" style={{ marginTop: "24px" }}>
             <button type="button" className="df-btn df-btn--cancel" onClick={() => setActiveModal(null)}>
@@ -2169,9 +2430,9 @@ const ListRequest = () => {
       >
         {modalTarget && (
           <div className="logs-history-modal-body">
-            <div style={{ marginBottom: "20px", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "12px" }}>
-              <p style={{ color: "#9ca3af", fontSize: "13px", margin: 0 }}>Permit Number: <strong style={{ color: "#fff" }}>{modalTarget.PermitNo}</strong></p>
-              <p style={{ color: "#9ca3af", fontSize: "13px", margin: "4px 0 0 0" }}>Activity: <strong style={{ color: "#fff" }}>{modalTarget.Activity}</strong></p>
+            <div style={{ marginBottom: "20px", borderBottom: "1px solid var(--border-color)", paddingBottom: "12px" }}>
+              <p style={{ color: "var(--text-muted)", fontSize: "13px", margin: 0 }}>Permit Number: <strong style={{ color: "var(--text-main)" }}>{modalTarget.PermitNo}</strong></p>
+              <p style={{ color: "var(--text-muted)", fontSize: "13px", margin: "4px 0 0 0" }}>Activity: <strong style={{ color: "var(--text-main)" }}>{modalTarget.Activity}</strong></p>
             </div>
 
             <div className="logs-timeline">
@@ -2181,17 +2442,17 @@ const ListRequest = () => {
                     <div className="timeline-marker" />
                     <div className="timeline-content">
                       <div className="timeline-header" style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
-                        <strong style={{ color: "#3b82f6", fontSize: "13px" }}>{log.username || "Operator"}</strong>
-                        <small style={{ color: "#9ca3af" }}>{log.createdTime || log.createdAt}</small>
+                        <strong style={{ color: "var(--accent, #3b82f6)", fontSize: "13px" }}>{log.username || "Operator"}</strong>
+                        <small style={{ color: "var(--text-muted)" }}>{log.createdTime || log.createdAt}</small>
                       </div>
-                      <p style={{ color: "#e5e7eb", fontSize: "14px", margin: 0 }}>
+                      <p style={{ color: "var(--text-main)", fontSize: "14px", margin: 0 }}>
                         {log.note || log.message || "Log entry recorded."}
                       </p>
                     </div>
                   </div>
                 ))
               ) : (
-                <div style={{ textAlign: "center", color: "#9ca3af", padding: "24px 0" }}>
+                <div style={{ textAlign: "center", color: "var(--text-muted)", padding: "24px 0" }}>
                   No historical logs found for this request.
                 </div>
               )}
