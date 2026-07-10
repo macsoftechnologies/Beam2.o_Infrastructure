@@ -31,6 +31,7 @@ import "./ListRequest.css";
 import "../../styles/pages.css";
 import "../../../forms/styles/forms.css";
 import { ZONE_MAPPING } from "../../../data/zones";
+import { getDenmarkTimeISOString, formatToDenmarkDateTime } from "../../../utils/dateUtils";
 
 // Helper to convert yyyy-mm-dd date to dd-mm-yyyy format
 const formatDateToDDMMYYYY = (dateStr) => {
@@ -894,7 +895,7 @@ const ListRequest = () => {
     const payload = {
       userId: currentUser?.id || 1,
       Request_status: nextStatus,
-      createdTime: new Date().toISOString().replace("T", " ").slice(0, 19)
+      createdTime: getDenmarkTimeISOString()
     };
 
 
@@ -1246,7 +1247,7 @@ const ListRequest = () => {
       Foreman_Phone_Number: modalTarget.Foreman_Phone_Number,
       PermitNo: modalTarget.PermitNo,
       count: diffDays,
-      createdTime: new Date().toISOString().replace("T", " ").slice(0, 19),
+      createdTime: getDenmarkTimeISOString(),
       zone: zoneObjects
     };
 
@@ -2443,7 +2444,7 @@ const ListRequest = () => {
                     <div className="timeline-content">
                       <div className="timeline-header" style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
                         <strong style={{ color: "var(--accent, #3b82f6)", fontSize: "13px" }}>{log.username || "Operator"}</strong>
-                        <small style={{ color: "var(--text-muted)" }}>{log.createdTime || log.createdAt}</small>
+                        <small style={{ color: "var(--text-muted)" }}>{formatToDenmarkDateTime(log.createdTime || log.createdAt)}</small>
                       </div>
                       <p style={{ color: "var(--text-main)", fontSize: "14px", margin: 0 }}>
                         {log.note || log.message || "Log entry recorded."}

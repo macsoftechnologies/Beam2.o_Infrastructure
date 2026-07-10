@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import Table from "../../components/common/Table/Table";
 import { getUserLogs } from "../../services/authService";
 import "../styles/pages.css";
+import { formatToDenmarkDateTime } from "../../utils/dateUtils";
 
 const PAGE_LIMIT_DEFAULT = 20;
 
@@ -103,12 +104,14 @@ const UserCell = ({ userStr }) => {
 };
 
 const formatTimestamp = (ts) => {
-  if (!ts) return "—";
-  const d = new Date(ts);
-  if (isNaN(d)) return ts;
-  return d.toLocaleString("en-GB", {
-    day: "2-digit", month: "short", year: "numeric",
-    hour: "2-digit", minute: "2-digit", second: "2-digit",
+  return formatToDenmarkDateTime(ts, "en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false
   });
 };
 

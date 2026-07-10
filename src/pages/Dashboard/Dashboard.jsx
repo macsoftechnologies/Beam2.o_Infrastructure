@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Chart, registerables } from 'chart.js';
 import { getRequestCounts, getPlans, getGraphCountsPerDay, getGraphSummary, getZoneStatusCounts, getEmployeeAnalyticsCounts, searchDashboardRequests, getUserLogs } from '../../services/authService';
 import Modal from '../../components/common/Modal/Modal';
+import { formatToDenmarkDate } from '../../utils/dateUtils';
 import EmployeeForm from '../../forms/Employeesform/Employeesform';
 import ContractorForm from '../../forms/Contractorsform/Contractorform';
 import './Dashboard.css';
@@ -636,10 +637,7 @@ function Dashboard() {
           
           let dateStr = item.Created_At || item.created_at || item.Date || item.date || "";
           if (dateStr) {
-            const d = new Date(dateStr);
-            if (!isNaN(d)) {
-              dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            }
+            dateStr = formatToDenmarkDate(dateStr, { month: 'short', day: 'numeric', year: 'numeric' });
           }
 
           return {

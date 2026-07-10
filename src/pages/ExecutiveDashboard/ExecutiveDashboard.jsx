@@ -342,7 +342,7 @@ function ExecutiveDashboard() {
               {/* Permit Statuses Chart & Legend */}
               <div className="overview-card status-panel">
                 <h4>PERMIT STATUSES (SSW)</h4>
-                
+
                 {/* Horizontal Progress Bar */}
                 <div className="status-progress-bar">
                   {PERMIT_STATUSES.map((status) => {
@@ -442,16 +442,16 @@ function ExecutiveDashboard() {
             <div className="three-column-grid">
               {/* ── COLUMN 1: FILTERS (Left) ── */}
               <div className={`panel-col filter-panel ${isLeftOpen ? "panel-open" : "panel-closed"}`}>
-                
+
                 {/* Auto Approve Button inside the Left Panel */}
-                <div className="panel-auto-approve-wrapper">
+                {/* <div className="panel-auto-approve-wrapper">
                   <button className="auto-approve-btn" onClick={handleAutoApprove}>
                     <i className="ti ti-check" /> Auto-approve clear rooms
                   </button>
                   <span className="auto-approve-subtext">
                     Approves rooms with no clashes (excludes HRA rooms)
                   </span>
-                </div>
+                </div> */}
 
                 {/* Room Search */}
                 <div className="filter-group">
@@ -624,8 +624,8 @@ function ExecutiveDashboard() {
               {/* ── COLUMN 2: MAP VIEWER (Center) ── */}
               <div className="panel-col map-viewer-panel">
                 {/* Left panel collapse tab */}
-                <button 
-                  className={`panel-toggle-tab toggle-tab-left ${isLeftOpen ? "open" : "closed"}`} 
+                <button
+                  className={`panel-toggle-tab toggle-tab-left ${isLeftOpen ? "open" : "closed"}`}
                   onClick={() => setIsLeftOpen(!isLeftOpen)}
                   title={isLeftOpen ? "Collapse Left Panel" : "Expand Left Panel"}
                 >
@@ -633,8 +633,8 @@ function ExecutiveDashboard() {
                 </button>
 
                 {/* Right panel collapse tab */}
-                <button 
-                  className={`panel-toggle-tab toggle-tab-right ${isRightOpen ? "open" : "closed"}`} 
+                <button
+                  className={`panel-toggle-tab toggle-tab-right ${isRightOpen ? "open" : "closed"}`}
                   onClick={() => setIsRightOpen(!isRightOpen)}
                   title={isRightOpen ? "Collapse Right Panel" : "Expand Right Panel"}
                 >
@@ -657,7 +657,7 @@ function ExecutiveDashboard() {
                         alt={`${activeTab} CAD drawing`}
                         className="static-cad-image"
                       />
-                      
+
                       {/* Overlay mock elements to make floor plan look alive */}
                       {isZonesActive && (
                         <div className="map-mock-zones-overlay">
@@ -689,7 +689,7 @@ function ExecutiveDashboard() {
 
               {/* ── COLUMN 3: ROOMS TO REVIEW (Right) ── */}
               <div className={`panel-col review-panel ${isRightOpen ? "panel-open" : "panel-closed"}`}>
-                
+
 
                 {/* Room Type Selector */}
                 <div className="filter-group room-type-filter-group">

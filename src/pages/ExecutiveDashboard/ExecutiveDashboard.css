@@ -1100,3 +1100,10 @@ html[data-theme="light"] .exec-building-select {
   border-color: #cbd5e1;
   color: #0f172a;
 }
+
+/* Styling for option tags in dropdowns to prevent white-on-white text in dark/color themes */
+.exec-building-select option,
+.room-type-select option {
+  background-color: var(--bg-card, #111827);
+  color: var(--text-main, #ffffff);
+}

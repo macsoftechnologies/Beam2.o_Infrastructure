@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { formatToDenmarkDateTime } from "../../utils/dateUtils";
 
 const TYPE_STYLES = {
     Hold: { color: "#f59e0b", bg: "#f59e0b22", icon: "⏸" },
@@ -16,12 +17,7 @@ const getTypeStyle = (type) =>
     TYPE_STYLES[type] || { color: "#7a8aab", bg: "#7a8aab22", icon: "•" };
 
 const formatDateTime = (iso) => {
-    if (!iso) return "—";
-    const d = new Date(iso);
-    return d.toLocaleString("en-US", {
-        year: "numeric", month: "short", day: "numeric",
-        hour: "2-digit", minute: "2-digit",
-    });
+    return formatToDenmarkDateTime(iso);
 };
 
 const LogHistoryModal = ({ permit, onClose }) => {
