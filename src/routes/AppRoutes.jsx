@@ -28,6 +28,7 @@ import Activity from "../pages/Settings/Activity/Activity";
 import SafetyPrecaution from "../pages/Settings/SafetyPrecaution/SafetyPrecaution";
 import LogsReports from "../pages/LogsReports/LogsReports";
 import LogHistory from "../pages/LogHistroy/LogHistroy";
+import ExecutiveDashboard from "../pages/ExecutiveDashboard/ExecutiveDashboard";
 
 
 import ProtectedRoute from "../components/common/ProtectedRoute";
@@ -55,6 +56,7 @@ function AppRoutes() {
           }
         >
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/executive-dashboard" element={<ExecutiveDashboard />} />
           <Route
             path="/departments"
             element={

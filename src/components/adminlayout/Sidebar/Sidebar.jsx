@@ -89,6 +89,7 @@ function Sidebar({ sidebarOpen }) {
     const cleanState = state.replace(/^\//, "");
     const mapping = {
       "user/dashboard": "/dashboard",
+      "user/executive-dashboard": "/executive-dashboard",
       // "admin/department": "/departments",
       "admin/listdepartment": "/departments",
       // "admin/sub-contractors": "/contractors",

@@ -1,10 +1,14 @@
 const iconMenu = [
     {
         name: "Dashboard",
-        type: "link",
+        type: "dropDown",
         tooltip: "Dashboard",
         icon: "dashboard",
-        state: "user/dashboard",
+        state: "",
+        sub: [
+            { name: "Operations Dashboard", state: "user/dashboard" },
+            { name: "Executive Dashboard", state: "user/executive-dashboard" },
+        ],
     },
     {
         name: "Departments",
@@ -87,10 +91,14 @@ const iconMenu = [
 const AdminiconMenu = [
     {
         name: "Dashboard",
-        type: "link",
+        type: "dropDown",
         tooltip: "Dashboard",
         icon: "dashboard",
-        state: "user/dashboard",
+        state: "",
+        sub: [
+            { name: "Operations Dashboard", state: "user/dashboard" },
+            { name: "Executive Dashboard", state: "user/executive-dashboard" },
+        ],
     },
     {
         name: "Departments",
@@ -188,10 +196,14 @@ const AdminiconMenu = [
 const UsericonMenu = [
     {
         name: "Dashboard",
-        type: "link",
+        type: "dropDown",
         tooltip: "Dashboard",
         icon: "dashboard",
-        state: "user/dashboard",
+        state: "",
+        sub: [
+            { name: "Operations Dashboard", state: "user/dashboard" },
+            { name: "Executive Dashboard", state: "user/executive-dashboard" },
+        ],
     },
     {
         name: "Request",
@@ -209,10 +221,14 @@ const UsericonMenu = [
 const OperatoriconMenu = [
     {
         name: "Dashboard",
-        type: "link",
+        type: "dropDown",
         tooltip: "Dashboard",
         icon: "dashboard",
-        state: "user/dashboard",
+        state: "",
+        sub: [
+            { name: "Operations Dashboard", state: "user/dashboard" },
+            { name: "Executive Dashboard", state: "user/executive-dashboard" },
+        ],
     },
     {
         name: "Request",
@@ -244,10 +260,14 @@ const OperatoriconMenu = [
 const Operator1iconMenu = [
     {
         name: "Dashboard",
-        type: "link",
+        type: "dropDown",
         tooltip: "Dashboard",
         icon: "dashboard",
-        state: "user/dashboard",
+        state: "",
+        sub: [
+            { name: "Operations Dashboard", state: "user/dashboard" },
+            { name: "Executive Dashboard", state: "user/executive-dashboard" },
+        ],
     },
     {
         name: "Electrical Works",
@@ -293,10 +313,14 @@ const Operator1iconMenu = [
 const ObservericonMenu = [
     {
         name: "Dashboard",
-        type: "link",
+        type: "dropDown",
         tooltip: "Dashboard",
         icon: "dashboard",
-        state: "user/dashboard",
+        state: "",
+        sub: [
+            { name: "Operations Dashboard", state: "user/dashboard" },
+            { name: "Executive Dashboard", state: "user/executive-dashboard" },
+        ],
     },
     {
         name: "Request",
