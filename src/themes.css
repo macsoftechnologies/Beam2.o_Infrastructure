@@ -739,7 +739,8 @@ html[data-theme="light"] .timeline-content {
 html[data-theme="light"] .status-badge--closed {
   color: #6B7280 !important;
 }
-html[data-theme="light"] .status-badge--cancelled {
+html[data-theme="light"] .status-badge--cancelled,
+html[data-theme="light"] .status-badge--auto-cancelled {
   color: #6B7280 !important;
 }
 

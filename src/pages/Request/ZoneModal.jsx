@@ -3,11 +3,9 @@ import ReactDOM from "react-dom";
 import { pdfjs } from "react-pdf";
 import PdfPolygonViewer from "../../components/PdfPolygonViewer";
 
-// Configure PDFJS worker path locally in Vite to prevent CORS/CDN errors
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url
-).toString();
+// Using a direct CDN URL avoids Nginx MIME-type issues with .mjs workers
+// when the app is deployed under a sub-path (e.g. /m3infrastructure_frontend/).
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 function ZoneModal({
   zone,

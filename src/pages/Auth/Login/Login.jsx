@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { login } from "../../../services/authService";
 import { showSuccess, showError } from "../../../components/common/Toast/Toast";
+import { navigateTo } from "../../../config/basePath";
 import "./Login.css";
 
 export default function Login() {
@@ -41,7 +42,7 @@ export default function Login() {
         
         setTimeout(() => {
           setLoading(false);
-          window.location.href = "/otp";
+          navigateTo("/otp");
         }, 1500);
       } else {
         setLoading(false);
@@ -57,8 +58,8 @@ export default function Login() {
     }
   };
 
-   const navigate = (url) => {
-    window.location.href = url;
+  const navigate = (url) => {
+    navigateTo(url);
   };
 
   return (

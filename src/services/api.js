@@ -1,5 +1,6 @@
 import axios from "axios";
 import { sendUserLog } from "./userLogService";
+import { navigateTo, isOnPath } from "../config/basePath";
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://187.127.171.51";
 
@@ -43,13 +44,13 @@ api.interceptors.response.use(
     },
     (error) => {
         // Handle 401 Unauthorized globally by logging out and redirecting
-        if (error?.response?.status === 401 && window.location.pathname !== "/login") {
+        if (error?.response?.status === 401 && !isOnPath("/login")) {
             localStorage.removeItem("user");
             localStorage.removeItem("UserType");
             localStorage.removeItem("token");
             localStorage.removeItem("tempUser");
             localStorage.removeItem("secretkey");
-            window.location.href = "/login";
+            navigateTo("/login");
         }
 
         // Also log failed mutating calls so failures are auditable

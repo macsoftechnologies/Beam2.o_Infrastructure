@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, Link } from 'react-router-dom'
 import "./Sidebar.css";
 import { getMenuByRole } from './navigation.service';
 
@@ -40,10 +40,10 @@ function SubItem({ href, label, subChildren }) {
     const isActive = href && pathname === href
     return (
       <li>
-        <a href={href || '#'} className={`nav-sub-link ${isActive ? 'sub-active' : ''}`}>
+        <Link to={href || '#'} className={`nav-sub-link ${isActive ? 'sub-active' : ''}`}>
           <span className="sub-dot" />
           {label}
-        </a>
+        </Link>
       </li>
     )
   }
@@ -182,13 +182,13 @@ function Sidebar({ sidebarOpen }) {
     const isActiveLink = pathname === href;
     return (
       <li key={subItem.name}>
-        <a
-          href={href}
+        <Link
+          to={href}
           className={`nav-sub-link ${isNested ? "nested" : ""} ${isActiveLink ? "sub-active" : ""}`}
         >
           <span className={`sub-dot ${isNested ? "small" : ""}`} />
           {subItem.name}
-        </a>
+        </Link>
       </li>
     );
   };
@@ -251,16 +251,16 @@ function Sidebar({ sidebarOpen }) {
             } else {
               const href = mapStateToPath(item.state);
               elements.push(
-                <a
+                <Link
                   key={itemKey}
-                  href={href}
+                  to={href}
                   className={`nav-link ${isActive(href) ? 'active' : ''}`}
                 >
                   <span className="nav-icon-box">
                     <i className={`ti ${getIconClass(item)}`} aria-hidden="true" />
                   </span>
                   <span className="nav-label">{item.name}</span>
-                </a>
+                </Link>
               );
             }
 

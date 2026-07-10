@@ -37,6 +37,7 @@ const STATUS_OPTIONS = [
   "Closed",
   "Cancelled",
   "Pre-Approved",
+  "Auto-Cancelled",
   "Auto-Cancel"
 ];
 
@@ -363,7 +364,7 @@ const StatusBadge = ({ status }) => {
   } else if (s === "hold" || s === "draft") {
     color = "#f59e0b";
     bg = "rgba(245, 158, 11, 0.1)";
-  } else if (s === "rejected" || s === "cancelled" || s === "auto-cancel") {
+  } else if (s === "rejected" || s === "cancelled" || s === "auto-cancel" || s === "auto-cancelled") {
     color = "#ef4444";
     bg = "rgba(239, 68, 68, 0.1)";
   } else if (s === "pre-approved") {
@@ -1242,6 +1243,21 @@ const Reports = () => {
           onPageChange={setCurrentPage}
           isLoading={isLoadingSelectors || isSearching}
         />
+        {!(isLoadingSelectors || isSearching) && tableData.length > 0 && (
+          <div style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            marginTop: "16px",
+            paddingTop: "16px",
+            borderTop: "1px solid var(--border-color, #374151)",
+            color: "var(--text-muted, #9ca3af)",
+            fontSize: "14px",
+            fontWeight: 500
+          }}>
+            Showing {paginatedData.length} of <strong style={{ color: "var(--text-main, #f9fafb)", marginLeft: "4px", marginRight: "4px" }}>{tableData.length}</strong> permits
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import "./Navbar.css";
 import { logout } from "../../../services/authService";
+import { navigateTo } from "../../../config/basePath";
 
 /* ── Live Clock ── */
 function LiveClock() {
@@ -131,7 +132,7 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
     } catch (err) {
       console.error(err);
     }
-    window.location.href = "/login";
+    navigateTo("/login");
   };
 
   const getInitials = (name) => {

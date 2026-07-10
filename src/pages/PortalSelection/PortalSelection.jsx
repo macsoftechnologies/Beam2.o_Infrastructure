@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./PortalSelection.css";
+import { navigateTo } from "../../config/basePath";
 
 function PortalSelection() {
   const [overlayActive, setOverlayActive] = useState(false);
@@ -65,7 +66,7 @@ function PortalSelection() {
   const navigate = (url) => {
     setOverlayActive(true);
     setTimeout(() => {
-      window.location.href = url;
+      navigateTo(url);
     }, 1200);
   };
 

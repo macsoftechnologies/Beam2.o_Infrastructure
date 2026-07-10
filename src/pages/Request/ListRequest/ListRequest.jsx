@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { LOGO_MAP } from "../../../config/logos";
 import { FaEdit, FaEye, FaCopy, FaTrash, FaPlus, FaFilter, FaHistory, FaCheck, FaTimes, FaEllipsisV } from "react-icons/fa";
 import Swal from "sweetalert2";
 import {
@@ -119,22 +120,23 @@ const STATUS_OPTIONS = [
   "Closed",
   "Rejected",
   "Cancelled",
-  "Draft"
+  "Draft",
+  "Auto-Cancelled"
 ];
 
 const HRA_LIST = [
-  { key: "Hot_work", label: "Hot Work", icon: "HotWorks.png" },
-  { key: "working_on_electrical_system", label: "Electrical Systems", icon: "ElectricalSystems.png" },
-  { key: "working_hazardious_substen", label: "Hazardous Substances", icon: "substanceChemical.png" },
-  { key: "pressure_tesing_of_equipment", label: "Testing Equipment", icon: "testingequipment.png" },
-  { key: "working_at_height", label: "Working at Height", icon: "WorkingAtHight.png" },
-  { key: "working_confined_spaces", label: "Confined Space", icon: "ConfinedSpace.png" },
-  { key: "work_in_atex_area", label: "ATEX Area", icon: "ATEXarea.png" },
-  { key: "securing_facilities", label: "Securing Facilities", icon: "SecuringFacilities.png" },
-  { key: "excavation_works", label: "Excavation Works", icon: "ExcavationWorks.png" },
-  { key: "using_cranes_or_lifting", label: "Cranes & Lifting", icon: "Craneslifting.png" },
-  { key: "power_on", label: "Electrical Works", icon: "electrical_works.png" },
-  { key: "pressurization", label: "Mechanical Works", icon: "mechanical1.png" }
+  { key: "Hot_work", label: "Hot Work", icon: "HotWorks.png", image: LOGO_MAP["HotWorks.png"] },
+  { key: "working_on_electrical_system", label: "Electrical Systems", icon: "ElectricalSystems.png", image: LOGO_MAP["ElectricalSystems.png"] },
+  { key: "working_hazardious_substen", label: "Hazardous Substances", icon: "substanceChemical.png", image: LOGO_MAP["substanceChemical.png"] },
+  { key: "pressure_tesing_of_equipment", label: "Testing Equipment", icon: "testingequipment.png", image: LOGO_MAP["testingequipment.png"] },
+  { key: "working_at_height", label: "Working at Height", icon: "WorkingAtHight.png", image: LOGO_MAP["WorkingAtHight.png"] },
+  { key: "working_confined_spaces", label: "Confined Space", icon: "ConfinedSpace.png", image: LOGO_MAP["ConfinedSpace.png"] },
+  { key: "work_in_atex_area", label: "ATEX Area", icon: "ATEXarea.png", image: LOGO_MAP["ATEXarea.png"] || null },
+  { key: "securing_facilities", label: "Securing Facilities", icon: "SecuringFacilities.png", image: LOGO_MAP["SecuringFacilities.png"] || null },
+  { key: "excavation_works", label: "Excavation Works", icon: "ExcavationWorks.png", image: LOGO_MAP["ExcavationWorks.png"] },
+  { key: "using_cranes_or_lifting", label: "Cranes & Lifting", icon: "Craneslifting.png", image: LOGO_MAP["Craneslifting.png"] },
+  { key: "power_on", label: "Electrical Works", icon: "electrical_works.png", image: LOGO_MAP["electrical_works.png"] },
+  { key: "pressurization", label: "Mechanical Works", icon: "mechanical1.png", image: LOGO_MAP["mechanical1.png"] }
 ];
 
 const MultiSelectDropdown = ({
@@ -1329,7 +1331,7 @@ const ListRequest = () => {
           {activeHras.map((hra) => (
             <img
               key={hra.key}
-              src={`/src/assets/images/logos/${hra.icon}`}
+              src={hra.image || LOGO_MAP[hra.icon]}
               alt={hra.label}
               className="hra-icon-thumb"
               title={hra.label}
@@ -1603,7 +1605,7 @@ const ListRequest = () => {
                 <label className="df-label">HRA Checklists</label>
                 <MultiSelectDropdown
                   placeholder="Select HRA Checklists"
-                  options={HRA_LIST.map(h => ({ ...h, image: '/src/assets/images/logos/' + h.icon }))}
+                  options={HRA_LIST.map(h => ({ ...h, image: h.image || LOGO_MAP[h.icon] }))}
                   selectedValues={searchFilters.hras}
                   onChange={(vals) => setSearchFilters(prev => ({ ...prev, hras: vals }))}
                   hasNone={true}
@@ -1795,6 +1797,21 @@ const ListRequest = () => {
           onPageChange={setCurrentPage}
           isLoading={isLoading}
         />
+        {!isLoading && requests.length > 0 && (
+          <div style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            marginTop: "16px",
+            paddingTop: "16px",
+            borderTop: "1px solid var(--border-color, #374151)",
+            color: "var(--text-muted, #9ca3af)",
+            fontSize: "14px",
+            fontWeight: 500
+          }}>
+            Showing {requests.length} of <strong style={{ color: "var(--text-main, #f9fafb)", marginLeft: "4px", marginRight: "4px" }}>{totalCount}</strong> permits
+          </div>
+        )}
       </div>
 
       {/* ── Modals implementation ────────────────────────────────────────────── */}

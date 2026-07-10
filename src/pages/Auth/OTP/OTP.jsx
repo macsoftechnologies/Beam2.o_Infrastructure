@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { verifyOtp } from "../../../services/authService";
 import { showSuccess, showError } from "../../../components/common/Toast/Toast";
+import { navigateTo } from "../../../config/basePath";
 import "./OTP.css";
 
 // ─── DIVISION CONFIG (must match Login.jsx) ─────────────────────────
@@ -108,7 +109,7 @@ export default function OTP() {
         setLoading(false);
         showError("Session expired. Please log in again.");
         setTimeout(() => {
-          window.location.href = "/login";
+          navigateTo("/login");
         }, 1500);
         return;
       }
@@ -138,7 +139,7 @@ export default function OTP() {
 
         setTimeout(() => {
           setLoading(false);
-          window.location.href = "/dashboard";
+          navigateTo("/dashboard");
         }, 1500);
       } else {
         setLoading(false);
@@ -167,7 +168,7 @@ export default function OTP() {
   const filled = digits.filter(Boolean).length;
 
   const navigate = (url) => {
-    window.location.href = url;
+    navigateTo(url);
   };
 
   return (

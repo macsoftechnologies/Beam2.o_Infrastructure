@@ -4,6 +4,7 @@ import { Chart, registerables } from 'chart.js';
 import { getRequestCounts, getPlans, getGraphCountsPerDay, getGraphSummary, getZoneStatusCounts, getEmployeeAnalyticsCounts, searchDashboardRequests, getUserLogs } from '../../services/authService';
 import Modal from '../../components/common/Modal/Modal';
 import { formatToDenmarkDate } from '../../utils/dateUtils';
+import { navigateTo } from '../../config/basePath';
 import EmployeeForm from '../../forms/Employeesform/Employeesform';
 import ContractorForm from '../../forms/Contractorsform/Contractorform';
 import './Dashboard.css';
@@ -748,7 +749,7 @@ function Dashboard() {
   }, [counts]);
 
   /* ── HANDLERS ─────────────────────────── */
-  const handleAdd = () => window.location.href = '/new-request';
+  const handleAdd = () => navigateTo('/new-request');
   const handleUpdate = () => setIsEmployeeModalOpen(true);
   const handleDelete = () => setIsContractorModalOpen(true);
   const handleError = () => console.log('Action test');
@@ -961,7 +962,7 @@ function Dashboard() {
                       <td>{r.activity}</td>
                       <td>{r.contractor}</td>
                       <td>
-                        <button className="btn-review" onClick={() => window.location.href = `/new-request?permit=${r.permit}`}>Review</button>
+                        <button className="btn-review" onClick={() => navigateTo(`/new-request?permit=${r.permit}`)}>Review</button>
                       </td>
                     </tr>
                   ))}
