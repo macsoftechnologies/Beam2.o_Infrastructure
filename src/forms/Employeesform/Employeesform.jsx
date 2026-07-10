@@ -88,7 +88,7 @@ function Employeesform({ onClose, initialData, isEdit, onSubmit }) {
       setSubContId(initialData.subContId !== undefined && initialData.subContId !== null ? String(initialData.subContId) : "");
       setDepartId(initialData.departId !== undefined && initialData.departId !== null ? String(initialData.departId) : "");
       setObserId(initialData.obserId !== undefined && initialData.obserId !== null ? String(initialData.obserId) : "");
-      setAccess(initialData.access !== undefined ? (initialData.access === 1 || initialData.access === true) : true);
+      setAccess(initialData.access !== undefined ? (initialData.access === 1 || initialData.access === "1" || initialData.access === true) : true);
       setEmail(initialData.email || "");
       setUsername(initialData.username || "");
       setPassword(initialData.password || "");

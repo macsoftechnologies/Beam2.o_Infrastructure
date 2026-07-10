@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import "./Navbar.css";
+import { logout } from "../../../services/authService";
 
 /* ── Live Clock ── */
 function LiveClock() {
@@ -124,12 +125,12 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("UserType");
-    localStorage.removeItem("token");
-    localStorage.removeItem("tempUser");
-    localStorage.removeItem("secretkey");
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (err) {
+      console.error(err);
+    }
     window.location.href = "/login";
   };
 

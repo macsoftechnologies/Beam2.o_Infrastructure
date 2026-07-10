@@ -42,6 +42,16 @@ api.interceptors.response.use(
         return response;
     },
     (error) => {
+        // Handle 401 Unauthorized globally by logging out and redirecting
+        if (error?.response?.status === 401 && window.location.pathname !== "/login") {
+            localStorage.removeItem("user");
+            localStorage.removeItem("UserType");
+            localStorage.removeItem("token");
+            localStorage.removeItem("tempUser");
+            localStorage.removeItem("secretkey");
+            window.location.href = "/login";
+        }
+
         // Also log failed mutating calls so failures are auditable
         try {
             const config = error?.config || {};

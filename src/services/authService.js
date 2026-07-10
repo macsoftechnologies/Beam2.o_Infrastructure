@@ -27,12 +27,18 @@ export const getUser = () => {
     }
 };
 
-export const logout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("UserType");
-    localStorage.removeItem("token");
-    localStorage.removeItem("tempUser");
-    localStorage.removeItem("secretkey");
+export const logout = async () => {
+    try {
+        await api.post("/auth/logout");
+    } catch (err) {
+        console.error("Failed to notify backend of logout:", err);
+    } finally {
+        localStorage.removeItem("user");
+        localStorage.removeItem("UserType");
+        localStorage.removeItem("token");
+        localStorage.removeItem("tempUser");
+        localStorage.removeItem("secretkey");
+    }
 };
 
 export const addDepartments = async (data) => {
