@@ -21,6 +21,21 @@ const Rooms = () => {
   const [buildings, setBuildings] = useState([]);
   const [floors, setFloors] = useState([]);
   const [zones, setZones] = useState([]);
+  const [userRole, setUserRole] = useState("");
+
+  useEffect(() => {
+    try {
+      const u = localStorage.getItem("user");
+      if (u) {
+        const parsed = JSON.parse(u);
+        setUserRole(parsed.role || parsed.userType || "");
+      } else {
+        setUserRole(localStorage.getItem("UserType") || "");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
   // ─── Fetch building, floor, and zone maps ───────────────────────────────────
   useEffect(() => {
@@ -136,6 +151,7 @@ const Rooms = () => {
     const buildingName = item.building_id ? (buildingMap[item.building_id] || "—") : (flObj ? (buildingMap[flObj.build_id] || "—") : "—");
     const zoneName = zoneMap[item.zone_id] || "—";
 
+    const isAuthorized = ["superadmin", "admin"].includes(String(userRole).toLowerCase());
     return {
       ...item,
       serial: startIndex + index + 1,
@@ -151,6 +167,15 @@ const Rooms = () => {
           >
             <FaEdit />
           </button>
+          {isAuthorized && (
+            <button
+              className="dept-action-btn dept-action-btn--delete"
+              title="Delete"
+              onClick={() => handleDelete(item)}
+            >
+              <FaTrash />
+            </button>
+          )}
         </div>
       ),
     };

@@ -105,7 +105,7 @@ function PortalSelection() {
             Secure Access Portal
           </div>
           <h1 className="hero-title">
-            Welcome to <span className="title-highlight">Novo norDisk</span>
+            Welcome to <span className="title-highlight">Novo Nordisk</span>
           </h1>
           <p className="hero-subtitle">
             Select your division portal to continue to your workspace

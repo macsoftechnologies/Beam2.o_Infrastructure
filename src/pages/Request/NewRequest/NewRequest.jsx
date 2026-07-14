@@ -3,6 +3,173 @@ import "../../styles/pages.css";
 import "../../../forms/styles/forms.css";
 import "./NewRequest.css";
 
+const AnalogTimePicker = ({ initialTime, onSave, onCancel }) => {
+  const [hour, setHour] = useState(12);
+  const [minute, setMinute] = useState(0);
+  const [mode, setMode] = useState("hour"); // "hour" or "minute"
+
+  useEffect(() => {
+    if (initialTime) {
+      const [h, m] = initialTime.split(":").map(Number);
+      if (!isNaN(h)) setHour(h);
+      if (!isNaN(m)) setMinute(m);
+    }
+  }, [initialTime]);
+
+  const handleSave = (e) => {
+    e.stopPropagation();
+    const formattedHour = String(hour).padStart(2, "0");
+    const formattedMinute = String(minute).padStart(2, "0");
+    onSave(`${formattedHour}:${formattedMinute}`);
+  };
+
+  const size = 220;
+  const radius = size / 2;
+  const center = radius;
+
+  const renderHourNumbers = () => {
+    const items = [];
+    // Outer circle (1 to 12)
+    for (let h = 1; h <= 12; h++) {
+      const angle = ((h * 30 - 90) * Math.PI) / 180;
+      const r = radius - 25;
+      const x = center + r * Math.cos(angle);
+      const y = center + r * Math.sin(angle);
+      const isSelected = hour === h;
+      items.push(
+        <div
+          key={`out-${h}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            setHour(h);
+            setMode("minute");
+          }}
+          className={`time-dial-number ${isSelected ? "selected" : ""}`}
+          style={{ left: `${x}px`, top: `${y}px` }}
+        >
+          {h}
+        </div>
+      );
+    }
+    // Inner circle (13 to 24/00)
+    for (let h = 13; h <= 24; h++) {
+      const displayH = h === 24 ? 0 : h;
+      const angle = (((h - 12) * 30 - 90) * Math.PI) / 180;
+      const r = radius - 55;
+      const x = center + r * Math.cos(angle);
+      const y = center + r * Math.sin(angle);
+      const isSelected = hour === displayH;
+      items.push(
+        <div
+          key={`in-${h}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            setHour(displayH);
+            setMode("minute");
+          }}
+          className={`time-dial-number inner ${isSelected ? "selected" : ""}`}
+          style={{ left: `${x}px`, top: `${y}px` }}
+        >
+          {displayH === 0 ? "00" : displayH}
+        </div>
+      );
+    }
+    return items;
+  };
+
+  const renderMinuteNumbers = () => {
+    const items = [];
+    for (let m = 0; m < 60; m += 5) {
+      const angle = ((m * 6 - 90) * Math.PI) / 180;
+      const r = radius - 25;
+      const x = center + r * Math.cos(angle);
+      const y = center + r * Math.sin(angle);
+      const isSelected = Math.round(minute / 5) * 5 === m;
+      items.push(
+        <div
+          key={m}
+          onClick={(e) => {
+            e.stopPropagation();
+            setMinute(m);
+          }}
+          className={`time-dial-number ${isSelected ? "selected" : ""}`}
+          style={{ left: `${x}px`, top: `${y}px` }}
+        >
+          {String(m).padStart(2, "0")}
+        </div>
+      );
+    }
+    return items;
+  };
+
+  let handAngle = 0;
+  let handLength = radius - 25;
+
+  if (mode === "hour") {
+    const h = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    handAngle = h * 30 - 90;
+    if (hour === 0 || hour > 12) {
+      handLength = radius - 55;
+    }
+  } else {
+    handAngle = minute * 6 - 90;
+  }
+
+  const handRad = (handAngle * Math.PI) / 180;
+  const handX = center + handLength * Math.cos(handRad);
+  const handY = center + handLength * Math.sin(handRad);
+
+  return (
+    <div className="timekeeper-modal-container custom-picker" onClick={(e) => e.stopPropagation()}>
+      <div className="timekeeper-header">
+        <div className="timekeeper-time-display">
+          <span
+            className={`timekeeper-time-unit ${mode === "hour" ? "active" : ""}`}
+            onClick={(e) => { e.stopPropagation(); setMode("hour"); }}
+          >
+            {String(hour).padStart(2, "0")}
+          </span>
+          <span className="timekeeper-time-colon">:</span>
+          <span
+            className={`timekeeper-time-unit ${mode === "minute" ? "active" : ""}`}
+            onClick={(e) => { e.stopPropagation(); setMode("minute"); }}
+          >
+            {String(minute).padStart(2, "0")}
+          </span>
+        </div>
+      </div>
+
+      <div className="timekeeper-dial-wrapper">
+        <div className="timekeeper-dial" style={{ width: `${size}px`, height: `${size}px` }}>
+          <svg className="timekeeper-hand-svg" width={size} height={size}>
+            <line
+              x1={center}
+              y1={center}
+              x2={handX}
+              y2={handY}
+              stroke="#0ea5e9"
+              strokeWidth="2"
+            />
+            <circle cx={center} cy={center} r="4" fill="#0ea5e9" />
+            <circle cx={handX} cy={handY} r="14" fill="rgba(14, 165, 233, 0.3)" />
+            <circle cx={handX} cy={handY} r="4" fill="#0ea5e9" />
+          </svg>
+          {mode === "hour" ? renderHourNumbers() : renderMinuteNumbers()}
+        </div>
+      </div>
+
+      <div className="timekeeper-modal-actions">
+        <button type="button" className="timekeeper-modal-btn" onClick={(e) => { e.stopPropagation(); onCancel(); }}>
+          Cancel
+        </button>
+        <button type="button" className="timekeeper-modal-btn" onClick={handleSave}>
+          OK
+        </button>
+      </div>
+    </div>
+  );
+};
+
 import FloorDrawing from "../FloorDrawing/FloorDrawing";
 
 import { FLOOR_PDFS } from "../../../data/pdfMapping";
@@ -104,6 +271,12 @@ function NewRequest() {
 
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [fieldErrors, setFieldErrors] = useState({});
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
+  const [showNewEndPicker, setShowNewEndPicker] = useState(false);
+  const [tempStartTime, setTempStartTime] = useState("");
+  const [tempEndTime, setTempEndTime] = useState("");
+  const [tempNewEndTime, setTempNewEndTime] = useState("");
   const fileInputRef = useRef(null);
   const roomsDropdownRef = useRef(null);
   const electricalDropdownRef = useRef(null);
@@ -570,7 +743,7 @@ function NewRequest() {
         working_on_electrical_system: formatDbValue(editRequest.working_on_electrical_system ?? "0"),
         floatLabel17: formatDbValue(editRequest.responsible_for_the_informed),
         floatLabel18: formatDbValue(editRequest.de_energized),
-        floatLabel19: formatDbValue(editRequest.if_no_loto),
+        floatLabel19: formatDbValue(editRequest.if_not_loto ?? editRequest.if_no_loto),
         floatLabel20: formatDbValue(editRequest.do_risk_assessment),
         floatLabel22: formatDbValue(editRequest.electricity_have_isulation),
 
@@ -580,7 +753,7 @@ function NewRequest() {
         floatLabel25: formatDbValue(editRequest.msds),
         floatLabel26: formatDbValue(editRequest.equipment_taken_account),
         floatLabel27: formatDbValue(editRequest.ventilation),
-        floatLabel28: formatDbValue(editRequest.hazardaus_substances),
+        floatLabel28: formatDbValue(editRequest.hazardous_substances ?? editRequest.hazardaus_substances),
         floatLabel29: formatDbValue(editRequest.storage_and_disposal),
         floatLabel30: formatDbValue(editRequest.reachable_case),
         floatLabel31: formatDbValue(editRequest.checical_risk_assessment),
@@ -1334,6 +1507,7 @@ function NewRequest() {
       // General Safety Checklist
       affecting_other_contractors: formData.floatLabel11 || 0,
       other_conditions: formData.floatLabel12 || 0,
+      other_conditions_input: formData.other_conditions_input || "",
       lighting_begin_work: formData.floatLabel13 || 0,
       specific_risks: formData.floatLabel14 || 0,
       environment_ensured: formData.floatLabel15 || 0,
@@ -1357,6 +1531,7 @@ function NewRequest() {
       responsible_for_the_informed: formData.floatLabel17 || 0,
       de_energized: formData.floatLabel18 || 0,
       if_no_loto: formData.floatLabel19 || 0,
+      if_not_loto: formData.floatLabel19 || 0,
       do_risk_assessment: formData.floatLabel20 || 0,
       electricity_have_isulation: formData.floatLabel22 || 0,
       // electrician_certification: formData.floatLabel23 || 0,
@@ -1367,6 +1542,7 @@ function NewRequest() {
       equipment_taken_account: formData.floatLabel26 || 0,
       ventilation: formData.floatLabel27 || 0,
       hazardaus_substances: formData.floatLabel28 || 0,
+      hazardous_substances: formData.floatLabel28 || 0,
       storage_and_disposal: formData.floatLabel29 || 0,
       reachable_case: formData.floatLabel30 || 0,
       checical_risk_assessment: formData.floatLabel31 || 0,
@@ -1761,13 +1937,31 @@ function NewRequest() {
               <div className="df-field">
                 <label className="df-label">Start Time <span className="req-star">*</span></label>
                 <input
-                  type="time"
+                  type="text"
+                  placeholder="00:00"
+                  readOnly
                   className={`df-input${fieldErrors.Start_Time ? " field-input-error" : ""}`}
                   value={formData.Start_Time}
-                  onChange={(e) => handleFieldChange("Start_Time", e.target.value)}
-                  onClick={(e) => { try { e.target.showPicker(); } catch (err) { void err; } }}
+                  onClick={() => {
+                    setTempStartTime(formData.Start_Time || "12:00");
+                    setShowStartPicker(true);
+                  }}
+                  style={{ cursor: 'pointer' }}
                 />
                 {fieldErrors.Start_Time && <span className="field-error">{fieldErrors.Start_Time}</span>}
+
+                {showStartPicker && (
+                  <div className="timekeeper-modal-overlay" onClick={() => setShowStartPicker(false)}>
+                    <AnalogTimePicker
+                      initialTime={formData.Start_Time || "12:00"}
+                      onSave={(newTime) => {
+                        handleFieldChange("Start_Time", newTime);
+                        setShowStartPicker(false);
+                      }}
+                      onCancel={() => setShowStartPicker(false)}
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1775,13 +1969,31 @@ function NewRequest() {
               <div className="df-field">
                 <label className="df-label">End Time <span className="req-star">*</span></label>
                 <input
-                  type="time"
+                  type="text"
+                  placeholder="00:00"
+                  readOnly
                   className={`df-input${fieldErrors.End_Time ? " field-input-error" : ""}`}
                   value={formData.End_Time}
-                  onChange={(e) => handleFieldChange("End_Time", e.target.value)}
-                  onClick={(e) => { try { e.target.showPicker(); } catch (err) { void err; } }}
+                  onClick={() => {
+                    setTempEndTime(formData.End_Time || "12:00");
+                    setShowEndPicker(true);
+                  }}
+                  style={{ cursor: 'pointer' }}
                 />
                 {fieldErrors.End_Time && <span className="field-error">{fieldErrors.End_Time}</span>}
+
+                {showEndPicker && (
+                  <div className="timekeeper-modal-overlay" onClick={() => setShowEndPicker(false)}>
+                    <AnalogTimePicker
+                      initialTime={formData.End_Time || "12:00"}
+                      onSave={(newTime) => {
+                        handleFieldChange("End_Time", newTime);
+                        setShowEndPicker(false);
+                      }}
+                      onCancel={() => setShowEndPicker(false)}
+                    />
+                  </div>
+                )}
               </div>
               <div className="df-field night-shift-field" style={{ display: "flex", alignItems: "center" }}>
                 <label className="checkbox-container">
@@ -1809,13 +2021,31 @@ function NewRequest() {
                 <div className="df-field">
                   <label className="df-label">New End Time (Night Shift)</label>
                   <input
-                    type="time"
+                    type="text"
+                    placeholder="00:00"
+                    readOnly
                     className={`df-input${fieldErrors.new_end_time ? " field-input-error" : ""}`}
                     value={formData.new_end_time}
-                    onChange={(e) => handleFieldChange("new_end_time", e.target.value)}
-                    onClick={(e) => { try { e.target.showPicker(); } catch (err) { void err; } }}
+                    onClick={() => {
+                      setTempNewEndTime(formData.new_end_time || "12:00");
+                      setShowNewEndPicker(true);
+                    }}
+                    style={{ cursor: 'pointer' }}
                   />
                   {fieldErrors.new_end_time && <span className="field-error">{fieldErrors.new_end_time}</span>}
+
+                  {showNewEndPicker && (
+                    <div className="timekeeper-modal-overlay" onClick={() => setShowNewEndPicker(false)}>
+                      <AnalogTimePicker
+                        initialTime={formData.new_end_time || "12:00"}
+                        onSave={(newTime) => {
+                          handleFieldChange("new_end_time", newTime);
+                          setShowNewEndPicker(false);
+                        }}
+                        onCancel={() => setShowNewEndPicker(false)}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             )}

@@ -1,8 +1,173 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { LOGO_MAP } from "../../../config/logos";
-import { FaEdit, FaEye, FaCopy, FaTrash, FaPlus, FaFilter, FaHistory, FaCheck, FaTimes, FaEllipsisV } from "react-icons/fa";
+import { FaEdit, FaEye, FaCopy, FaTrash, FaPlus, FaFilter, FaHistory, FaCheck, FaTimes, FaEllipsisV, FaSearch } from "react-icons/fa";
 import Swal from "sweetalert2";
+
+const AnalogTimePicker = ({ initialTime, onSave, onCancel }) => {
+  const [hour, setHour] = useState(12);
+  const [minute, setMinute] = useState(0);
+  const [mode, setMode] = useState("hour");
+
+  useEffect(() => {
+    if (initialTime) {
+      const [h, m] = initialTime.split(":").map(Number);
+      if (!isNaN(h)) setHour(h);
+      if (!isNaN(m)) setMinute(m);
+    }
+  }, [initialTime]);
+
+  const handleSave = (e) => {
+    e.stopPropagation();
+    const formattedHour = String(hour).padStart(2, "0");
+    const formattedMinute = String(minute).padStart(2, "0");
+    onSave(`${formattedHour}:${formattedMinute}`);
+  };
+
+  const size = 220;
+  const radius = size / 2;
+  const center = radius;
+
+  const renderHourNumbers = () => {
+    const items = [];
+    for (let h = 1; h <= 12; h++) {
+      const angle = ((h * 30 - 90) * Math.PI) / 180;
+      const r = radius - 25;
+      const x = center + r * Math.cos(angle);
+      const y = center + r * Math.sin(angle);
+      const isSelected = hour === h;
+      items.push(
+        <div
+          key={`out-${h}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            setHour(h);
+            setMode("minute");
+          }}
+          className={`time-dial-number ${isSelected ? "selected" : ""}`}
+          style={{ left: `${x}px`, top: `${y}px` }}
+        >
+          {h}
+        </div>
+      );
+    }
+    for (let h = 13; h <= 24; h++) {
+      const displayH = h === 24 ? 0 : h;
+      const angle = (((h - 12) * 30 - 90) * Math.PI) / 180;
+      const r = radius - 55;
+      const x = center + r * Math.cos(angle);
+      const y = center + r * Math.sin(angle);
+      const isSelected = hour === displayH;
+      items.push(
+        <div
+          key={`in-${h}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            setHour(displayH);
+            setMode("minute");
+          }}
+          className={`time-dial-number inner ${isSelected ? "selected" : ""}`}
+          style={{ left: `${x}px`, top: `${y}px` }}
+        >
+          {displayH === 0 ? "00" : displayH}
+        </div>
+      );
+    }
+    return items;
+  };
+
+  const renderMinuteNumbers = () => {
+    const items = [];
+    for (let m = 0; m < 60; m += 5) {
+      const angle = ((m * 6 - 90) * Math.PI) / 180;
+      const r = radius - 25;
+      const x = center + r * Math.cos(angle);
+      const y = center + r * Math.sin(angle);
+      const isSelected = Math.round(minute / 5) * 5 === m;
+      items.push(
+        <div
+          key={m}
+          onClick={(e) => {
+            e.stopPropagation();
+            setMinute(m);
+          }}
+          className={`time-dial-number ${isSelected ? "selected" : ""}`}
+          style={{ left: `${x}px`, top: `${y}px` }}
+        >
+          {String(m).padStart(2, "0")}
+        </div>
+      );
+    }
+    return items;
+  };
+
+  let handAngle = 0;
+  let handLength = radius - 25;
+
+  if (mode === "hour") {
+    const h = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    handAngle = h * 30 - 90;
+    if (hour === 0 || hour > 12) {
+      handLength = radius - 55;
+    }
+  } else {
+    handAngle = minute * 6 - 90;
+  }
+
+  const handRad = (handAngle * Math.PI) / 180;
+  const handX = center + handLength * Math.cos(handRad);
+  const handY = center + handLength * Math.sin(handRad);
+
+  return (
+    <div className="timekeeper-modal-container custom-picker" onClick={(e) => e.stopPropagation()}>
+      <div className="timekeeper-header">
+        <div className="timekeeper-time-display">
+          <span
+            className={`timekeeper-time-unit ${mode === "hour" ? "active" : ""}`}
+            onClick={(e) => { e.stopPropagation(); setMode("hour"); }}
+          >
+            {String(hour).padStart(2, "0")}
+          </span>
+          <span className="timekeeper-time-colon">:</span>
+          <span
+            className={`timekeeper-time-unit ${mode === "minute" ? "active" : ""}`}
+            onClick={(e) => { e.stopPropagation(); setMode("minute"); }}
+          >
+            {String(minute).padStart(2, "0")}
+          </span>
+        </div>
+      </div>
+
+      <div className="timekeeper-dial-wrapper">
+        <div className="timekeeper-dial" style={{ width: `${size}px`, height: `${size}px` }}>
+          <svg className="timekeeper-hand-svg" width={size} height={size}>
+            <line
+              x1={center}
+              y1={center}
+              x2={handX}
+              y2={handY}
+              stroke="#0ea5e9"
+              strokeWidth="2"
+            />
+            <circle cx={center} cy={center} r="4" fill="#0ea5e9" />
+            <circle cx={handX} cy={handY} r="14" fill="rgba(14, 165, 233, 0.3)" />
+            <circle cx={handX} cy={handY} r="4" fill="#0ea5e9" />
+          </svg>
+          {mode === "hour" ? renderHourNumbers() : renderMinuteNumbers()}
+        </div>
+      </div>
+
+      <div className="timekeeper-modal-actions">
+        <button type="button" className="timekeeper-modal-btn" onClick={(e) => { e.stopPropagation(); onCancel(); }}>
+          Cancel
+        </button>
+        <button type="button" className="timekeeper-modal-btn" onClick={handleSave}>
+          OK
+        </button>
+      </div>
+    </div>
+  );
+};
 import {
   getContractors,
   getActivities,
@@ -514,6 +679,11 @@ const ListRequest = () => {
   const [bulkTime, setBulkTime] = useState({ startTime: "", endTime: "", nightShift: false, newEndTime: "" });
   const [bulkSafety, setBulkSafety] = useState("");
   const [bulkNote, setBulkNote] = useState("");
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
+  const [showBulkStartPicker, setShowBulkStartPicker] = useState(false);
+  const [showBulkEndPicker, setShowBulkEndPicker] = useState(false);
+  const [showBulkNewEndPicker, setShowBulkNewEndPicker] = useState(false);
   const [logsData, setLogsData] = useState([]);
   const [copyDates, setCopyDates] = useState({ from: "", to: "" });
 
@@ -1666,21 +1836,51 @@ const ListRequest = () => {
               <div className="df-field">
                 <label className="df-label">Start Time</label>
                 <input
-                  type="time"
+                  type="text"
+                  placeholder="00:00"
+                  readOnly
                   className="df-input"
                   value={searchFilters.startTime}
-                  onChange={(e) => setSearchFilters(prev => ({ ...prev, startTime: e.target.value }))}
+                  onClick={() => setShowStartPicker(true)}
+                  style={{ cursor: 'pointer' }}
                 />
+                {showStartPicker && (
+                  <div className="timekeeper-modal-overlay" onClick={() => setShowStartPicker(false)}>
+                    <AnalogTimePicker
+                      initialTime={searchFilters.startTime || "12:00"}
+                      onSave={(newTime) => {
+                        setSearchFilters(prev => ({ ...prev, startTime: newTime }));
+                        setShowStartPicker(false);
+                      }}
+                      onCancel={() => setShowStartPicker(false)}
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="df-field">
                 <label className="df-label">End Time</label>
                 <input
-                  type="time"
+                  type="text"
+                  placeholder="00:00"
+                  readOnly
                   className="df-input"
                   value={searchFilters.endTime}
-                  onChange={(e) => setSearchFilters(prev => ({ ...prev, endTime: e.target.value }))}
+                  onClick={() => setShowEndPicker(true)}
+                  style={{ cursor: 'pointer' }}
                 />
+                {showEndPicker && (
+                  <div className="timekeeper-modal-overlay" onClick={() => setShowEndPicker(false)}>
+                    <AnalogTimePicker
+                      initialTime={searchFilters.endTime || "12:00"}
+                      onSave={(newTime) => {
+                        setSearchFilters(prev => ({ ...prev, endTime: newTime }));
+                        setShowEndPicker(false);
+                      }}
+                      onCancel={() => setShowEndPicker(false)}
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="df-field">
@@ -2263,21 +2463,53 @@ const ListRequest = () => {
             <div className="df-field">
               <label className="df-label">Start Time</label>
               <input
-                type="time"
+                type="text"
+                placeholder="00:00"
+                readOnly
                 className="df-input"
                 value={bulkTime.startTime}
-                onChange={(e) => setBulkTime(p => ({ ...p, startTime: e.target.value }))}
+                onClick={() => setShowBulkStartPicker(true)}
+                style={{ cursor: 'pointer' }}
               />
+              {showBulkStartPicker && (
+                <div className="timekeeper-modal-overlay" onClick={() => setShowBulkStartPicker(false)}>
+                  <AnalogTimePicker
+                    initialTime={bulkTime.startTime || "12:00"}
+                    onSave={(newTime) => {
+                      setBulkTime(p => ({ ...p, startTime: newTime }));
+                      setShowBulkStartPicker(false);
+                    }}
+                    onCancel={() => setShowBulkStartPicker(false)}
+                  />
+                </div>
+              )}
             </div>
             <div className="df-field">
               <label className="df-label">End Time</label>
               <input
-                type="time"
+                type="text"
+                placeholder="00:00"
+                readOnly
                 className="df-input"
                 value={bulkTime.endTime}
-                onChange={(e) => setBulkTime(p => ({ ...p, endTime: e.target.value }))}
+                onClick={() => {
+                  if (!bulkTime.nightShift) setShowBulkEndPicker(true);
+                }}
                 disabled={bulkTime.nightShift}
+                style={{ cursor: bulkTime.nightShift ? 'default' : 'pointer' }}
               />
+              {!bulkTime.nightShift && showBulkEndPicker && (
+                <div className="timekeeper-modal-overlay" onClick={() => setShowBulkEndPicker(false)}>
+                  <AnalogTimePicker
+                    initialTime={bulkTime.endTime || "12:00"}
+                    onSave={(newTime) => {
+                      setBulkTime(p => ({ ...p, endTime: newTime }));
+                      setShowBulkEndPicker(false);
+                    }}
+                    onCancel={() => setShowBulkEndPicker(false)}
+                  />
+                </div>
+              )}
             </div>
           </div>
           <div className="df-grid" style={{ marginTop: "16px" }}>
@@ -2306,11 +2538,26 @@ const ListRequest = () => {
               <div className="df-field">
                 <label className="df-label">New End Time (Night Shift)</label>
                 <input
-                  type="time"
+                  type="text"
+                  placeholder="00:00"
+                  readOnly
                   className="df-input"
                   value={bulkTime.newEndTime}
-                  onChange={(e) => setBulkTime(p => ({ ...p, newEndTime: e.target.value }))}
+                  onClick={() => setShowBulkNewEndPicker(true)}
+                  style={{ cursor: 'pointer' }}
                 />
+                {showBulkNewEndPicker && (
+                  <div className="timekeeper-modal-overlay" onClick={() => setShowBulkNewEndPicker(false)}>
+                    <AnalogTimePicker
+                      initialTime={bulkTime.newEndTime || "12:00"}
+                      onSave={(newTime) => {
+                        setBulkTime(p => ({ ...p, newEndTime: newTime }));
+                        setShowBulkNewEndPicker(false);
+                      }}
+                      onCancel={() => setShowBulkNewEndPicker(false)}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}

@@ -19,6 +19,21 @@ const Floors = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [buildings, setBuildings] = useState([]);
+  const [userRole, setUserRole] = useState("");
+
+  useEffect(() => {
+    try {
+      const u = localStorage.getItem("user");
+      if (u) {
+        const parsed = JSON.parse(u);
+        setUserRole(parsed.role || parsed.userType || "");
+      } else {
+        setUserRole(localStorage.getItem("UserType") || "");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
   // ─── Fetch building mapping ───────────────────────────────────────────────
   useEffect(() => {
@@ -113,6 +128,8 @@ const Floors = () => {
     { header: "Actions", accessor: "actions" },
   ];
 
+  const isAuthorized = ["superadmin", "admin"].includes(String(userRole).toLowerCase());
+
   const tableData = floorList.map((item, index) => ({
     ...item,
     serial: startIndex + index + 1,
@@ -126,6 +143,15 @@ const Floors = () => {
         >
           <FaEdit />
         </button>
+        {isAuthorized && (
+          <button
+            className="dept-action-btn dept-action-btn--delete"
+            title="Delete"
+            onClick={() => handleDelete(item)}
+          >
+            <FaTrash />
+          </button>
+        )}
       </div>
     ),
   }));

@@ -3,7 +3,8 @@ import { useLocation } from "react-router-dom";
 import { showSuccess, showError, showDeleteConfirm, showDeleteSuccess } from "../../components/common/Toast/Toast";
 import Table from "../../components/common/Table/Table";
 import Modal from "../../components/common/Modal/Modal";
-import { FaEdit, FaTrash, FaFilter, FaFileCsv, FaArrowDown, FaTimes } from "react-icons/fa";
+import { FaEdit, FaTrash, FaFilter, FaFileCsv, FaArrowDown, FaTimes, FaSearch } from "react-icons/fa";
+import * as XLSX from "xlsx";
 import ZoneForm from "../../forms/Zoneform/Zoneform";
 import { getZones, addZone, updateZone, deleteZone, getBuildings } from "../../services/authService";
 import "../styles/pages.css";
@@ -21,6 +22,21 @@ const Zones = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [buildings, setBuildings] = useState([]);
+  const [userRole, setUserRole] = useState("");
+
+  useEffect(() => {
+    try {
+      const u = localStorage.getItem("user");
+      if (u) {
+        const parsed = JSON.parse(u);
+        setUserRole(parsed.role || parsed.userType || "");
+      } else {
+        setUserRole(localStorage.getItem("UserType") || "");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
   const [filterZoneName, setFilterZoneName] = useState("");
   const [filterStatus, setFilterStatus] = useState(location.state?.status || "");
@@ -135,23 +151,24 @@ const Zones = () => {
         return;
       }
       const headers = ["S.No", "Building", "Level / Floor", "Zone Name", "Status"];
-      let html = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
-      html += '<head><meta charset="UTF-8"></head><body><table border="1">';
-      html += '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
-      rows.forEach((item, index) => {
-        html += `<tr>
-          <td>${index + 1}</td>
-          <td>${String(buildingMap[item.building_id] || "—").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
-          <td>${String(item.level || "").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
-          <td>${String(item.zone || "").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
-          <td>${String(statusLabelMap[item.status] ?? item.status ?? "").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
-        </tr>`;
-      });
-      html += '</table></body></html>';
-      const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+      const wsData = [
+        headers,
+        ...rows.map((item, index) => [
+          index + 1,
+          buildingMap[item.building_id] || "—",
+          item.level || "",
+          item.zone || "",
+          statusLabelMap[item.status] ?? item.status ?? ""
+        ])
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Zones");
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], { type: 'application/octet-stream' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.setAttribute('download', `Zones_Report_${new Date().toISOString().slice(0, 10)}.xls`);
+      link.setAttribute('download', `Zones_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -211,6 +228,8 @@ const Zones = () => {
     { header: "Actions", accessor: "actions" },
   ];
 
+  const isAuthorized = ["superadmin", "admin"].includes(String(userRole).toLowerCase());
+
   const tableData = zoneList.map((item, index) => ({
     ...item,
     serial: startIndex + index + 1,
@@ -225,6 +244,15 @@ const Zones = () => {
         >
           <FaEdit />
         </button>
+        {isAuthorized && (
+          <button
+            className="dept-action-btn dept-action-btn--delete"
+            title="Delete"
+            onClick={() => handleDelete(item)}
+          >
+            <FaTrash />
+          </button>
+        )}
       </div>
     ),
   }));
@@ -259,12 +287,12 @@ const Zones = () => {
       <div className="dept-table-card" style={{ marginBottom: "16px", padding: "16px 24px" }}>
         <h3 style={{ margin: "0 0 12px 0", fontSize: "1rem", fontWeight: "600", color: "#F9FAFB" }}>Filters</h3>
         <div className="df-form" style={{ padding: "0" }}>
-          <div className="df-grid">
-            <div className="df-field">
+          <div style={{ display: "grid", gridTemplateColumns: "2.5fr 1.5fr auto", gap: "16px", alignItems: "flex-end", width: "100%" }}>
+            <div className="df-field" style={{ marginBottom: 0 }}>
               <label className="df-label" style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>ZONE NAME</label>
               <input type="text" className="df-input" placeholder="Search by zone name" value={filterZoneName} onChange={(e) => setFilterZoneName(e.target.value)} />
             </div>
-            <div className="df-field">
+            <div className="df-field" style={{ marginBottom: 0 }}>
               <label className="df-label" style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>STATUS</label>
               <select className="df-select" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
                 <option value="">All</option>
@@ -273,27 +301,28 @@ const Zones = () => {
                 <option value="HO">Hand Over</option>
               </select>
             </div>
-          </div>
-
-          <div className="df-footer" style={{ justifyContent: "flex-end", marginTop: "12px", gap: "12px", display: "flex" }}>
-            <button onClick={handleFilter} type="button" className="dept-add-btn" style={{ backgroundColor: '#CA8A04', color: '#fff', border: 'none', cursor: 'pointer' }}>
-              <FaFilter style={{ marginRight: '6px' }} /> Filter
-            </button>
-            <button onClick={handleClear} type="button" className="dept-add-btn" style={{ backgroundColor: '#4B5563', border: 'none', cursor: 'pointer' }}>
-              <FaTimes style={{ marginRight: '6px' }} /> Clear
-            </button>
-            <button onClick={handleExportCSV} className="dept-add-btn" style={{ backgroundColor: '#22C55E', border: 'none', cursor: 'pointer' }}>
-              <FaFileCsv style={{ marginRight: '6px', fontSize: '1.1rem' }} /> CSV
-            </button>
-            <button onClick={handleExportExcel} className="dept-add-btn" style={{ backgroundColor: '#3B82F6', border: 'none', cursor: 'pointer' }}>
-              <FaArrowDown style={{ marginRight: '6px' }} /> Excel
-            </button>
+            <div style={{ display: "flex", gap: "12px", paddingBottom: "2px" }}>
+              <button onClick={handleFilter} type="button" className="dept-add-btn" style={{ backgroundColor: '#CA8A04', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                <FaSearch style={{ marginRight: '6px' }} /> Search
+              </button>
+              <button onClick={handleClear} type="button" className="dept-add-btn" style={{ backgroundColor: '#4B5563', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                <FaTimes style={{ marginRight: '6px' }} /> Clear
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* ── Table Card ── */}
       <div className="dept-table-card">
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px', gap: '12px' }}>
+          <button onClick={handleExportCSV} className="dept-add-btn" style={{ backgroundColor: '#22C55E', border: 'none', cursor: 'pointer' }}>
+            <FaFileCsv style={{ marginRight: '6px', fontSize: '1.1rem' }} /> CSV
+          </button>
+          <button onClick={handleExportExcel} className="dept-add-btn" style={{ backgroundColor: '#3B82F6', border: 'none', cursor: 'pointer' }}>
+            <FaArrowDown style={{ marginRight: '6px' }} /> Excel
+          </button>
+        </div>
         <Table
           columns={columns}
           data={tableData}

@@ -2,14 +2,15 @@ import React, { useState, useEffect, useCallback } from "react";
 import { showSuccess, showError, showDeleteConfirm, showDeleteSuccess } from "../../components/common/Toast/Toast";
 import Table from "../../components/common/Table/Table";
 import Modal from "../../components/common/Modal/Modal";
-import { FaEye, FaEdit, FaTrash, FaFilter, FaFileCsv, FaArrowDown, FaTimes } from "react-icons/fa";
+import { FaEye, FaEdit, FaTrash, FaFilter, FaFileCsv, FaArrowDown, FaTimes, FaSearch } from "react-icons/fa";
+import * as XLSX from "xlsx";
 import EmployeeForm from "../../forms/Employeesform/Employeesform";
 import { getEmployees, addEmployee, updateEmployee, deleteEmployee, getRoles, searchEmployees, getContractors } from "../../services/authService";
 import "../styles/pages.css";
 
 const PAGE_LIMIT_DEFAULT = 10;
 
-const ActionButtons = ({ onView, onEdit, onDelete }) => (
+const ActionButtons = ({ onView, onEdit, onDelete, showDelete }) => (
   <div className="dept-action-btns">
     <button className="dept-action-btn dept-action-btn--view" title="View" onClick={onView}>
       <FaEye />
@@ -17,9 +18,11 @@ const ActionButtons = ({ onView, onEdit, onDelete }) => (
     <button className="dept-action-btn dept-action-btn--edit" title="Edit" onClick={onEdit}>
       <FaEdit />
     </button>
-    {/* <button className="dept-action-btn dept-action-btn--delete" title="Delete" onClick={onDelete}>
-      <FaTrash />
-    </button> */}
+    {showDelete && (
+      <button className="dept-action-btn dept-action-btn--delete" title="Delete" onClick={onDelete}>
+        <FaTrash />
+      </button>
+    )}
   </div>
 );
 
@@ -47,6 +50,21 @@ const Employees = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [rolesList, setRolesList] = useState([]);
+  const [userRole, setUserRole] = useState("");
+
+  useEffect(() => {
+    try {
+      const u = localStorage.getItem("user");
+      if (u) {
+        const parsed = JSON.parse(u);
+        setUserRole(parsed.role || parsed.userType || "");
+      } else {
+        setUserRole(localStorage.getItem("UserType") || "");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
   const [filterName, setFilterName] = useState("");
   const [filterCompany, setFilterCompany] = useState("");
@@ -123,14 +141,16 @@ const Employees = () => {
       }
       const headers = ["S.No", "Employee Name", "Badge Id", "Designation", "Company Name", "Email ID", "Phonenumber"];
       const csvRows = rows.map((item, index) => {
+        const badgeIdVal = item.badgeId ? '\t' + String(item.badgeId).replace(/"/g, '""') : "";
+        const phoneVal = item.phonenumber ? '\t' + String(item.phonenumber).replace(/"/g, '""') : "";
         return [
           index + 1,
           `"${(item.employeeName || "").replace(/"/g, '""')}"`,
-          `"${(item.badgeId || "").replace(/"/g, '""')}"`,
+          `"${badgeIdVal}"`,
           `"${(item.designation || "").replace(/"/g, '""')}"`,
           `"${(item.companyName || "").replace(/"/g, '""')}"`,
           `"${(item.email || "").replace(/"/g, '""')}"`,
-          `"${(item.phonenumber || "").replace(/"/g, '""')}"`
+          `"${phoneVal}"`
         ].join(",");
       });
       const csvContent = "\uFEFF" + [headers.join(","), ...csvRows].join("\n");
@@ -156,25 +176,40 @@ const Employees = () => {
         return;
       }
       const headers = ["S.No", "Employee Name", "Badge Id", "Designation", "Company Name", "Email ID", "Phonenumber"];
-      let html = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
-      html += '<head><meta charset="UTF-8"></head><body><table border="1">';
-      html += '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
-      rows.forEach((item, index) => {
-        html += `<tr>
-          <td>${index + 1}</td>
-          <td>${String(item.employeeName || "").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
-          <td>${String(item.badgeId || "").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
-          <td>${String(item.designation || "").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
-          <td>${String(item.companyName || "").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
-          <td>${String(item.email || "").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
-          <td>${String(item.phonenumber || "").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
-        </tr>`;
-      });
-      html += '</table></body></html>';
-      const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+      const wsData = [
+        headers,
+        ...rows.map((item, index) => [
+          index + 1,
+          item.employeeName || "",
+          item.badgeId || "",
+          item.designation || "",
+          item.companyName || "",
+          item.email || "",
+          item.phonenumber || ""
+        ])
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+      const badgeIdColIndex = headers.indexOf('Badge Id');
+      const phoneColIndex = headers.indexOf('Phonenumber');
+      for (let r = 1; r < wsData.length; r++) {
+        if (badgeIdColIndex !== -1) {
+          const badgeCellRef = `${XLSX.utils.encode_col(badgeIdColIndex)}${r + 1}`;
+          if (ws[badgeCellRef]) ws[badgeCellRef].t = 's';
+        }
+        if (phoneColIndex !== -1) {
+          const phoneCellRef = `${XLSX.utils.encode_col(phoneColIndex)}${r + 1}`;
+          if (ws[phoneCellRef]) ws[phoneCellRef].t = 's';
+        }
+      }
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Employees");
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], { type: 'application/octet-stream' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.setAttribute('download', `Employees_Report_${new Date().toISOString().slice(0, 10)}.xls`);
+      link.setAttribute('download', `Employees_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -242,6 +277,8 @@ const Employees = () => {
     { header: "Actions", accessor: "actions" },
   ];
 
+  const isAuthorized = ["superadmin", "admin"].includes(String(userRole).toLowerCase());
+
   const tableData = employeeList.map((item, index) => ({
     ...item,
     serial: startIndex + index + 1,
@@ -252,6 +289,7 @@ const Employees = () => {
         onView={() => handleView(item, index)}
         onEdit={() => handleEdit(item, index)}
         onDelete={() => handleDelete(item)}
+        showDelete={isAuthorized}
       />
     ),
   }));
@@ -277,12 +315,12 @@ const Employees = () => {
       <div className="dept-table-card" style={{ marginBottom: "16px", padding: "16px 24px" }}>
         <h3 style={{ margin: "0 0 12px 0", fontSize: "1rem", fontWeight: "600", color: "#F9FAFB" }}>Filters</h3>
         <div className="df-form" style={{ padding: "0" }}>
-          <div className="df-grid">
-            <div className="df-field">
+          <div style={{ display: "grid", gridTemplateColumns: "2.5fr 1.5fr auto", gap: "16px", alignItems: "flex-end", width: "100%" }}>
+            <div className="df-field" style={{ marginBottom: 0 }}>
               <label className="df-label" style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>EMPLOYEE NAME / SEARCH KEYWORD</label>
               <input type="text" className="df-input" placeholder="Search by name, email, badge, designation..." value={filterName} onChange={(e) => setFilterName(e.target.value)} />
             </div>
-            <div className="df-field">
+            <div className="df-field" style={{ marginBottom: 0 }}>
               <label className="df-label" style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>COMPANY NAME</label>
               <select className="df-select" value={filterCompany} onChange={(e) => setFilterCompany(e.target.value)}>
                 <option value="">All</option>
@@ -291,26 +329,27 @@ const Employees = () => {
                 ))}
               </select>
             </div>
-          </div>
-          
-          <div className="df-footer" style={{ justifyContent: "flex-end", marginTop: "12px", gap: "12px", display: "flex" }}>
-            <button onClick={handleFilter} type="button" className="dept-add-btn" style={{ backgroundColor: '#CA8A04', color: '#fff', border: 'none', cursor: 'pointer' }}>
-              <FaFilter style={{ marginRight: '6px' }} /> Filter
-            </button>
-            <button onClick={handleClear} type="button" className="dept-add-btn" style={{ backgroundColor: '#4B5563', border: 'none', cursor: 'pointer' }}>
-              <FaTimes style={{ marginRight: '6px' }} /> Clear
-            </button>
-            <button onClick={handleExportCSV} className="dept-add-btn" style={{ backgroundColor: '#22C55E', border: 'none', cursor: 'pointer' }}>
-              <FaFileCsv style={{ marginRight: '6px', fontSize: '1.1rem' }} /> CSV
-            </button>
-            <button onClick={handleExportExcel} className="dept-add-btn" style={{ backgroundColor: '#3B82F6', border: 'none', cursor: 'pointer' }}>
-              <FaArrowDown style={{ marginRight: '6px' }} /> Excel
-            </button>
+            <div style={{ display: "flex", gap: "12px", paddingBottom: "2px" }}>
+              <button onClick={handleFilter} type="button" className="dept-add-btn" style={{ backgroundColor: '#CA8A04', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                <FaSearch style={{ marginRight: '6px' }} /> Search
+              </button>
+              <button onClick={handleClear} type="button" className="dept-add-btn" style={{ backgroundColor: '#4B5563', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                <FaTimes style={{ marginRight: '6px' }} /> Clear
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       <div className="dept-table-card">
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px', gap: '12px' }}>
+          <button onClick={handleExportCSV} className="dept-add-btn" style={{ backgroundColor: '#22C55E', border: 'none', cursor: 'pointer' }}>
+            <FaFileCsv style={{ marginRight: '6px', fontSize: '1.1rem' }} /> CSV
+          </button>
+          <button onClick={handleExportExcel} className="dept-add-btn" style={{ backgroundColor: '#3B82F6', border: 'none', cursor: 'pointer' }}>
+            <FaArrowDown style={{ marginRight: '6px' }} /> Excel
+          </button>
+        </div>
         <Table
           columns={columns}
           data={tableData}

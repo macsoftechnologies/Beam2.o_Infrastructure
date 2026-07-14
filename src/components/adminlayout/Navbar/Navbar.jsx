@@ -215,19 +215,19 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
                 <a className="pd-item" href="/profile">
                   <i className="ti ti-user" /> My profile
                 </a>
-                <a className="pd-item" href="/credentials">
+                {/* <a className="pd-item" href="/credentials">
                   <i className="ti ti-id-badge" /> Credentials &amp; certifications
                   <span className="pd-badge b-ok">Valid</span>
                 </a>
                 <a className="pd-item" href="/change-password">
                   <i className="ti ti-lock" /> Change password
-                </a>
+                </a> */}
               </div>
 
-              <div className="pd-divider" />
+              {/* <div className="pd-divider" /> */}
 
               {/* Safety */}
-              <div className="pd-section">
+              {/* <div className="pd-section">
                 <div className="pd-label">Safety</div>
                 <a className="pd-item" href="/incidents">
                   <i className="ti ti-alert-triangle" /> My incident reports
@@ -247,12 +247,12 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
                   <i className="ti ti-bell-ringing" /> Emergency contacts
                   <span className="pd-badge b-danger">Review</span>
                 </a>
-              </div>
+              </div> */}
 
-              <div className="pd-divider" />
+              {/* <div className="pd-divider" /> */}
 
               {/* Preferences */}
-              <div className="pd-section">
+              {/* <div className="pd-section">
                 <div className="pd-label">Preferences</div>
                 <a className="pd-item" href="/settings">
                   <i className="ti ti-settings" /> Settings
@@ -260,7 +260,7 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
                 <a className="pd-item" href="/help">
                   <i className="ti ti-help-circle" /> Help &amp; support
                 </a>
-              </div>
+              </div> */}
 
               <div className="pd-divider" />
 

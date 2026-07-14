@@ -1,6 +1,172 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import Table from "../../components/common/Table/Table";
 import { FaFileCsv, FaArrowDown } from "react-icons/fa";
+import * as XLSX from "xlsx";
+
+const AnalogTimePicker = ({ initialTime, onSave, onCancel }) => {
+  const [hour, setHour] = useState(12);
+  const [minute, setMinute] = useState(0);
+  const [mode, setMode] = useState("hour");
+
+  useEffect(() => {
+    if (initialTime) {
+      const [h, m] = initialTime.split(":").map(Number);
+      if (!isNaN(h)) setHour(h);
+      if (!isNaN(m)) setMinute(m);
+    }
+  }, [initialTime]);
+
+  const handleSave = (e) => {
+    e.stopPropagation();
+    const formattedHour = String(hour).padStart(2, "0");
+    const formattedMinute = String(minute).padStart(2, "0");
+    onSave(`${formattedHour}:${formattedMinute}`);
+  };
+
+  const size = 220;
+  const radius = size / 2;
+  const center = radius;
+
+  const renderHourNumbers = () => {
+    const items = [];
+    for (let h = 1; h <= 12; h++) {
+      const angle = ((h * 30 - 90) * Math.PI) / 180;
+      const r = radius - 25;
+      const x = center + r * Math.cos(angle);
+      const y = center + r * Math.sin(angle);
+      const isSelected = hour === h;
+      items.push(
+        <div
+          key={`out-${h}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            setHour(h);
+            setMode("minute");
+          }}
+          className={`time-dial-number ${isSelected ? "selected" : ""}`}
+          style={{ left: `${x}px`, top: `${y}px` }}
+        >
+          {h}
+        </div>
+      );
+    }
+    for (let h = 13; h <= 24; h++) {
+      const displayH = h === 24 ? 0 : h;
+      const angle = (((h - 12) * 30 - 90) * Math.PI) / 180;
+      const r = radius - 55;
+      const x = center + r * Math.cos(angle);
+      const y = center + r * Math.sin(angle);
+      const isSelected = hour === displayH;
+      items.push(
+        <div
+          key={`in-${h}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            setHour(displayH);
+            setMode("minute");
+          }}
+          className={`time-dial-number inner ${isSelected ? "selected" : ""}`}
+          style={{ left: `${x}px`, top: `${y}px` }}
+        >
+          {displayH === 0 ? "00" : displayH}
+        </div>
+      );
+    }
+    return items;
+  };
+
+  const renderMinuteNumbers = () => {
+    const items = [];
+    for (let m = 0; m < 60; m += 5) {
+      const angle = ((m * 6 - 90) * Math.PI) / 180;
+      const r = radius - 25;
+      const x = center + r * Math.cos(angle);
+      const y = center + r * Math.sin(angle);
+      const isSelected = Math.round(minute / 5) * 5 === m;
+      items.push(
+        <div
+          key={m}
+          onClick={(e) => {
+            e.stopPropagation();
+            setMinute(m);
+          }}
+          className={`time-dial-number ${isSelected ? "selected" : ""}`}
+          style={{ left: `${x}px`, top: `${y}px` }}
+        >
+          {String(m).padStart(2, "0")}
+        </div>
+      );
+    }
+    return items;
+  };
+
+  let handAngle = 0;
+  let handLength = radius - 25;
+
+  if (mode === "hour") {
+    const h = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    handAngle = h * 30 - 90;
+    if (hour === 0 || hour > 12) {
+      handLength = radius - 55;
+    }
+  } else {
+    handAngle = minute * 6 - 90;
+  }
+
+  const handRad = (handAngle * Math.PI) / 180;
+  const handX = center + handLength * Math.cos(handRad);
+  const handY = center + handLength * Math.sin(handRad);
+
+  return (
+    <div className="timekeeper-modal-container custom-picker" onClick={(e) => e.stopPropagation()}>
+      <div className="timekeeper-header">
+        <div className="timekeeper-time-display">
+          <span
+            className={`timekeeper-time-unit ${mode === "hour" ? "active" : ""}`}
+            onClick={(e) => { e.stopPropagation(); setMode("hour"); }}
+          >
+            {String(hour).padStart(2, "0")}
+          </span>
+          <span className="timekeeper-time-colon">:</span>
+          <span
+            className={`timekeeper-time-unit ${mode === "minute" ? "active" : ""}`}
+            onClick={(e) => { e.stopPropagation(); setMode("minute"); }}
+          >
+            {String(minute).padStart(2, "0")}
+          </span>
+        </div>
+      </div>
+
+      <div className="timekeeper-dial-wrapper">
+        <div className="timekeeper-dial" style={{ width: `${size}px`, height: `${size}px` }}>
+          <svg className="timekeeper-hand-svg" width={size} height={size}>
+            <line
+              x1={center}
+              y1={center}
+              x2={handX}
+              y2={handY}
+              stroke="#0ea5e9"
+              strokeWidth="2"
+            />
+            <circle cx={center} cy={center} r="4" fill="#0ea5e9" />
+            <circle cx={handX} cy={handY} r="14" fill="rgba(14, 165, 233, 0.3)" />
+            <circle cx={handX} cy={handY} r="4" fill="#0ea5e9" />
+          </svg>
+          {mode === "hour" ? renderHourNumbers() : renderMinuteNumbers()}
+        </div>
+      </div>
+
+      <div className="timekeeper-modal-actions">
+        <button type="button" className="timekeeper-modal-btn" onClick={(e) => { e.stopPropagation(); onCancel(); }}>
+          Cancel
+        </button>
+        <button type="button" className="timekeeper-modal-btn" onClick={handleSave}>
+          OK
+        </button>
+      </div>
+    </div>
+  );
+};
 import {
   getContractors,
   getBuildings,
@@ -395,6 +561,9 @@ const StatusBadge = ({ status }) => {
 
 const Reports = () => {
   const [filters, setFilters] = useState(INITIAL_FILTERS);
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
+  const [showNewEndPicker, setShowNewEndPicker] = useState(false);
   const [tableData, setTableData] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -755,7 +924,10 @@ const Reports = () => {
       };
 
       return headers.map(header => {
-        const val = String(rowData[header] ?? "").replace(/"/g, '""');
+        let val = String(rowData[header] ?? "").replace(/"/g, '""');
+        if (header === 'PermitNo') {
+          val = '\t' + val;
+        }
         return `"${val}"`;
       }).join(",");
     });
@@ -765,6 +937,8 @@ const Reports = () => {
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.setAttribute('download', `ACTIVITY_PERMITS_REPORT_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
     document.body.removeChild(link);
   };
 
@@ -859,18 +1033,37 @@ const Reports = () => {
       };
     });
 
-    let html = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
-    html += '<head><meta charset="UTF-8"></head><body><table border="1">';
-    html += '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
-    rowsData.forEach(row => {
-      html += '<tr>' + headers.map(h => `<td>${String(row[h]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>`).join('') + '</tr>';
-    });
-    html += '</table></body></html>';
+    const wsData = [
+      headers,
+      ...rowsData.map(row => headers.map(h => {
+        const val = row[h];
+        if (h === 'PermitNo') {
+          return String(val ?? "");
+        }
+        return val ?? "";
+      }))
+    ];
 
-    const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+    const permitNoColIndex = headers.indexOf('PermitNo');
+    if (permitNoColIndex !== -1) {
+      const colLetter = XLSX.utils.encode_col(permitNoColIndex);
+      for (let r = 1; r < wsData.length; r++) {
+        const cellRef = `${colLetter}${r + 1}`;
+        if (ws[cellRef]) {
+          ws[cellRef].t = 's';
+        }
+      }
+    }
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Permits");
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([wbout], { type: 'application/octet-stream' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.setAttribute('download', `ACTIVITY_PERMITS_REPORT_${new Date().toISOString().slice(0, 10)}.xls`);
+    link.setAttribute('download', `ACTIVITY_PERMITS_REPORT_${new Date().toISOString().slice(0, 10)}.xlsx`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1047,21 +1240,51 @@ const Reports = () => {
               <div className="df-field">
                 <label className="df-label">Start Time</label>
                 <input
-                  type="time"
+                  type="text"
+                  placeholder="00:00"
+                  readOnly
                   className="df-input"
                   value={filters.startTime}
-                  onChange={(e) => handleChange("startTime", e.target.value)}
+                  onClick={() => setShowStartPicker(true)}
+                  style={{ cursor: 'pointer' }}
                 />
+                {showStartPicker && (
+                  <div className="timekeeper-modal-overlay" onClick={() => setShowStartPicker(false)}>
+                    <AnalogTimePicker
+                      initialTime={filters.startTime || "12:00"}
+                      onSave={(newTime) => {
+                        handleChange("startTime", newTime);
+                        setShowStartPicker(false);
+                      }}
+                      onCancel={() => setShowStartPicker(false)}
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="df-field">
                 <label className="df-label">End Time</label>
                 <input
-                  type="time"
+                  type="text"
+                  placeholder="00:00"
+                  readOnly
                   className="df-input"
                   value={filters.endTime}
-                  onChange={(e) => handleChange("endTime", e.target.value)}
+                  onClick={() => setShowEndPicker(true)}
+                  style={{ cursor: 'pointer' }}
                 />
+                {showEndPicker && (
+                  <div className="timekeeper-modal-overlay" onClick={() => setShowEndPicker(false)}>
+                    <AnalogTimePicker
+                      initialTime={filters.endTime || "12:00"}
+                      onSave={(newTime) => {
+                        handleChange("endTime", newTime);
+                        setShowEndPicker(false);
+                      }}
+                      onCancel={() => setShowEndPicker(false)}
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="df-field" style={{ display: "flex", flexDirection: "column", justifyContent: "flex-end", height: "100%" }}>
@@ -1103,11 +1326,26 @@ const Reports = () => {
                 <div className="df-field">
                   <label className="df-label">New End Time</label>
                   <input
-                    type="time"
+                    type="text"
+                    placeholder="00:00"
+                    readOnly
                     className="df-input"
                     value={filters.newEndTime}
-                    onChange={(e) => handleChange("newEndTime", e.target.value)}
+                    onClick={() => setShowNewEndPicker(true)}
+                    style={{ cursor: 'pointer' }}
                   />
+                  {showNewEndPicker && (
+                    <div className="timekeeper-modal-overlay" onClick={() => setShowNewEndPicker(false)}>
+                      <AnalogTimePicker
+                        initialTime={filters.newEndTime || "12:00"}
+                        onSave={(newTime) => {
+                          handleChange("newEndTime", newTime);
+                          setShowNewEndPicker(false);
+                        }}
+                        onCancel={() => setShowNewEndPicker(false)}
+                      />
+                    </div>
+                  )}
                 </div>
               </>
             )}

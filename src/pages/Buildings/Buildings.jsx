@@ -19,6 +19,21 @@ const Buildings = () => {
   const [pageLimit] = useState(PAGE_LIMIT_DEFAULT);
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [userRole, setUserRole] = useState("");
+
+  useEffect(() => {
+    try {
+      const u = localStorage.getItem("user");
+      if (u) {
+        const parsed = JSON.parse(u);
+        setUserRole(parsed.role || parsed.userType || "");
+      } else {
+        setUserRole(localStorage.getItem("UserType") || "");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
   // ─── Pagination ───────────────────────────────────────────────────────────
   const totalPages = Math.ceil((totalCount || buildingList.length) / pageLimit);
@@ -92,6 +107,8 @@ const Buildings = () => {
     { header: "Actions", accessor: "actions" },
   ];
 
+  const isAuthorized = ["superadmin", "admin"].includes(String(userRole).toLowerCase());
+
   const tableData = buildingList.map((item, index) => ({
     ...item,
     serial: startIndex + index + 1,
@@ -104,6 +121,15 @@ const Buildings = () => {
         >
           <FaEdit />
         </button>
+        {isAuthorized && (
+          <button
+            className="dept-action-btn dept-action-btn--delete"
+            title="Delete"
+            onClick={() => handleDelete(item)}
+          >
+            <FaTrash />
+          </button>
+        )}
       </div>
     ),
   }));

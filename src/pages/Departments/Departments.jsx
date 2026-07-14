@@ -3,6 +3,7 @@ import { showSuccess, showError, showDeleteConfirm, showDeleteSuccess } from "..
 import Table from "../../components/common/Table/Table";
 import Modal from "../../components/common/Modal/Modal";
 import { FaEye, FaEdit, FaTrash, FaFilter, FaFileCsv, FaArrowDown, FaTimes } from "react-icons/fa";
+import * as XLSX from "xlsx";
 import DepartmentForm from "../../forms/Departmentform/Departmentform";
 import { addDepartments, getDepartments, updateDepartment, deleteDepartment } from "../.././services/authService";
 import "../styles/pages.css";
@@ -19,6 +20,21 @@ const Departments = () => {
   const [pageLimit] = useState(PAGE_LIMIT_DEFAULT);
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [userRole, setUserRole] = useState("");
+
+  useEffect(() => {
+    try {
+      const u = localStorage.getItem("user");
+      if (u) {
+        const parsed = JSON.parse(u);
+        setUserRole(parsed.role || parsed.userType || "");
+      } else {
+        setUserRole(localStorage.getItem("UserType") || "");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
   // ─── Pagination ───────────────────────────────────────────────────────────
   const totalPages = Math.ceil((totalCount || departmentList.length) / pageLimit);
@@ -128,20 +144,21 @@ const Departments = () => {
         return;
       }
       const headers = ["S.No", "Department Name"];
-      let html = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
-      html += '<head><meta charset="UTF-8"></head><body><table border="1">';
-      html += '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
-      rows.forEach((item, index) => {
-        html += `<tr>
-          <td>${index + 1}</td>
-          <td>${String(item.departmentName || "").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
-        </tr>`;
-      });
-      html += '</table></body></html>';
-      const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+      const wsData = [
+        headers,
+        ...rows.map((item, index) => [
+          index + 1,
+          item.departmentName || ""
+        ])
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Departments");
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], { type: 'application/octet-stream' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.setAttribute('download', `Departments_Report_${new Date().toISOString().slice(0, 10)}.xls`);
+      link.setAttribute('download', `Departments_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -157,6 +174,8 @@ const Departments = () => {
     { header: "Name", accessor: "departmentName" },
     { header: "Actions", accessor: "actions" },
   ];
+
+  const isAuthorized = ["superadmin", "admin"].includes(String(userRole).toLowerCase());
 
   const tableData = departmentList.map((item, index) => ({
     ...item,
@@ -178,13 +197,15 @@ const Departments = () => {
         >
           <FaEdit />
         </button>
-        {/* <button
-          className="dept-action-btn dept-action-btn--delete"
-          title="Delete"
-          onClick={() => handleDelete(item)}
-        >
-          <FaTrash />
-        </button> */}
+        {isAuthorized && (
+          <button
+            className="dept-action-btn dept-action-btn--delete"
+            title="Delete"
+            onClick={() => handleDelete(item)}
+          >
+            <FaTrash />
+          </button>
+        )}
       </div>
     ),
   }));

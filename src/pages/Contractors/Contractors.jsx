@@ -3,6 +3,7 @@ import { showSuccess, showError, showDeleteConfirm, showDeleteSuccess } from "..
 import Table from "../../components/common/Table/Table";
 import Modal from "../../components/common/Modal/Modal";
 import { FaEye, FaEdit, FaTrash, FaFilter, FaFileCsv, FaArrowDown, FaTimes } from "react-icons/fa";
+import * as XLSX from "xlsx";
 import ContractorForm from "../../forms/Contractorsform/Contractorform";
 import { getContractors, addContractor, updateContractor, deleteContractor, getDepartments } from "../../services/authService";
 import { API_BASE_URL } from "../../services/api";
@@ -15,7 +16,13 @@ const LogoCell = ({ logoUrl, name, size = 45 }) => {
 
   const getInitials = (name) => {
     if (!name) return "??";
-    const words = name.trim().split(/\s+/);
+    // Remove HTML entities like &amp; or # amp;
+    let cleanName = name.replace(/&\w+;/g, "").replace(/#\s*\w+;/g, "");
+    // Remove other non-alphanumeric characters, keeping spaces
+    cleanName = cleanName.replace(/[^a-zA-Z0-9\s]/g, "").trim();
+    
+    const words = cleanName.split(/\s+/).filter(w => w.length > 0);
+    if (words.length === 0) return "??";
     if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
     return (words[0][0] + (words[1] ? words[1][0] : "")).toUpperCase();
   };
@@ -55,7 +62,7 @@ const LogoCell = ({ logoUrl, name, size = 45 }) => {
   );
 };
 
-const ActionButtons = ({ onView, onEdit, onDelete }) => (
+const ActionButtons = ({ onView, onEdit, onDelete, showDelete }) => (
   <div className="dept-action-btns">
     {/* <button className="dept-action-btn dept-action-btn--view" title="View" onClick={onView}>
       <FaEye />
@@ -63,9 +70,11 @@ const ActionButtons = ({ onView, onEdit, onDelete }) => (
     <button className="dept-action-btn dept-action-btn--edit" title="Edit" onClick={onEdit}>
       <FaEdit />
     </button>
-    {/* <button className="dept-action-btn dept-action-btn--delete" title="Delete" onClick={onDelete}>
-      <FaTrash />
-    </button> */}
+    {showDelete && (
+      <button className="dept-action-btn dept-action-btn--delete" title="Delete" onClick={onDelete}>
+        <FaTrash />
+      </button>
+    )}
   </div>
 );
 
@@ -86,6 +95,21 @@ const Contractors = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [departments, setDepartments] = useState([]);
+  const [userRole, setUserRole] = useState("");
+
+  useEffect(() => {
+    try {
+      const u = localStorage.getItem("user");
+      if (u) {
+        const parsed = JSON.parse(u);
+        setUserRole(parsed.role || parsed.userType || "");
+      } else {
+        setUserRole(localStorage.getItem("UserType") || "");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
   // Fetch subcontractors and departments
   const fetchContractors = useCallback(async (page = 1) => {
@@ -216,23 +240,26 @@ const Contractors = () => {
         return;
       }
       const headers = ["S.No", "Contractor Name", "Department"];
-      let html = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
-      html += '<head><meta charset="UTF-8"></head><body><table border="1">';
-      html += '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
-      rows.forEach((item, index) => {
-        const matchedDept = departments.find(d => String(d.id) === String(item.departId));
-        const deptName = matchedDept ? matchedDept.departmentName : "—";
-        html += `<tr>
-          <td>${index + 1}</td>
-          <td>${String(item.subContractorName || "").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
-          <td>${String(deptName || "").replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
-        </tr>`;
-      });
-      html += '</table></body></html>';
-      const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+      const wsData = [
+        headers,
+        ...rows.map((item, index) => {
+          const matchedDept = departments.find(d => String(d.id) === String(item.departId));
+          const deptName = matchedDept ? matchedDept.departmentName : "—";
+          return [
+            index + 1,
+            item.subContractorName || "",
+            deptName || ""
+          ];
+        })
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Contractors");
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], { type: 'application/octet-stream' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.setAttribute('download', `Contractors_Report_${new Date().toISOString().slice(0, 10)}.xls`);
+      link.setAttribute('download', `Contractors_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -257,6 +284,7 @@ const Contractors = () => {
     const matchedDept = departments.find(d => String(d.id) === String(item.departId));
     const deptName = matchedDept ? matchedDept.departmentName : "—";
     const logoUrl = getLogoUrl(item.logo);
+    const isAuthorized = ["superadmin", "admin"].includes(String(userRole).toLowerCase());
     return {
       ...item,
       serial: startIndex + index + 1,
@@ -268,6 +296,7 @@ const Contractors = () => {
           onView={() => handleView(item, index)}
           onEdit={() => handleEdit(item, index)}
           onDelete={() => handleDelete(item)}
+          showDelete={isAuthorized}
         />
       ),
     };
