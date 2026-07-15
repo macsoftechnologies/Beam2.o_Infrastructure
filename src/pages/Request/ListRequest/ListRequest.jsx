@@ -293,7 +293,7 @@ const HRA_LIST = [
   { key: "Hot_work", label: "Hot Work", icon: "HotWorks.png", image: LOGO_MAP["HotWorks.png"] },
   { key: "working_on_electrical_system", label: "Electrical Systems", icon: "ElectricalSystems.png", image: LOGO_MAP["ElectricalSystems.png"] },
   { key: "working_hazardious_substen", label: "Hazardous Substances", icon: "substanceChemical.png", image: LOGO_MAP["substanceChemical.png"] },
-  { key: "pressure_tesing_of_equipment", label: "Testing Equipment", icon: "testingequipment.png", image: LOGO_MAP["testingequipment.png"] },
+  { key: "pressure_testing_of_equipment", label: "Testing Equipment", icon: "testingequipment.png", image: LOGO_MAP["testingequipment.png"] },
   { key: "working_at_height", label: "Working at Height", icon: "WorkingAtHight.png", image: LOGO_MAP["WorkingAtHight.png"] },
   { key: "working_confined_spaces", label: "Confined Space", icon: "ConfinedSpace.png", image: LOGO_MAP["ConfinedSpace.png"] },
   { key: "work_in_atex_area", label: "ATEX Area", icon: "ATEXarea.png", image: LOGO_MAP["ATEXarea.png"] || null },
@@ -1494,7 +1494,7 @@ const ListRequest = () => {
       // New End Time value
       const newEndTimeCell = row.new_end_time ? row.new_end_time.slice(0, 5) : "—";
 
-      // HRA icons logic
+      // HRA icons logic — only show logos for active HRAs (no black-and-white for inactive)
       const activeHras = HRA_LIST.filter(hra => row[hra.key] === 1 || row[hra.key] === "1" || row[hra.key] === true);
       const hraCell = (
         <div className="hra-icons-group">
