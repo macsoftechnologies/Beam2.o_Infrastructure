@@ -590,65 +590,270 @@
 .nd-item {
   display: flex;
   flex-direction: column;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border-color);
+  gap: 4px;
+  margin: 6px 10px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  border-left: 3px solid transparent;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: all 0.2s ease;
   position: relative;
   text-align: left;
-  background: transparent;
-  border-left: none;
-  border-right: none;
-  border-top: none;
-  width: 100%;
+  background: var(--bg-dark);
+  width: calc(100% - 20px);
   font-family: var(--font-body);
+  box-sizing: border-box;
 }
 
 .nd-item:hover {
   background: var(--bg-card-hover);
+  border-color: var(--border-light);
+  border-left-color: var(--text-muted);
+  transform: translateX(2px);
 }
 
 .nd-item.unread {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(59, 130, 246, 0.08);
+  border-color: rgba(59, 130, 246, 0.25);
+  border-left-color: var(--accent-primary);
 }
 
 .nd-item-dot {
   position: absolute;
-  top: 14px;
+  top: 13px;
   right: 14px;
   width: 8px;
   height: 8px;
-  background: var(--color-risk);
+  background: var(--accent-primary);
   border-radius: 50%;
+  box-shadow: 0 0 8px var(--accent-primary);
 }
 
+/* ── 3-LINE TEXT HIERARCHY ── */
+/* Line 1: Title — High-contrast & crisp */
 .nd-item-title {
-  font-size: 14.5px;
+  font-size: 13.5px;
   font-weight: 600;
   color: var(--text-main);
-  margin-bottom: 5px;
-  padding-right: 15px;
+  padding-right: 20px;
+  line-height: 1.35;
 }
 
+/* Line 2: Message — Clear readable neutral */
 .nd-item-msg {
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--text-muted);
   line-height: 1.45;
-  margin-bottom: 6px;
 }
 
+/* Unread overrides for active emphasis */
 .nd-item.unread .nd-item-title {
   font-weight: 700;
+  color: var(--text-main);
 }
 
 .nd-item.unread .nd-item-msg {
   color: var(--text-main);
+  opacity: 0.9;
 }
 
+/* Line 3: Timestamp — Distinct secondary accent */
 .nd-item-time {
   font-size: 11px;
+  font-weight: 500;
+  color: var(--accent-primary);
+  opacity: 0.85;
+  letter-spacing: 0.3px;
+  margin-top: 2px;
+}
+
+.nd-item:not(.unread) .nd-item-time {
   color: var(--text-muted);
-  opacity: 0.8;
+  opacity: 0.7;
+}
+
+/* ── REFERENCE BADGE & CARD PALETTES ── */
+.nd-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3px;
+  width: 100%;
+}
+
+.nd-status-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 2px 7px;
+  border-radius: 5px;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  display: inline-block;
+  line-height: 1.3;
+}
+
+/* 1. DRAFT (Slate Theme) */
+.nd-item.notif-type-draft {
+  border-left-color: #64748b;
+}
+.nd-item.notif-type-draft.unread {
+  background: rgba(100, 116, 139, 0.12);
+  border-color: rgba(100, 116, 139, 0.35);
+}
+.nd-item.notif-type-draft .nd-status-badge {
+  background: rgba(100, 116, 139, 0.18);
+  border-color: #64748b;
+  color: #94a3b8;
+}
+.nd-item.notif-type-draft .nd-item-dot {
+  background: #64748b;
+  box-shadow: 0 0 8px #64748b;
+}
+
+/* 2. HOLD (Purple Theme) */
+.nd-item.notif-type-hold {
+  border-left-color: #8b5cf6;
+}
+.nd-item.notif-type-hold.unread {
+  background: rgba(139, 92, 246, 0.12);
+  border-color: rgba(139, 92, 246, 0.35);
+}
+.nd-item.notif-type-hold .nd-status-badge {
+  background: rgba(139, 92, 246, 0.18);
+  border-color: #8b5cf6;
+  color: #8b5cf6;
+}
+.nd-item.notif-type-hold .nd-item-dot {
+  background: #8b5cf6;
+  box-shadow: 0 0 8px #8b5cf6;
+}
+
+/* 3. PRE-APPROVED (Teal Theme) */
+.nd-item.notif-type-preapproved {
+  border-left-color: #0d9488;
+}
+.nd-item.notif-type-preapproved.unread {
+  background: rgba(13, 148, 136, 0.12);
+  border-color: rgba(13, 148, 136, 0.35);
+}
+.nd-item.notif-type-preapproved .nd-status-badge {
+  background: rgba(13, 148, 136, 0.18);
+  border-color: #0d9488;
+  color: #2dd4bf;
+}
+.nd-item.notif-type-preapproved .nd-item-dot {
+  background: #0d9488;
+  box-shadow: 0 0 8px #0d9488;
+}
+
+/* 4. APPROVED (Green Theme) */
+.nd-item.notif-type-approved {
+  border-left-color: #10b981;
+}
+.nd-item.notif-type-approved.unread {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+.nd-item.notif-type-approved .nd-status-badge {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: #10b981;
+  color: #10b981;
+}
+.nd-item.notif-type-approved .nd-item-dot {
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+/* 5. OPENED (Blue Theme) */
+.nd-item.notif-type-opened {
+  border-left-color: #3b82f6;
+}
+.nd-item.notif-type-opened.unread {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.35);
+}
+.nd-item.notif-type-opened .nd-status-badge {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+.nd-item.notif-type-opened .nd-item-dot {
+  background: #3b82f6;
+  box-shadow: 0 0 8px #3b82f6;
+}
+
+/* 6. CLOSED (Cyan Theme) */
+.nd-item.notif-type-closed {
+  border-left-color: #06b6d4;
+}
+.nd-item.notif-type-closed.unread {
+  background: rgba(6, 182, 212, 0.12);
+  border-color: rgba(6, 182, 212, 0.35);
+}
+.nd-item.notif-type-closed .nd-status-badge {
+  background: rgba(6, 182, 212, 0.18);
+  border-color: #06b6d4;
+  color: #06b6d4;
+}
+.nd-item.notif-type-closed .nd-item-dot {
+  background: #06b6d4;
+  box-shadow: 0 0 8px #06b6d4;
+}
+
+/* 7. CANCELLED (Rose Theme) */
+.nd-item.notif-type-cancelled {
+  border-left-color: #f43f5e;
+}
+.nd-item.notif-type-cancelled.unread {
+  background: rgba(244, 63, 94, 0.12);
+  border-color: rgba(244, 63, 94, 0.35);
+}
+.nd-item.notif-type-cancelled .nd-status-badge {
+  background: rgba(244, 63, 94, 0.18);
+  border-color: #f43f5e;
+  color: #f43f5e;
+}
+.nd-item.notif-type-cancelled .nd-item-dot {
+  background: #f43f5e;
+  box-shadow: 0 0 8px #f43f5e;
+}
+
+/* 8. REJECTED (Red Theme) */
+.nd-item.notif-type-rejected {
+  border-left-color: #ef4444;
+}
+.nd-item.notif-type-rejected.unread {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+.nd-item.notif-type-rejected .nd-status-badge {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: #ef4444;
+  color: #ef4444;
+}
+.nd-item.notif-type-rejected .nd-item-dot {
+  background: #ef4444;
+  box-shadow: 0 0 8px #ef4444;
+}
+
+/* 9. AUTO-CANCELLED (Amber Theme) */
+.nd-item.notif-type-autocancelled {
+  border-left-color: #f59e0b;
+}
+.nd-item.notif-type-autocancelled.unread {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+.nd-item.notif-type-autocancelled .nd-status-badge {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+.nd-item.notif-type-autocancelled .nd-item-dot {
+  background: #f59e0b;
+  box-shadow: 0 0 8px #f59e0b;
 }
 
 .nd-empty {

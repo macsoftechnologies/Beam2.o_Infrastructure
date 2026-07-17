@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { Stage, Layer, Image as KonvaImage, Line, Text, Group } from "react-konva";
+import { Stage, Layer, Image as KonvaImage, Line, Group } from "react-konva";
 import useImage from "use-image";
 import { renderPdf } from "../utils/pdfRenderer";
 
@@ -102,9 +102,6 @@ export default function DashboardPolygonViewer({
                   p.y * scaleY,
                 ]);
 
-                const cx = (room.points.reduce((s, p) => s + p.x, 0) / room.points.length) * scaleX;
-                const cy = (room.points.reduce((s, p) => s + p.y, 0) / room.points.length) * scaleY;
-
                 return (
                   <Group key={room.id || room.name}>
                     <Line
@@ -122,17 +119,6 @@ export default function DashboardPolygonViewer({
                         setHoveredRoomName(null);
                       }}
                       hitStrokeWidth={10}
-                    />
-                    <Text
-                      x={cx - 30}
-                      y={cy - 10}
-                      text={room.name}
-                      fontSize={11}
-                      fontStyle="bold"
-                      fill="#ffffff"
-                      shadowColor="black"
-                      shadowBlur={4}
-                      listening={false}
                     />
                   </Group>
                 );

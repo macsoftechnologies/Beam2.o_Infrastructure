@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Stage, Layer, Image as KonvaImage, Line, Text } from "react-konva";
+import { Stage, Layer, Image as KonvaImage, Line } from "react-konva";
 import useImage from "use-image";
 import { renderPdf } from "../utils/pdfRenderer"; // same util you already use
 
@@ -64,55 +64,34 @@ export default function ZonePolygonViewer({
                             p.y * scaleY,
                         ]);
 
-                        // Centroid for the label
-                        const cx =
-                            (zone.points.reduce((s, p) => s + p.x, 0) / zone.points.length) * scaleX;
-                        const cy =
-                            (zone.points.reduce((s, p) => s + p.y, 0) / zone.points.length) * scaleY;
-
                         return (
-                            <>
-                                <Line
-                                    key={zone.id}
-                                    points={scaledPoints}
-                                    closed
-                                    fill={
-                                        isSelected
-                                            ? "rgba(34, 197, 94, 0.35)"   // green  – selected
-                                            : isHovered
-                                                ? "rgba(255, 255,   0, 0.25)" // yellow – hover
-                                                : "rgba(37,  99, 235, 0.15)"  // blue   – default
-                                    }
-                                    stroke={
-                                        isSelected ? "#22c55e" : isHovered ? "#facc15" : "#3b82f6"
-                                    }
-                                    strokeWidth={isHovered || isSelected ? 3 : 2}
-                                    onClick={() => onZoneClick && onZoneClick(zone)}
-                                    onTap={() => onZoneClick && onZoneClick(zone)}
-                                    onMouseEnter={() => {
-                                        document.body.style.cursor = "pointer";
-                                        setHoveredZoneId(zone.id);
-                                    }}
-                                    onMouseLeave={() => {
-                                        document.body.style.cursor = "default";
-                                        setHoveredZoneId(null);
-                                    }}
-                                    hitStrokeWidth={15}
-                                />
-                                {/* Zone name label rendered at polygon centroid */}
-                                <Text
-                                    key={`${zone.id}-label`}
-                                    x={cx - 30}
-                                    y={cy - 10}
-                                    text={`Zone ${zone.name}`}
-                                    fontSize={13}
-                                    fontStyle="bold"
-                                    fill="#ffffff"
-                                    shadowColor="black"
-                                    shadowBlur={4}
-                                    listening={false}
-                                />
-                            </>
+                            <Line
+                                key={zone.id || index}
+                                points={scaledPoints}
+                                closed
+                                fill={
+                                    isSelected
+                                        ? "rgba(34, 197, 94, 0.35)"   // green  – selected
+                                        : isHovered
+                                            ? "rgba(255, 255,   0, 0.25)" // yellow – hover
+                                            : "rgba(37,  99, 235, 0.15)"  // blue   – default
+                                }
+                                stroke={
+                                    isSelected ? "#22c55e" : isHovered ? "#facc15" : "#3b82f6"
+                                }
+                                strokeWidth={isHovered || isSelected ? 3 : 2}
+                                onClick={() => onZoneClick && onZoneClick(zone)}
+                                onTap={() => onZoneClick && onZoneClick(zone)}
+                                onMouseEnter={() => {
+                                    document.body.style.cursor = "pointer";
+                                    setHoveredZoneId(zone.id);
+                                }}
+                                onMouseLeave={() => {
+                                    document.body.style.cursor = "default";
+                                    setHoveredZoneId(null);
+                                }}
+                                hitStrokeWidth={15}
+                            />
                         );
                     })}
                 </Layer>

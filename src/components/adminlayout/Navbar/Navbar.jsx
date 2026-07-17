@@ -31,6 +31,37 @@ const formatCopenhagenTime = (dateStr) => {
   return formatToDenmarkDateTime(localStr);
 };
 
+const getNotificationStyleInfo = (title = "", message = "") => {
+  const t = (title + " " + message).toLowerCase();
+  
+  if (t.includes("auto-cancelled") || t.includes("auto cancelled")) {
+    return { typeClass: "notif-type-autocancelled", badgeText: "AUTO-CANCELLED" };
+  }
+  if (t.includes("pre-approved") || t.includes("pre approved") || t.includes("preok") || t.includes("pre-ok")) {
+    return { typeClass: "notif-type-preapproved", badgeText: "PRE-APPROVED" };
+  }
+  if (t.includes("approved")) {
+    return { typeClass: "notif-type-approved", badgeText: "APPROVED" };
+  }
+  if (t.includes("reject") || t.includes("denied")) {
+    return { typeClass: "notif-type-rejected", badgeText: "REJECTED" };
+  }
+  if (t.includes("cancelled") || t.includes("cancel")) {
+    return { typeClass: "notif-type-cancelled", badgeText: "CANCELLED" };
+  }
+  if (t.includes("closed") || t.includes("close")) {
+    return { typeClass: "notif-type-closed", badgeText: "CLOSED" };
+  }
+  if (t.includes("hold")) {
+    return { typeClass: "notif-type-hold", badgeText: "HOLD" };
+  }
+  if (t.includes("draft")) {
+    return { typeClass: "notif-type-draft", badgeText: "DRAFT" };
+  }
+  // Default to Opened
+  return { typeClass: "notif-type-opened", badgeText: "OPENED" };
+};
+
 /* ── Live Clock ── */
 function LiveClock() {
   const [time, setTime] = useState(new Date())
@@ -362,18 +393,24 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
                     {isLoading ? "Loading..." : "No notifications"}
                   </div>
                 ) : (
-                  notifications.map((n) => (
-                    <button
-                      key={n.id}
-                      className={`nd-item ${n.isRead === 0 ? "unread" : ""}`}
-                      onClick={() => handleNotificationClick(n)}
-                    >
-                      {n.isRead === 0 && <span className="nd-item-dot" />}
-                      <span className="nd-item-title">{n.title}</span>
-                      <span className="nd-item-msg">{n.message}</span>
-                      <span className="nd-item-time">{formatCopenhagenTime(n.createdAt)}</span>
-                    </button>
-                  ))
+                  notifications.map((n) => {
+                    const styleInfo = getNotificationStyleInfo(n.title, n.message);
+                    return (
+                      <button
+                        key={n.id}
+                        className={`nd-item ${n.isRead === 0 ? "unread" : ""} ${styleInfo.typeClass}`}
+                        onClick={() => handleNotificationClick(n)}
+                      >
+                        {n.isRead === 0 && <span className="nd-item-dot" />}
+                        <div className="nd-item-header">
+                          <span className="nd-status-badge">{styleInfo.badgeText}</span>
+                          <span className="nd-item-time">{formatCopenhagenTime(n.createdAt)}</span>
+                        </div>
+                        <span className="nd-item-title">{n.title}</span>
+                        <span className="nd-item-msg">{n.message}</span>
+                      </button>
+                    );
+                  })
                 )}
               </div>
               {hasMore && (
