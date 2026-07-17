@@ -623,30 +623,38 @@
 }
 
 .nd-item-title {
-  font-size: 13px;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--text-main);
-  margin-bottom: 4px;
+  margin-bottom: 5px;
   padding-right: 15px;
 }
 
 .nd-item-msg {
-  font-size: 12px;
-  color: var(--text-dark);
-  line-height: 1.4;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.45;
   margin-bottom: 6px;
 }
 
+.nd-item.unread .nd-item-title {
+  font-weight: 700;
+}
+
+.nd-item.unread .nd-item-msg {
+  color: var(--text-main);
+}
+
 .nd-item-time {
-  font-size: 10px;
-  color: var(--text-dark);
-  opacity: 0.7;
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 0.8;
 }
 
 .nd-empty {
   padding: 24px;
   text-align: center;
-  color: var(--text-dark);
+  color: var(--text-muted);
   font-size: 13px;
 }
 
@@ -663,7 +671,7 @@
   font-size: 12px;
   background: none;
   border: none;
-  color: var(--text-dark);
+  color: var(--text-muted);
   cursor: pointer;
   border-radius: 4px;
 }
@@ -719,7 +727,7 @@
 .ns-close-btn {
   background: none;
   border: none;
-  color: var(--text-dark);
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 18px;
   display: flex;
@@ -740,7 +748,7 @@
 
 .ns-subtitle {
   font-size: 13px;
-  color: var(--text-dark);
+  color: var(--text-muted);
   margin-bottom: 20px;
 }
 

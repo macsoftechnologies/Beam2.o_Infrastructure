@@ -11,6 +11,7 @@ import {
   updateNotificationSettings,
 } from "../../../services/notificationService";
 import Swal from "sweetalert2";
+import { formatToDenmarkDateTime, getDenmarkTimeISOString } from "../../../utils/dateUtils";
 
 const STATUS_OPTIONS = [
   { value: 'Draft', label: 'Draft' },
@@ -21,7 +22,14 @@ const STATUS_OPTIONS = [
   { value: 'Closed', label: 'Closed' },
   { value: 'Cancelled', label: 'Cancelled' },
   { value: 'Rejected', label: 'Rejected' },
+  { value: 'Auto-Cancelled', label: 'Auto-Cancelled' },
 ];
+
+const formatCopenhagenTime = (dateStr) => {
+  if (!dateStr) return '';
+  const localStr = getDenmarkTimeISOString(new Date(dateStr));
+  return formatToDenmarkDateTime(localStr);
+};
 
 /* ── Live Clock ── */
 function LiveClock() {
@@ -160,7 +168,7 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
 
   useEffect(() => {
     fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000);
+    const interval = setInterval(fetchUnreadCount, 4000);
     return () => clearInterval(interval);
   }, []);
 
@@ -363,7 +371,7 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
                       {n.isRead === 0 && <span className="nd-item-dot" />}
                       <span className="nd-item-title">{n.title}</span>
                       <span className="nd-item-msg">{n.message}</span>
-                      <span className="nd-item-time">{new Date(n.createdAt).toLocaleDateString()} {new Date(n.createdAt).toLocaleTimeString()}</span>
+                      <span className="nd-item-time">{formatCopenhagenTime(n.createdAt)}</span>
                     </button>
                   ))
                 )}
