@@ -175,7 +175,8 @@ import {
   getFloors,
   getZones,
   getRooms,
-  getUser
+  getUser,
+  getPrecautions
 } from "../../../services/authService";
 import {
   searchRequests,
@@ -639,6 +640,7 @@ const ListRequest = () => {
     buildings: [],
     levels: [],
     areas: [],
+    zones: [],
     hras: [],
     permitType: "",
     permitUnder: "",
@@ -677,7 +679,10 @@ const ListRequest = () => {
 
   // Bulk operation form inputs
   const [bulkTime, setBulkTime] = useState({ startTime: "", endTime: "", nightShift: false, newEndTime: "" });
-  const [bulkSafety, setBulkSafety] = useState("");
+  const [bulkSafety, setBulkSafety] = useState([]);
+  const [precautionsList, setPrecautionsList] = useState([]);
+  const [isPrecautionsDropdownOpen, setIsPrecautionsDropdownOpen] = useState(false);
+  const precautionsDropdownRef = useRef(null);
   const [bulkNote, setBulkNote] = useState("");
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
@@ -698,13 +703,14 @@ const ListRequest = () => {
   useEffect(() => {
     const fetchSelectors = async () => {
       try {
-        const [subRes, actRes, buildRes, floorRes, zoneRes, roomRes] = await Promise.all([
+        const [subRes, actRes, buildRes, floorRes, zoneRes, roomRes, precautionsRes] = await Promise.all([
           getContractors(1, 1000),
           getActivities(1, 1000),
           getBuildings(1, 1000),
           getFloors(1, 1000),
           getZones(1, 10000),
-          getRooms(1, 10000)
+          getRooms(1, 10000),
+          getPrecautions(1, 1000)
         ]);
         setContractors(subRes?.data?.rows ?? subRes?.data ?? subRes ?? []);
         setActivitiesList(actRes?.data?.rows ?? actRes?.data ?? actRes ?? []);
@@ -712,11 +718,25 @@ const ListRequest = () => {
         setFloorsList(floorRes?.data ?? []);
         setZonesList(zoneRes?.data ?? []);
         setRoomsList(roomRes?.data?.rows ?? roomRes?.data ?? roomRes ?? []);
+        setPrecautionsList(precautionsRes?.data?.rows ?? precautionsRes?.data ?? precautionsRes ?? []);
       } catch (err) {
         console.error("Failed to load selectors lists", err);
       }
     };
     fetchSelectors();
+  }, []);
+
+  // Handle click outside for precautions dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (precautionsDropdownRef.current && !precautionsDropdownRef.current.contains(event.target)) {
+        setIsPrecautionsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   // Filter levels based on selected buildings
@@ -787,6 +807,9 @@ const ListRequest = () => {
         Building_Id: searchFilters.buildings.length > 0 ? Number(searchFilters.buildings[0]) : null,
         Room_Type: searchFilters.levels.length > 0 ? searchFilters.levels.join(",") : null,
         Room_Nos: searchFilters.areas.length > 0 ? searchFilters.areas.join(",") : null,
+        zoneIds: zonesList.filter(z => searchFilters.zones && searchFilters.zones.includes(z.zone)).map(z => z.id).length > 0
+          ? zonesList.filter(z => searchFilters.zones && searchFilters.zones.includes(z.zone)).map(z => z.id)
+          : null,
         permit_type: searchFilters.permitType || "",
         permit_under: searchFilters.permitUnder || "",
         night_shift: searchFilters.nightShift || "",
@@ -859,6 +882,7 @@ const ListRequest = () => {
       buildings: [],
       levels: [],
       areas: [],
+      zones: [],
       hras: [],
       permitType: "",
       permitUnder: "",
@@ -1163,14 +1187,35 @@ const ListRequest = () => {
       showSuccess(`Status changed to ${nextStatus} successfully`);
       setActiveModal(null);
       fetchRequests(currentPage);
-    } catch {
-      showError("Status update failed");
+    } catch (err) {
+      const backendMsg = err?.response?.data?.message;
+      const errMsg = Array.isArray(backendMsg)
+        ? backendMsg.join(", ")
+        : (typeof backendMsg === "string" ? backendMsg : null) || err?.message || "Status update failed";
+      showError(errMsg);
     }
   };
 
   // Bulk Actions
+  const validateBulkAction = () => {
+    if (selectedIds.length === 0) return false;
+    const restrictedStatuses = ["cancelled", "auto-cancelled", "auto cancelled", "closed", "rejected"];
+    const hasRestricted = requests
+      .filter((r) => selectedIds.includes(r.id))
+      .some((r) => {
+        const status = (r.Request_status || r.requestStatus || "").toLowerCase();
+        return restrictedStatuses.includes(status);
+      });
+
+    if (hasRestricted) {
+      showError("Bulk operations are not allowed on Cancelled, Auto-Cancelled, Closed, or Rejected permits.");
+      return false;
+    }
+    return true;
+  };
+
   const handleBulkStatusChange = (status) => {
-    if (selectedIds.length === 0) return;
+    if (!validateBulkAction()) return;
     const targetRequests = requests.filter(r => selectedIds.includes(r.id));
 
     setModalTarget(targetRequests);
@@ -1223,13 +1268,18 @@ const ListRequest = () => {
       }
       setActiveModal(null);
       fetchRequests(currentPage);
-    } catch {
-      showError("Bulk status update failed");
+    } catch (err) {
+      const backendMsg = err?.response?.data?.message;
+      const errMsg = Array.isArray(backendMsg)
+        ? backendMsg.join(", ")
+        : (typeof backendMsg === "string" ? backendMsg : null) || err?.message || "Bulk status update failed";
+      showError(errMsg);
     }
   };
 
   // Bulk Edit Dialogs
   const handleBulkTimeEdit = () => {
+    if (!validateBulkAction()) return;
     setBulkTime({ startTime: "", endTime: "", nightShift: false, newEndTime: "" });
     setActiveModal("time");
   };
@@ -1310,7 +1360,9 @@ const ListRequest = () => {
   };
 
   const handleBulkSafetyEdit = () => {
-    setBulkSafety("");
+    if (!validateBulkAction()) return;
+    setBulkSafety([]);
+    setIsPrecautionsDropdownOpen(false);
     setActiveModal("safety");
   };
 
@@ -1318,7 +1370,7 @@ const ListRequest = () => {
     e.preventDefault();
     const payload = {
       id: selectedIds.join(","),
-      safety: bulkSafety.trim(),
+      safety: bulkSafety.join(","),
       logs: []
     };
     try {
@@ -1326,12 +1378,17 @@ const ListRequest = () => {
       showSuccess("Selected permits safety instructions updated successfully");
       setActiveModal(null);
       fetchRequests(currentPage);
-    } catch {
-      showError("Bulk safety update failed");
+    } catch (err) {
+      const backendMsg = err?.response?.data?.message;
+      const errMsg = Array.isArray(backendMsg)
+        ? backendMsg.join(", ")
+        : (typeof backendMsg === "string" ? backendMsg : null) || err?.message || "Bulk safety update failed";
+      showError(errMsg);
     }
   };
 
   const handleBulkNotesEdit = () => {
+    if (!validateBulkAction()) return;
     setBulkNote("");
     setActiveModal("notes");
   };
@@ -1895,6 +1952,16 @@ const ListRequest = () => {
                   <option value="0">No</option>
                 </select>
               </div>
+
+              <div className="df-field">
+                <label className="df-label">Zones</label>
+                <MultiSelectDropdown
+                  placeholder="Select Zones"
+                  options={zonesList.map(z => z.zone)}
+                  selectedValues={searchFilters.zones || []}
+                  onChange={(vals) => setSearchFilters(prev => ({ ...prev, zones: vals }))}
+                />
+              </div>
             </div>
 
             {/* Action Buttons */}
@@ -2098,7 +2165,10 @@ const ListRequest = () => {
                     onChange={(e) => setInitials(e.target.value)}
                   />
                   <span style={{ color: "#9ca3af", fontSize: "12px", marginTop: "4px", display: "block" }}>
-                    Signing as: <strong style={{ color: "#00e5a0" }}>{getSigningRoleDescription(modalTarget, modalStatus)}</strong> ({currentUser?.displayName})
+                    Supervisor: <strong style={{ color: "#00e5a0" }}>{modalTarget?.Foreman || "N/A"}</strong>
+                    {modalTarget?.Foreman_Phone_Number && (
+                      <> | Phone: <strong style={{ color: "#00e5a0" }}>{modalTarget.Foreman_Phone_Number}</strong></>
+                    )}
                   </span>
                 </div>
               )}
@@ -2295,8 +2365,9 @@ const ListRequest = () => {
                       value={hHeatSource}
                       onChange={(e) => setHHeatSource(Number(e.target.value))}
                     >
-                      <option value={0}>No</option>
                       <option value={1}>Yes</option>
+                      <option value={0}>No</option>
+                      <option value={2}>N/A</option>
                     </select>
                   </div>
 
@@ -2307,8 +2378,9 @@ const ListRequest = () => {
                       value={hWorkplaceCheck}
                       onChange={(e) => setHWorkplaceCheck(Number(e.target.value))}
                     >
-                      <option value={0}>No</option>
                       <option value={1}>Yes</option>
+                      <option value={0}>No</option>
+                      <option value={2}>N/A</option>
                     </select>
                   </div>
 
@@ -2319,8 +2391,9 @@ const ListRequest = () => {
                       value={hFireDetectors}
                       onChange={(e) => setHFireDetectors(Number(e.target.value))}
                     >
-                      <option value={0}>No</option>
                       <option value={1}>Yes</option>
+                      <option value={0}>No</option>
+                      <option value={2}>N/A</option>
                     </select>
                   </div>
 
@@ -2581,16 +2654,53 @@ const ListRequest = () => {
         size="md"
       >
         <form onSubmit={handleBulkSafetySubmit} className="df-form">
-          <div className="df-field">
-            <label className="df-label">Special Safety Precautions / Conditions</label>
-            <textarea
-              required
-              rows={4}
-              placeholder="Enter special instructions or safety details..."
-              className="df-textarea"
-              value={bulkSafety}
-              onChange={(e) => setBulkSafety(e.target.value)}
-            />
+          <div ref={precautionsDropdownRef} className="df-field" style={{ position: "relative" }}>
+            <label className="df-label">Safety Precautions</label>
+            <div style={{ position: "relative" }}>
+              <input
+                type="text"
+                className="df-input"
+                style={{ cursor: "pointer", background: "rgba(255, 255, 255, 0.02)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+                placeholder="Click to select safety precautions..."
+                value={
+                  bulkSafety?.length > 0
+                    ? bulkSafety.map(id => precautionsList.find(x => String(x.id) === String(id))?.precaution || id).join(", ")
+                    : ""
+                }
+                readOnly
+                onClick={() => setIsPrecautionsDropdownOpen(prev => !prev)}
+              />
+              <span style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: "#9ca3af", pointerEvents: "none", fontSize: "10px" }}>
+                ▼
+              </span>
+            </div>
+
+            {isPrecautionsDropdownOpen && precautionsList.length > 0 && (
+              <div className="zone-rooms-dropdown" style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "16px", marginTop: "8px", boxShadow: "var(--shadow-md)", position: "absolute", top: "100%", left: 0, width: "100%", zIndex: 100, maxHeight: "200px", overflowY: "auto" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {precautionsList.map((p) => {
+                    const isChecked = bulkSafety.includes(String(p.id));
+                    return (
+                      <label key={p.id} className="custom-checkbox-label" style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                        <input
+                          type="checkbox"
+                          className="custom-checkbox-input"
+                          checked={isChecked}
+                          onChange={() => {
+                            const current = bulkSafety || [];
+                            const newValues = isChecked
+                              ? current.filter(val => val !== String(p.id))
+                              : [...current, String(p.id)];
+                            setBulkSafety(newValues);
+                          }}
+                        />
+                        <span>{p.precaution}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="df-footer" style={{ marginTop: "24px" }}>

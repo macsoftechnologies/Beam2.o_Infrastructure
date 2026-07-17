@@ -176,6 +176,7 @@ import {
 } from "../../services/authService";
 import { planRequests, searchRequests } from "../../services/requestService";
 import { buildingDataWithIds } from "../../data/buildingDataWithIds";
+import { ZONE_MAPPING } from "../../data/zones";
 import "../styles/pages.css";
 import "../../forms/styles/forms.css";
 
@@ -241,7 +242,60 @@ const INITIAL_FILTERS = {
   newWorkDate: "",
   newEndTime: "",
   status: [],
+  zones: [],
   hras: []
+};
+
+// Helper to resolve zone name from building, floor/level, and rooms data
+const resolveZoneNameFromRooms = (row) => {
+  // 1. If the request already has a valid zone name from the database, use it
+  const dbZoneName = (row.zone && typeof row.zone === "object")
+    ? row.zone.zone
+    : (row.zone || "");
+  if (dbZoneName && dbZoneName !== "—") {
+    return dbZoneName;
+  }
+
+  // 2. Otherwise, look up from ZONE_MAPPING by matching room names or room IDs
+  const roomStr = row.room_names || row.Room_Nos;
+  if (!roomStr) return "—";
+
+  const roomsToMatch = String(roomStr).split(",").map(r => r.trim().toLowerCase());
+
+  const levelKey = row.Room_Type || "";
+  let zonesToSearch = [];
+
+  if (levelKey) {
+    const levelLower = levelKey.toLowerCase().trim();
+    const foundKey = Object.keys(ZONE_MAPPING).find(k =>
+      k.toLowerCase().trim().includes(levelLower) || levelLower.includes(k.toLowerCase().trim())
+    );
+    if (foundKey) {
+      zonesToSearch = ZONE_MAPPING[foundKey] || [];
+    }
+  }
+
+  if (zonesToSearch.length === 0) {
+    zonesToSearch = Object.values(ZONE_MAPPING).flat();
+  }
+
+  // Find a zoneGroup that contains a room with matching name or ID
+  for (const zoneGroup of zonesToSearch) {
+    if (zoneGroup.rooms) {
+      for (const room of zoneGroup.rooms) {
+        const roomName = (typeof room === "object" ? room.name : room) || "";
+        const roomId = (typeof room === "object" ? room.id : "") || "";
+        if (
+          roomsToMatch.includes(roomName.toLowerCase().trim()) ||
+          (roomId && roomsToMatch.includes(String(roomId).toLowerCase().trim()))
+        ) {
+          return zoneGroup.name || "—";
+        }
+      }
+    }
+  }
+
+  return "—";
 };
 
 // ─── Custom Multiple Select Dropdown Component ──────────────────────────────
@@ -742,6 +796,10 @@ const Reports = () => {
       searchPayload.Building_Id = filters.building.length > 0 ? Number(filters.building[0]) : null;
       searchPayload.Sub_Contractor_Id = filters.subContractor ? Number(filters.subContractor) : null;
       searchPayload.Room_Type = filters.level.length > 0 ? filters.level.join(",") : "";
+      const selectedZoneIds = zonesList
+        .filter(z => filters.zones && filters.zones.includes(z.zone))
+        .map(z => z.id);
+      searchPayload.zoneIds = selectedZoneIds.length > 0 ? selectedZoneIds : null;
       searchPayload.area = filters.area.length > 0 ? filters.area.join("|") : "";
       searchPayload.permit_type = filters.permitType || "";
       searchPayload.permit_under = filters.permitUnder || "";
@@ -880,7 +938,7 @@ const Reports = () => {
 
     const headers = [
       "PermitNo", "PermitUnder", "PermitType", "ContractorName", "Sub_Contractor_Name",
-      "Building_Name", "Level", "Room_Nos", "Activity", "description_of_activity",
+      "Building_Name", "Level", "Zone", "Room_Nos", "Activity", "description_of_activity",
       "Rams_Number", "HRAs", "Auth", "Comment", "Start_Time", "End_Time",
       "Night_Shift", "New_End_Time", "Request_status", "Notes", "Working_Date",
       "Day", "New_Date", "New_Day", "CoNM_initials", "CoMM_initials", "Opened_By",
@@ -899,6 +957,7 @@ const Reports = () => {
         Sub_Contractor_Name: x.new_sub_contractor || "",
         Building_Name: x.building_name || "",
         Level: x.Room_Type || "",
+        Zone: resolveZoneNameFromRooms(x),
         Room_Nos: x.Room_Nos || "",
         Activity: x.Activity || "",
         description_of_activity: x.description_of_activity || "",
@@ -989,7 +1048,7 @@ const Reports = () => {
 
     const headers = [
       "PermitNo", "PermitUnder", "PermitType", "ContractorName", "Sub_Contractor_Name",
-      "Building_Name", "Level", "Room_Nos", "Activity", "description_of_activity",
+      "Building_Name", "Level", "Zone", "Room_Nos", "Activity", "description_of_activity",
       "Rams_Number", "HRAs", "Auth", "Comment", "Start_Time", "End_Time",
       "Night_Shift", "New_End_Time", "Request_status", "Notes", "Working_Date",
       "Day", "New_Date", "New_Day", "CoNM_initials", "CoMM_initials", "Opened_By",
@@ -1008,6 +1067,7 @@ const Reports = () => {
         Sub_Contractor_Name: x.new_sub_contractor || "",
         Building_Name: x.building_name || "",
         Level: x.Room_Type || "",
+        Zone: resolveZoneNameFromRooms(x),
         Room_Nos: x.Room_Nos || "",
         Activity: x.Activity || "",
         description_of_activity: x.description_of_activity || "",
@@ -1077,6 +1137,7 @@ const Reports = () => {
     { header: "Sub-Contractor", accessor: "new_sub_contractor" },
     { header: "Level", accessor: "Room_Type" },
     { header: "Building Name", accessor: "building_name" },
+    { header: "Zone", accessor: "zone" },
     { header: "Area", accessor: "Room_Nos" },
     { header: "Working Date", accessor: "Working_Date" },
     { header: "Time", accessor: "timeCell" },
@@ -1108,6 +1169,7 @@ const Reports = () => {
 
     return {
       ...item,
+      zone: resolveZoneNameFromRooms(item),
       Working_Date: formatMediumDate(item.Working_Date),
       timeCell: `${item.Start_Time || ""} - ${item.End_Time || ""}`,
       nightShiftCell: item.night_shift == 1 ? "Yes" : "No",
@@ -1420,6 +1482,16 @@ const Reports = () => {
                 onChange={(vals) => handleChange("hras", vals)}
                 hasNone={true}
                 isHra={true}
+              />
+            </div>
+
+            <div className="df-field">
+              <label className="df-label">Zones (Multiple)</label>
+              <MultiSelectDropdown
+                placeholder="Select Zones"
+                options={zonesList.map(z => z.zone)}
+                selectedValues={filters.zones || []}
+                onChange={(vals) => handleChange("zones", vals)}
               />
             </div>
 

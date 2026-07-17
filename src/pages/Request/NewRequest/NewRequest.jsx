@@ -590,28 +590,35 @@ function NewRequest() {
       // Match room IDs to room names to render correctly in FloorDrawing.
       // Also normalise casing: DB may store "ZONE 1" but ZONE_MAPPING uses "Zone 1".
       if (editRequest.Room_Nos) {
-        const editRoomIds = String(editRequest.Room_Nos).split(",");
-        const matchedRooms = roomsList.filter(r =>
-          editRoomIds.includes(String(r.room_id ?? r.id))
-        );
+        const editRoomParts = String(editRequest.Room_Nos).split(",").map(x => x.trim()).filter(Boolean);
+        const isIds = editRoomParts.every(part => /^\d+$/.test(part));
+        let matchedNames = [];
 
-        // Build a lookup of all canonical room names from ZONE_MAPPING (all levels)
-        const allZoneMappingRooms = Object.values(ZONE_MAPPING)
-          .flat()
-          .flatMap(zoneGroup => zoneGroup.rooms)
-          .map(r => (typeof r === "object" ? r.name : r));
-
-        const matchedNames = matchedRooms.map(r => {
-          const dbName = r.room_name || "";
-          // Try exact match first
-          const exact = allZoneMappingRooms.find(n => n === dbName);
-          if (exact) return exact;
-          // Try case-insensitive match
-          const caseMatch = allZoneMappingRooms.find(
-            n => n.toLowerCase().trim() === dbName.toLowerCase().trim()
+        if (isIds) {
+          const matchedRooms = roomsList.filter(r =>
+            editRoomParts.includes(String(r.room_id ?? r.id))
           );
-          return caseMatch || dbName;
-        });
+
+          // Build a lookup of all canonical room names from ZONE_MAPPING (all levels)
+          const allZoneMappingRooms = Object.values(ZONE_MAPPING)
+            .flat()
+            .flatMap(zoneGroup => zoneGroup.rooms)
+            .map(r => (typeof r === "object" ? r.name : r));
+
+          matchedNames = matchedRooms.map(r => {
+            const dbName = r.room_name || "";
+            // Try exact match first
+            const exact = allZoneMappingRooms.find(n => n === dbName);
+            if (exact) return exact;
+            // Try case-insensitive match
+            const caseMatch = allZoneMappingRooms.find(
+              n => n.toLowerCase().trim() === dbName.toLowerCase().trim()
+            );
+            return caseMatch || dbName;
+          });
+        } else {
+          matchedNames = editRoomParts;
+        }
 
         setSelectedRooms(matchedNames);
 
@@ -735,7 +742,7 @@ function NewRequest() {
         floatLabel8: formatDbValue(editRequest.combustible_material),
         floatLabel9: formatDbValue(editRequest.safety_measures),
         floatLabel10: formatDbValue(editRequest.extinguishers_and_fire_blanket),
-        NEWHOTWORK: formatDbValue(editRequest.welding_activitiy ?? "0"),
+        NEWHOTWORK: formatDbValue(editRequest.welding_activity ?? editRequest.welding_activitiy ?? "0"),
         NEWHOTWORK1: formatDbValue(editRequest.heat_treatment),
         NEWHOTWORK2: formatDbValue(editRequest.air_extraction_be_established),
 
@@ -764,7 +771,7 @@ function NewRequest() {
         floatLabel39: formatDbValue(editRequest.lanyard_attachments),
         floatLabel40: formatDbValue(editRequest.rescue_plan),
         floatLabel41: formatDbValue(editRequest.avoid_hazards),
-        floatLabel42: formatDbValue(editRequest.height_training),
+        floatLabel42: formatDbValue(editRequest.height_training ?? "0"),
         floatLabel43: formatDbValue(editRequest.supervision),
         floatLabel44: formatDbValue(editRequest.shock_absorbing),
         floatLabel45: formatDbValue(editRequest.height_equipments),
@@ -800,7 +807,7 @@ function NewRequest() {
         // Using Crane or Lifting
         using_cranes_or_lifting: formatDbValue(editRequest.using_cranes_or_lifting ?? "0"),
         floatLabel80: formatDbValue(editRequest.appointed_person),
-        floatLabel81: formatDbValue(editRequest.vendor_supplier),
+        floatLabel81: formatDbValue(editRequest.vendor_supplies ?? editRequest.vendor_supplier ?? "0"),
         floatLabel82: formatDbValue(editRequest.lift_plan),
         floatLabel83: formatDbValue(editRequest.supplied_and_inspected),
         floatLabel84: formatDbValue(editRequest.legal_required_certificates),
@@ -857,7 +864,7 @@ function NewRequest() {
         floatLabel104: formatDbValue(editRequest.pipework_mic),
         floatLabel105: formatDbValue(editRequest.loto_plan_attached),
         floatLabel106: formatDbValue(editRequest.exclusion_zone_calculated),
-        floatLabel107: formatDbValue(editRequest.pneumatic_hydrostatic),
+        floatLabel107: formatDbValue(editRequest.pneumatic_hydrostatic ?? editRequest.pnematic_hydrostatic ?? "0"),
         pressure_pneumatic: editRequest.pressure_pneumatic || "",
         floatLabel108: formatDbValue(editRequest.pressure_of_the_test),
         pressure_hydrostatic: editRequest.pressure_hydrostatic || "",
@@ -1319,39 +1326,41 @@ function NewRequest() {
     }
 
     // Find Room IDs — multi-strategy matching
-    // Strategy 1: Match by zone_id + case-insensitive room_name
     const selectedRoomsLower = selectedRooms.map(n => n.toLowerCase().trim());
-    let matchedRoomIds = roomsList
-      .filter((r) =>
-        matchedZoneIds.includes(r.zone_id ?? r.zoneStatusId) &&
-        selectedRoomsLower.includes((r.room_name || "").toLowerCase().trim())
-      )
-      .map((r) => r.room_id ?? r.id);
-
-    // Strategy 2: Fallback — match by fl_id + case-insensitive room_name
-    if (matchedRoomIds.length === 0 && Floor_Id) {
-      matchedRoomIds = roomsList
-        .filter((r) =>
-          String(r.fl_id) === String(Floor_Id) &&
-          selectedRoomsLower.includes((r.room_name || "").toLowerCase().trim())
-        )
-        .map((r) => r.room_id ?? r.id);
+    let matchedRoomIds = [];
+    if (selectedRoomsLower.length > 0) {
+      matchedRoomIds = selectedRooms.map(roomName => {
+        const roomNameLower = roomName.toLowerCase().trim();
+        // 1. Try matching with building + floor
+        let matched = roomsList.find(r => 
+          (r.room_name || "").toLowerCase().trim() === roomNameLower &&
+          (Floor_Id ? String(r.fl_id) === String(Floor_Id) : true) &&
+          (Building_Id ? String(r.building_id) === String(Building_Id) : true)
+        );
+        // 2. Try matching with building
+        if (!matched) {
+          matched = roomsList.find(r => 
+            (r.room_name || "").toLowerCase().trim() === roomNameLower &&
+            (Building_Id ? String(r.building_id) === String(Building_Id) : true)
+          );
+        }
+        // 3. Match by name alone
+        if (!matched) {
+          matched = roomsList.find(r => 
+            (r.room_name || "").toLowerCase().trim() === roomNameLower
+          );
+        }
+        return matched ? (matched.room_id ?? matched.id) : null;
+      }).filter(id => id !== null && id !== undefined);
     }
 
-    // Strategy 3: Fallback — include ALL rooms belonging to the matched zones
-    if (matchedRoomIds.length === 0 && matchedZoneIds.length > 0) {
-      matchedRoomIds = roomsList
-        .filter((r) => matchedZoneIds.includes(r.zone_id ?? r.zoneStatusId))
-        .map((r) => r.room_id ?? r.id);
-    }
-
-    let Room_Nos = matchedRoomIds.join(",");
+    let Room_Nos = [...new Set(matchedRoomIds)].join(",");
     if (!Room_Nos && isEditMode && editRequest?.Room_Nos) {
       Room_Nos = String(editRequest.Room_Nos);
     }
 
     // Frontend validations
-    if (!isEditMode && formData.Working_Date) {
+    if (formData.Working_Date) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const selected = new Date(formData.Working_Date);
@@ -1523,6 +1532,7 @@ function NewRequest() {
       combustible_material: formData.floatLabel8 || 0,
       safety_measures: formData.floatLabel9 || 0,
       extinguishers_and_fire_blanket: formData.floatLabel10 || 0,
+      welding_activity: formData.NEWHOTWORK || 0,
       welding_activitiy: formData.NEWHOTWORK || 0,
       heat_treatment: formData.NEWHOTWORK1 || 0,
       air_extraction_be_established: formData.NEWHOTWORK2 || 0,
@@ -1599,6 +1609,7 @@ function NewRequest() {
 
       // Using Cranes or Lifting
       appointed_person: formData.floatLabel80 || 0,
+      vendor_supplies: formData.floatLabel81 || 0,
       vendor_supplier: formData.floatLabel81 || 0,
       lift_plan: formData.floatLabel82 || 0,
       supplied_and_inspected: formData.floatLabel83 || 0,
@@ -1657,6 +1668,7 @@ function NewRequest() {
       loto_plan_attached: formData.floatLabel105 || 0,
       exclusion_zone_calculated: formData.floatLabel106 || 0,
       pneumatic_hydrostatic: formData.floatLabel107 || 0,
+      pnematic_hydrostatic: formData.floatLabel107 || 0,
       pressure_of_the_test: formData.floatLabel108 || 0,
       safety_valves_calibrated: formData.floatLabel109 || 0,
     };
@@ -1928,7 +1940,7 @@ function NewRequest() {
                   type="date"
                   className={`df-input${fieldErrors.Working_Date ? " field-input-error" : ""}`}
                   value={formData.Working_Date}
-                  min={!isEditMode ? new Date().toISOString().split("T")[0] : undefined}
+                  min={new Date().toISOString().split("T")[0]}
                   onChange={(e) => handleFieldChange("Working_Date", e.target.value)}
                   onClick={(e) => { try { e.target.showPicker(); } catch (err) { void err; } }}
                 />
@@ -2104,7 +2116,7 @@ function NewRequest() {
               </div>
 
               {isDropdownOpen && zonesToDisplay.length > 0 && (
-                <div className="zone-rooms-dropdown" style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "16px", marginTop: "8px", boxShadow: "var(--shadow-md)", zIndex: 100 }}>
+                <div className="zone-rooms-dropdown" style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "16px", marginTop: "8px", boxShadow: "var(--shadow-md)", position: "absolute", top: "100%", left: 0, width: "100%", zIndex: 100, maxHeight: "200px", overflowY: "auto" }}>
                   {zonesToDisplay.map((zoneToDraw) => (
                     <div key={zoneToDraw.name} style={{ marginBottom: "20px" }}>
                       <div style={{ fontWeight: "bold", color: "var(--color-safe, #00e5a0)", marginBottom: "12px", fontSize: "14px" }}>
@@ -4146,7 +4158,7 @@ function NewRequest() {
                 </div>
 
                 {isPrecautionsDropdownOpen && precautionsList.length > 0 && (
-                  <div className="zone-rooms-dropdown" style={{ background: "#111827", border: "1px solid rgba(255, 255, 255, 0.15)", borderRadius: "8px", padding: "16px", marginTop: "8px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.3)", position: "absolute", top: "100%", left: 0, width: "100%", zIndex: 100, maxHeight: "250px", overflowY: "auto" }}>
+                  <div className="zone-rooms-dropdown" style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "16px", marginTop: "8px", boxShadow: "var(--shadow-md)", position: "absolute", top: "100%", left: 0, width: "100%", zIndex: 100, maxHeight: "250px", overflowY: "auto" }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                       {precautionsList.map((p) => {
                         const isChecked = (formData.Safety_Precautions || []).includes(String(p.id));
