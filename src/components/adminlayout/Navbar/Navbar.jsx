@@ -2,6 +2,26 @@ import React, { useState, useRef, useEffect } from 'react'
 import "./Navbar.css";
 import { logout } from "../../../services/authService";
 import { navigateTo } from "../../../config/basePath";
+import {
+  getNotifications,
+  getUnreadCount,
+  markNotificationRead,
+  markAllNotificationsRead,
+  getNotificationSettings,
+  updateNotificationSettings,
+} from "../../../services/notificationService";
+import Swal from "sweetalert2";
+
+const STATUS_OPTIONS = [
+  { value: 'Draft', label: 'Draft' },
+  { value: 'Hold', label: 'Hold' },
+  { value: 'Pre-Approved', label: 'Pre-Approved' },
+  { value: 'Approved', label: 'Approved' },
+  { value: 'Opened', label: 'Opened' },
+  { value: 'Closed', label: 'Closed' },
+  { value: 'Cancelled', label: 'Cancelled' },
+  { value: 'Rejected', label: 'Rejected' },
+];
 
 /* ── Live Clock ── */
 function LiveClock() {
@@ -94,11 +114,55 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
 
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settings, setSettings] = useState({});
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const bellRef = useRef(null);
+
   const [currentUser, setCurrentUser] = useState({
     username: "Alex Mercer",
     role: "Site Manager",
     name: "Alex Mercer"
   });
+
+  const fetchUnreadCount = async () => {
+    try {
+      const data = await getUnreadCount();
+      setUnreadCount(data.count);
+    } catch (e) {
+      console.error("Error fetching unread count:", e);
+    }
+  };
+
+  const fetchNotificationsList = async (pageNum = 1, append = false) => {
+    try {
+      setIsLoading(true);
+      const res = await getNotifications(pageNum, 10);
+      if (append) {
+        setNotifications(prev => [...prev, ...res.data]);
+      } else {
+        setNotifications(res.data);
+      }
+      setHasMore(res.page < res.totalPages);
+      setPage(res.page);
+    } catch (e) {
+      console.error("Error fetching notifications:", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     try {
@@ -125,6 +189,99 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (bellRef.current && !bellRef.current.contains(e.target)) {
+        setNotificationsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, []);
+
+  const handleToggleNotifications = () => {
+    setNotificationsOpen(!notificationsOpen);
+    if (!notificationsOpen) {
+      fetchNotificationsList(1, false);
+      fetchUnreadCount();
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllNotificationsRead();
+      setUnreadCount(0);
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: 1 })));
+    } catch (e) {
+      console.error("Error marking all as read:", e);
+    }
+  };
+
+  const handleNotificationClick = async (n) => {
+    if (n.isRead === 0) {
+      try {
+        await markNotificationRead(n.id);
+        setUnreadCount(prev => Math.max(0, prev - 1));
+        setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, isRead: 1 } : item));
+      } catch (e) {
+        console.error("Error marking notification as read:", e);
+      }
+    }
+  };
+
+  const handleOpenSettings = async () => {
+    setDropdownOpen(false);
+    setSettingsOpen(true);
+    try {
+      const data = await getNotificationSettings();
+      const normSettings = {};
+      STATUS_OPTIONS.forEach(opt => {
+        const key = opt.value.toLowerCase().trim();
+        normSettings[opt.value] = data[key] !== false;
+      });
+      setSettings(normSettings);
+    } catch (e) {
+      console.error("Error fetching notification settings:", e);
+      const defaultSettings = {};
+      STATUS_OPTIONS.forEach(opt => {
+        defaultSettings[opt.value] = true;
+      });
+      setSettings(defaultSettings);
+    }
+  };
+
+  const handleToggleSetting = (statusName) => {
+    setSettings(prev => ({
+      ...prev,
+      [statusName]: !prev[statusName]
+    }));
+  };
+
+  const handleSaveSettings = async () => {
+    try {
+      await updateNotificationSettings(settings);
+      setSettingsOpen(false);
+      Swal.fire({
+        title: "Success",
+        text: "Notification settings saved successfully.",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+        background: "var(--bg-card)",
+        color: "var(--text-primary)",
+      });
+    } catch (e) {
+      console.error("Error saving notification settings:", e);
+      Swal.fire({
+        title: "Error",
+        text: "Failed to save settings. Please try again.",
+        icon: "error",
+        background: "var(--bg-card)",
+        color: "var(--text-primary)",
+      });
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -160,13 +317,6 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
 
       {/* ── CENTER — Status + Clock ── */}
       <div className="navbar-center">
-        {/* <div className="navbar-status-row">
-          <div className="status-pill">
-            <span className="status-dot" />
-            System Online
-          </div>
-          <SyncLabel />
-        </div> */}
         <LiveClock />
       </div>
 
@@ -177,10 +327,61 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
         <ThemeSwitcher theme={theme} onThemeChange={onThemeChange} />
 
         {/* Bell with badge */}
-        <button className="navbar-bell" title="Notifications" aria-label="Notifications">
-          <i className="ti ti-bell" />
-          <span className="bell-badge">5</span>
-        </button>
+        <div className="bell-wrap" ref={bellRef}>
+          <button
+            className="navbar-bell"
+            title="Notifications"
+            aria-label="Notifications"
+            onClick={handleToggleNotifications}
+          >
+            <i className="ti ti-bell" />
+            {unreadCount > 0 && <span className="bell-badge">{unreadCount}</span>}
+          </button>
+
+          {notificationsOpen && (
+            <div className="notifications-dropdown">
+              <div className="nd-header">
+                <h5 className="nd-title">Notifications</h5>
+                {unreadCount > 0 && (
+                  <button className="nd-mark-read" onClick={handleMarkAllRead}>
+                    Mark all as read
+                  </button>
+                )}
+              </div>
+              <div className="nd-list">
+                {notifications.length === 0 ? (
+                  <div className="nd-empty">
+                    {isLoading ? "Loading..." : "No notifications"}
+                  </div>
+                ) : (
+                  notifications.map((n) => (
+                    <button
+                      key={n.id}
+                      className={`nd-item ${n.isRead === 0 ? "unread" : ""}`}
+                      onClick={() => handleNotificationClick(n)}
+                    >
+                      {n.isRead === 0 && <span className="nd-item-dot" />}
+                      <span className="nd-item-title">{n.title}</span>
+                      <span className="nd-item-msg">{n.message}</span>
+                      <span className="nd-item-time">{new Date(n.createdAt).toLocaleDateString()} {new Date(n.createdAt).toLocaleTimeString()}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+              {hasMore && (
+                <div className="nd-footer">
+                  <button
+                    className="nd-load-more"
+                    onClick={() => fetchNotificationsList(page + 1, true)}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Loading..." : "Load older notifications"}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Avatar + name + dropdown */}
         <div className="avatar-wrap" ref={dropdownRef}>
@@ -215,52 +416,14 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
                 <a className="pd-item" href="/profile">
                   <i className="ti ti-user" /> My profile
                 </a>
-                {/* <a className="pd-item" href="/credentials">
-                  <i className="ti ti-id-badge" /> Credentials &amp; certifications
-                  <span className="pd-badge b-ok">Valid</span>
-                </a>
-                <a className="pd-item" href="/change-password">
-                  <i className="ti ti-lock" /> Change password
-                </a> */}
+                <button
+                  className="pd-item"
+                  onClick={handleOpenSettings}
+                  style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}
+                >
+                  <i className="ti ti-settings" /> Notification Settings
+                </button>
               </div>
-
-              {/* <div className="pd-divider" /> */}
-
-              {/* Safety */}
-              {/* <div className="pd-section">
-                <div className="pd-label">Safety</div>
-                <a className="pd-item" href="/incidents">
-                  <i className="ti ti-alert-triangle" /> My incident reports
-                  <span className="pd-badge b-warn">2 open</span>
-                </a>
-                <a className="pd-item" href="/checklists">
-                  <i className="ti ti-checklist" /> Safety checklists
-                </a>
-                <a className="pd-item" href="/ppe">
-                  <i className="ti ti-shield-check" /> PPE compliance
-                  <span className="pd-badge b-ok">100%</span>
-                </a>
-                <a className="pd-item" href="/risk">
-                  <i className="ti ti-chart-bar" /> Risk assessments
-                </a>
-                <a className="pd-item" href="/emergency">
-                  <i className="ti ti-bell-ringing" /> Emergency contacts
-                  <span className="pd-badge b-danger">Review</span>
-                </a>
-              </div> */}
-
-              {/* <div className="pd-divider" /> */}
-
-              {/* Preferences */}
-              {/* <div className="pd-section">
-                <div className="pd-label">Preferences</div>
-                <a className="pd-item" href="/settings">
-                  <i className="ti ti-settings" /> Settings
-                </a>
-                <a className="pd-item" href="/help">
-                  <i className="ti ti-help-circle" /> Help &amp; support
-                </a>
-              </div> */}
 
               <div className="pd-divider" />
 
@@ -276,6 +439,46 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
         </div>
 
       </div>
+
+      {/* Notification Settings Modal */}
+      {settingsOpen && (
+        <div className="ns-modal-overlay">
+          <div className="ns-modal">
+            <div className="ns-modal-header">
+              <h3>Notification Settings</h3>
+              <button className="ns-close-btn" onClick={() => setSettingsOpen(false)}>
+                <i className="ti ti-x" />
+              </button>
+            </div>
+            <div className="ns-modal-body">
+              <p className="ns-subtitle">Enable or disable in-app notifications for permit request status changes:</p>
+              <div className="ns-settings-list">
+                {STATUS_OPTIONS.map((opt) => (
+                  <div className="ns-setting-item" key={opt.value}>
+                    <span className="ns-setting-label">{opt.label}</span>
+                    <label className="ns-switch">
+                      <input
+                        type="checkbox"
+                        checked={settings[opt.value] || false}
+                        onChange={() => handleToggleSetting(opt.value)}
+                      />
+                      <span className="ns-slider round"></span>
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="ns-modal-footer">
+              <button className="ns-btn-secondary" onClick={() => setSettingsOpen(false)}>
+                Cancel
+              </button>
+              <button className="ns-btn-primary" onClick={handleSaveSettings}>
+                Save Preferences
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   )
 }
