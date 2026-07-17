@@ -1,6 +1,6 @@
 import { pdfjs } from "react-pdf";
 
-export async function renderPdf(pdf, width) {
+export async function renderPdf(pdf, width, height) {
 
     let loadingTask;
 
@@ -27,7 +27,10 @@ export async function renderPdf(pdf, width) {
 
     const viewport = page.getViewport({ scale: 1 });
 
-    const scale = width / viewport.width;
+    let scale = width / viewport.width;
+    if (height && (viewport.height * scale > height)) {
+        scale = height / viewport.height;
+    }
 
     const scaledViewport = page.getViewport({
         scale,

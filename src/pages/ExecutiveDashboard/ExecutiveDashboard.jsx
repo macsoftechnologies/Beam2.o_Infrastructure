@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { showSuccess } from "../../components/common/Toast/Toast";
 import "./ExecutiveDashboard.css";
 import groundFloorPlan from "../../assets/images/ground_floor_plan.png";
@@ -15,6 +15,8 @@ import NNEastPdf from "../../assets/drawings/m3Infrastructure/plans/NN-East/NN-E
 import PHusPdf from "../../assets/drawings/m3Infrastructure/plans/P-hus/P-hus.pdf";
 import RendsborgParkPdf from "../../assets/drawings/m3Infrastructure/plans/RendsborgPark/RendsborgPark.pdf";
 import { renderPdf } from "../../utils/pdfRenderer";
+import { ZONE_MAPPING } from "../../data/zones";
+import DashboardPolygonViewer from "../../components/DashboardPolygonViewer";
 
 const BUILDING_PDFS = {
   "APM Terminal": APMTerminalPdf,
@@ -142,27 +144,59 @@ function ExecutiveDashboard() {
   const [selectedRoomType, setSelectedRoomType] = useState("All room types");
   const [isLeftOpen, setIsLeftOpen] = useState(true);
   const [isRightOpen, setIsRightOpen] = useState(true);
-  const [selectedBuilding, setSelectedBuilding] = useState("APM Terminal");
-  const [floorPdfImg, setFloorPdfImg] = useState(null);
-  const [loadingPdf, setLoadingPdf] = useState(false);
+  const mapContainerRef = useRef(null);
+  const [mapWidth, setMapWidth] = useState(800);
+  const [mapHeight, setMapHeight] = useState(480);
+
+  const [selectedBuilding, setSelectedBuilding] = useState("");
+
+  const levels = useMemo(() => {
+    if (!selectedBuilding || selectedBuilding === "") return [];
+    const bClean = selectedBuilding.replace(/\s+/g, "").toLowerCase().trim();
+    return Object.keys(ZONE_MAPPING).filter(key => {
+      const keyClean = key.replace(/\s+/g, "").toLowerCase().trim();
+      return keyClean.includes(bClean) || bClean.includes(keyClean);
+    });
+  }, [selectedBuilding]);
 
   useEffect(() => {
-    if (activeTab !== "Overview" && activeTab !== "Ground Floor") {
-      const pdfFile = BUILDING_PDFS[selectedBuilding];
-      if (pdfFile) {
-        setLoadingPdf(true);
-        renderPdf(pdfFile, 1000).then((canvas) => {
-          setFloorPdfImg(canvas.toDataURL());
-          setLoadingPdf(false);
-        }).catch((err) => {
-          console.error("Error rendering PDF:", err);
-          setLoadingPdf(false);
-        });
+    if (activeTab !== "Overview") {
+      if (levels.length > 0 && !levels.includes(activeTab)) {
+        setActiveTab(levels[0]);
       }
-    } else {
-      setFloorPdfImg(null);
     }
-  }, [selectedBuilding, activeTab]);
+  }, [levels, activeTab]);
+
+  const selectedLevel = useMemo(() => {
+    if (activeTab !== "Overview") return activeTab;
+    return levels[0] || "";
+  }, [activeTab, levels]);
+
+  const selectedLevelZones = useMemo(() => {
+    return ZONE_MAPPING[selectedLevel] || [];
+  }, [selectedLevel]);
+
+  const selectedPdf = useMemo(() => {
+    return selectedLevelZones[0]?.pdf || null;
+  }, [selectedLevelZones]);
+
+  const rooms = useMemo(() => {
+    return selectedLevelZones.flatMap(z => z.rooms || []);
+  }, [selectedLevelZones]);
+
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+
+    const observer = new ResizeObserver((entries) => {
+      if (!entries || entries.length === 0) return;
+      const { width, height } = entries[0].contentRect;
+      if (width > 0) setMapWidth(width);
+      if (height > 0) setMapHeight(height);
+    });
+
+    observer.observe(mapContainerRef.current);
+    return () => observer.disconnect();
+  }, [activeTab]);
 
   useEffect(() => {
     // When Executive Dashboard loads, automatically close sidebar if open
@@ -218,79 +252,34 @@ function ExecutiveDashboard() {
 
   return (
     <div className="exec-dashboard-container">
-      {/* ── TOP PermitHUB NAV STRIP ── */}
-      <header className="permithub-navbar">
-        <div className="ph-nav-left">
-          <span className="ph-brand">
-            Permit<span className="ph-hub">HUB</span>
-          </span>
-          <div className="ph-status-badges">
-            <span className="ph-badge-item code-badge">46212.22928240741</span>
-            <span className="ph-badge-item clash-badge">
-              <span className="dot dot-red" />
-              26 clashes
-            </span>
-            <span className="ph-badge-item remaining-badge">
-              <span className="dot dot-yellow" />
-              26 remaining
-            </span>
-            <span className="ph-badge-item resolved-badge">
-              <span className="dot dot-green" />
-              20 resolved
-            </span>
-            <span className="ph-badge-item clear-badge">
-              <span className="dot dot-blue" />
-              385 clear
-            </span>
-          </div>
-        </div>
-        <div className="ph-nav-right">
-          <button className="ph-icon-btn" title="Toggle Fullscreen">
-            <i className="ti ti-maximize" />
-          </button>
-          <button className="ph-icon-btn" title="View Documentation">
-            <i className="ti ti-notebook" />
-          </button>
-        </div>
-      </header>
-
       {/* ── BUILDING SELECTOR ── */}
-      {activeTab !== "Overview" && (
-        <div className="exec-building-selector-row">
-          <div className="exec-building-selector-group">
-            <span className="exec-building-lbl">BUILDING</span>
-            <select
-              className="exec-building-select"
-              value={selectedBuilding}
-              onChange={(e) => setSelectedBuilding(e.target.value)}
-            >
-              <option value="APM Terminal">APM Terminal</option>
-              <option value="EH Lake West">EH Lake West</option>
-              <option value="EH Lake East">EH Lake East</option>
-              <option value="Rendsborg Park">Rendsborg Park</option>
-              <option value="P-hus">P-hus</option>
-              <option value="NN East">NN East</option>
-              <option value="Hovvej West">Hovvej West</option>
-              <option value="Hovvej East">Hovvej East</option>
-              <option value="EC-JCP1">EC-JCP1</option>
-              <option value="BA-DD">BA-DD</option>
-            </select>
-          </div>
+      <div className="exec-building-selector-row" style={{ margin: "10px 24px 12px 24px", padding: "12px 16px" }}>
+        <div className="exec-building-selector-group">
+          <span className="exec-building-lbl">BUILDING</span>
+          <select
+            className="exec-building-select"
+            value={selectedBuilding}
+            onChange={(e) => setSelectedBuilding(e.target.value)}
+          >
+            <option value="" disabled>— Select a Building —</option>
+            <option value="APM Terminal">APM Terminal</option>
+            <option value="EH Lake West">EH Lake West</option>
+            <option value="EH Lake East">EH Lake East</option>
+            <option value="Rendsborg Park">Rendsborg Park</option>
+            <option value="P-hus">P-hus</option>
+            <option value="NN East">NN East</option>
+            <option value="Hovvej West">Hovvej West</option>
+            <option value="Hovvej East">Hovvej East</option>
+            <option value="EC-JCP1">EC-JCP1</option>
+            <option value="BA-DD">BA-DD</option>
+          </select>
         </div>
-      )}
+      </div>
 
       {/* ── FLOOR TABS ── */}
       <div className="exec-tabs-container">
         <div className="exec-tabs-left">
-          {[
-            "Overview",
-            "Ground Floor",
-            "1st Floor",
-            "2nd Floor",
-            "3rd Floor",
-            "4th Floor",
-            "Roof",
-          ].map((tab) => (
+          {["Overview", ...levels].map((tab) => (
             <button
               key={tab}
               className={`exec-tab-btn ${activeTab === tab ? "active" : ""}`}
@@ -645,28 +634,23 @@ function ExecutiveDashboard() {
                   <div className="map-title-badge">{activeTab === "Ground Floor" ? "JG- Ground floor" : `JG- ${activeTab}`}</div>
                 </div>
 
-                <div className="map-image-wrapper">
-                  {loadingPdf ? (
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%", width: "100%", color: "#94a3b8" }}>
-                      <span>Loading Floor Plan PDF...</span>
-                    </div>
-                  ) : (
-                    <>
-                      <img
-                        src={activeTab === "Ground Floor" ? groundFloorPlan : (floorPdfImg || groundFloorPlan)}
-                        alt={`${activeTab} CAD drawing`}
-                        className="static-cad-image"
-                      />
 
-                      {/* Overlay mock elements to make floor plan look alive */}
-                      {isZonesActive && (
-                        <div className="map-mock-zones-overlay">
-                          <div className="mock-zone-label zone-label-1" style={{ top: "35%", left: "20%" }}>ZONE 2</div>
-                          <div className="mock-zone-label zone-label-2" style={{ top: "40%", left: "60%" }}>ZONE 1</div>
-                          <div className="mock-zone-label zone-label-3" style={{ top: "70%", left: "45%" }}>M3 SOUTH 1</div>
-                        </div>
-                      )}
-                    </>
+
+                <div className="map-image-wrapper" ref={mapContainerRef} style={{ position: "relative", overflow: "hidden" }}>
+                  {selectedPdf ? (
+                    <DashboardPolygonViewer
+                      pdf={selectedPdf}
+                      rooms={rooms}
+                      width={mapWidth}
+                      isZonesActive={isZonesActive}
+                      roomsToReview={ROOMS_TO_REVIEW}
+                    />
+                  ) : (
+                    <img
+                      src={groundFloorPlan}
+                      alt="Ground Floor CAD drawing"
+                      className="static-cad-image"
+                    />
                   )}
                 </div>
 
