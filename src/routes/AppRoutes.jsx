@@ -32,6 +32,7 @@ import ExecutiveDashboard from "../pages/ExecutiveDashboard/ExecutiveDashboard";
 
 
 import ProtectedRoute from "../components/common/ProtectedRoute";
+import PublicRoute from "../components/common/PublicRoute";
 import ListRequest from "../pages/Request/ListRequest/ListRequest";
 import PolygonEditor from "../pages/PolygonEditor/PolygonEditor";
 
@@ -40,10 +41,10 @@ function AppRoutes() {
     <BrowserRouter basename="/m3infrastructure_frontend">
       <Routes>
 
-        {/* Public Routes */}
-        <Route path="/" element={<PortalSelection />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/otp" element={<Otp />} />
+        {/* Public Routes - restricted if user has valid token */}
+        <Route path="/" element={<PublicRoute><PortalSelection /></PublicRoute>} />
+        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+        <Route path="/otp" element={<PublicRoute><Otp /></PublicRoute>} />
         <Route path='/polygons' element={<PolygonEditor />} />
 
         {/* Protected Layout */}

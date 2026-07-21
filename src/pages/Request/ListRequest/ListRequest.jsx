@@ -583,6 +583,63 @@ const MultiSelectDropdown = ({
   );
 };
 
+const isTodayDate = (dateVal) => {
+  if (!dateVal) return false;
+
+  let year, month, day;
+  const str = String(dateVal).trim();
+
+  if (str.includes("T")) {
+    const part = str.split("T")[0];
+    const parts = part.split("-");
+    if (parts.length === 3) {
+      year = parseInt(parts[0], 10);
+      month = parseInt(parts[1], 10);
+      day = parseInt(parts[2], 10);
+    }
+  } else if (str.includes("-")) {
+    const parts = str.split("-");
+    if (parts[0].length === 4) {
+      year = parseInt(parts[0], 10);
+      month = parseInt(parts[1], 10);
+      day = parseInt(parts[2], 10);
+    } else if (parts[2] && parts[2].length === 4) {
+      day = parseInt(parts[0], 10);
+      month = parseInt(parts[1], 10);
+      year = parseInt(parts[2], 10);
+    }
+  } else if (str.includes("/")) {
+    const parts = str.split("/");
+    if (parts[0].length === 4) {
+      year = parseInt(parts[0], 10);
+      month = parseInt(parts[1], 10);
+      day = parseInt(parts[2], 10);
+    } else if (parts[2] && parts[2].length === 4) {
+      day = parseInt(parts[0], 10);
+      month = parseInt(parts[1], 10);
+      year = parseInt(parts[2], 10);
+    }
+  }
+
+  if (!year || !month || !day || isNaN(year) || isNaN(month) || isNaN(day)) {
+    const d = new Date(dateVal);
+    if (!isNaN(d.getTime())) {
+      year = d.getFullYear();
+      month = d.getMonth() + 1;
+      day = d.getDate();
+    } else {
+      return false;
+    }
+  }
+
+  const today = new Date();
+  return (
+    today.getFullYear() === year &&
+    today.getMonth() + 1 === month &&
+    today.getDate() === day
+  );
+};
+
 const ListRequest = () => {
   const navigate = useNavigate();
   const currentUser = getUser();
@@ -1002,8 +1059,45 @@ const ListRequest = () => {
     return currentUser?.role || "";
   };
 
+  const proceedWithStatusChange = (row, status) => {
+    const currentStatus = row?.Request_status || row?.request_status || "";
+    const workingDateVal = row?.Working_Date || row?.workingDate || row?.working_date || "";
+
+    if (currentStatus === "Approved" && !isTodayDate(workingDateVal)) {
+      return showError("Status change is restricted for Approved permits when working date is not today.");
+    }
+
+    setModalTarget(row);
+    setModalStatus(status);
+    setSubmitStatusOverride(null);
+    setInitials("");
+    setRejectReason("");
+    setCancelReason("");
+    setCloseNote("");
+    setClosingImageFiles([]);
+    setOpenActionType("Open");
+    setApproveActionType("Approve");
+    setLowRiskHotwork(0);
+    setHighRiskHotwork(0);
+    setHotWorkChecklistFilled(0);
+    setFireGuardPresent(0);
+    setHHeatSource(0);
+    setHWorkplaceCheck(0);
+    setHFireDetectors(0);
+    setHStartTime("");
+    setHEndTime("");
+    setActiveModal("status");
+  };
+
   // Status transitions triggering dialogs
-  const handleStatusTransition = (row, status) => {
+  const handleStatusTransition = async (row, status) => {
+    const currentStatus = row?.Request_status || row?.request_status || "";
+    const workingDateVal = row?.Working_Date || row?.workingDate || row?.working_date || "";
+
+    if (currentStatus === "Approved" && !isTodayDate(workingDateVal)) {
+      return showError("Status change is restricted for Approved permits when working date is not today.");
+    }
+
     const permitType = row.permit_type || "";
     const permitUnder = row.permit_under || "";
 
@@ -1054,26 +1148,83 @@ const ListRequest = () => {
       }
     }
 
-    setModalTarget(row);
-    setModalStatus(status);
-    setSubmitStatusOverride(null);
-    setInitials("");
-    setRejectReason("");
-    setCancelReason("");
-    setCloseNote("");
-    setClosingImageFiles([]);
-    setOpenActionType("Open");
-    setApproveActionType("Approve");
-    setLowRiskHotwork(0);
-    setHighRiskHotwork(0);
-    setHotWorkChecklistFilled(0);
-    setFireGuardPresent(0);
-    setHHeatSource(0);
-    setHWorkplaceCheck(0);
-    setHFireDetectors(0);
-    setHStartTime("");
-    setHEndTime("");
-    setActiveModal("status");
+    // Check if there are existing permits with the same room/area and working date
+    const roomNosStr = row.Room_Nos || row.room_nos || "";
+    const splitingAreas = roomNosStr ? String(roomNosStr).split(",") : [];
+    const formattedArea = splitingAreas
+      .filter(val => val !== null && val !== undefined && val !== "")
+      .map(val => `${val}`.trim())
+      .join("|");
+
+    const workingDateStr = row.Working_Date || row.workingDate || "";
+    const formattedDate = workingDateStr ? String(workingDateStr).split("T")[0] : "";
+
+    const buildingIdClean = row.Building_Id || row.building_id;
+    const subconIdClean = row.Sub_Contractor_Id || row.sub_contractor_id;
+    const activityIdClean = row.Type_Of_Activity_Id || row.type_of_activity_id;
+    const roomTypeClean = (row.Room_Type || row.room_type || "").replace(/'/g, "").trim();
+
+    const searchCheckRequest = {
+      Room_Type: roomTypeClean,
+      fromDate: formattedDate,
+      toDate: formattedDate,
+      Page: 1,
+      End: 5,
+      Site_Id: 5,
+      Request_status: "Hold,Pre-Approved,Approved,Opened",
+      area: formattedArea || roomNosStr,
+      Room_Nos: roomNosStr
+    };
+
+    if (buildingIdClean && !isNaN(Number(String(buildingIdClean).replace(/'/g, "").trim()))) {
+      searchCheckRequest.Building_Id = Number(String(buildingIdClean).replace(/'/g, "").trim());
+    }
+    if (subconIdClean && !isNaN(Number(String(subconIdClean).replace(/'/g, "").trim()))) {
+      searchCheckRequest.Sub_Contractor_Id = Number(String(subconIdClean).replace(/'/g, "").trim());
+    }
+    if (activityIdClean && !isNaN(Number(String(activityIdClean).replace(/'/g, "").trim()))) {
+      searchCheckRequest.Type_Of_Activity_Id = Number(String(activityIdClean).replace(/'/g, "").trim());
+    }
+
+    try {
+      const res = await searchRequests(searchCheckRequest);
+      let responseData = res?.data ?? res;
+      let foundList = [];
+      if (Array.isArray(responseData)) {
+        if (responseData[0] && Array.isArray(responseData[0].data)) {
+          foundList = responseData[0].data;
+        } else {
+          foundList = responseData;
+        }
+      } else if (responseData?.rows) {
+        foundList = responseData.rows;
+      }
+
+      // Filter out current request
+      const duplicatePermits = foundList.filter(item => String(item.id) !== String(row.id));
+
+      if (duplicatePermits.length > 0) {
+        const result = await Swal.fire({
+          title: "Duplicate Permit Found",
+          text: "A permit already exists for this room and working date. Do you want to continue?",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Continue",
+          cancelButtonText: "Cancel",
+          confirmButtonColor: "#3b82f6",
+          cancelButtonColor: "#6b7280"
+        });
+
+        if (result.isConfirmed) {
+          proceedWithStatusChange(row, status);
+        }
+      } else {
+        proceedWithStatusChange(row, status);
+      }
+    } catch (err) {
+      console.error("Error checking duplicate permit", err);
+      proceedWithStatusChange(row, status);
+    }
   };
 
   const handleStatusSubmit = async (e) => {
@@ -1218,6 +1369,15 @@ const ListRequest = () => {
     if (!validateBulkAction()) return;
     const targetRequests = requests.filter(r => selectedIds.includes(r.id));
 
+    const invalidApproved = targetRequests.find(
+      r => (r.Request_status === "Approved" || r.request_status === "Approved") &&
+           !isTodayDate(r.Working_Date || r.workingDate || r.working_date)
+    );
+
+    if (invalidApproved) {
+      return showError("Status change is restricted for Approved permits when working date is not today.");
+    }
+
     setModalTarget(targetRequests);
     setModalStatus(status);
     setInitials("");
@@ -1236,11 +1396,11 @@ const ListRequest = () => {
     if (modalStatus === "Rejected") {
       payload.reject_reason = rejectReason.trim();
     } else {
-      if (isDept) payload.ConM_initials = initials.trim();
-      if (isDept1) payload.CoMM_initials = initials.trim();
-      if (isAdmin) {
+      if (initials.trim()) {
+        payload.initials = initials.trim();
         payload.ConM_initials = initials.trim();
         payload.CoMM_initials = initials.trim();
+        payload.ConM_initials1 = initials.trim();
       }
     }
 
@@ -1586,6 +1746,14 @@ const ListRequest = () => {
             handleEditClick(row);
           }
           return;
+        }
+
+        // Restrict status change dialog when request status is Approved and working date is other than current date
+        if (row.Request_status === "Approved" || row.request_status === "Approved") {
+          const workingDateVal = row.Working_Date || row.workingDate || row.working_date || "";
+          if (!isTodayDate(workingDateVal)) {
+            return showError("Status change is restricted for Approved permits when working date is not today.");
+          }
         }
 
         // Subcontractor opening or closing permit

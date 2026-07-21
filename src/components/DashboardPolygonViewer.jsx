@@ -1,5 +1,5 @@
-import { useEffect, useState, useMemo } from "react";
-import { Stage, Layer, Image as KonvaImage, Line, Group } from "react-konva";
+import { useEffect, useState, useMemo, useRef } from "react";
+import { Stage, Layer, Image as KonvaImage, Line, Group, Rect } from "react-konva";
 import useImage from "use-image";
 import { renderPdf } from "../utils/pdfRenderer";
 
@@ -9,11 +9,14 @@ export default function DashboardPolygonViewer({
   width = 800,
   isZonesActive = true,
   roomsToReview = [],
+  roomHoverData = {},
+  onHoverRoom,
 }) {
   const [imageUrl, setImageUrl] = useState(null);
   const [hoveredRoomName, setHoveredRoomName] = useState(null);
-  // Raw PDF canvas dimensions (high-res)
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  // Track whether we've locked a room (the hover card is open)
+  const lockedRoomRef = useRef(null);
 
   const [image] = useImage(imageUrl);
 
@@ -23,7 +26,6 @@ export default function DashboardPolygonViewer({
     async function load() {
       if (!pdf) return;
       try {
-        // Render at a large base width for quality, then we scale down via CSS/Konva
         const canvas = await renderPdf(pdf, Math.max(width * 2, 1600));
         if (!mounted) return;
 
@@ -40,7 +42,6 @@ export default function DashboardPolygonViewer({
     };
   }, [pdf, width]);
 
-  // Scale factor: fit the stage to the container width
   const scale = useMemo(() => {
     if (!canvasSize.width) return 1;
     return width / canvasSize.width;
@@ -50,6 +51,16 @@ export default function DashboardPolygonViewer({
   const stageHeight = canvasSize.height ? Math.round(canvasSize.height * scale) : 600;
 
   const getRoomColors = (roomName) => {
+    if (roomHoverData && roomHoverData[roomName]) {
+      const hData = roomHoverData[roomName];
+      if (hData.clash && hData.clash.includes("Clash")) {
+        return { fill: "rgba(239, 68, 68, 0.35)", stroke: "#ef4444" };
+      }
+      if (hData.permits && hData.permits !== "0 permits") {
+        return { fill: "rgba(16, 185, 129, 0.35)", stroke: "#10b981" };
+      }
+    }
+
     const match = roomsToReview.find(
       (item) =>
         item.zone.toLowerCase().trim() === roomName.toLowerCase().trim() ||
@@ -59,18 +70,18 @@ export default function DashboardPolygonViewer({
 
     if (match) {
       if (match.clash) {
-        return { fill: "rgba(239, 68, 68, 0.3)", stroke: "#ef4444" };
+        return { fill: "rgba(239, 68, 68, 0.35)", stroke: "#ef4444" };
       }
-      if (match.preOk > 0) {
-        return { fill: "rgba(16, 185, 129, 0.3)", stroke: "#10b981" };
+      if (match.preOk > 0 || match.permits > 0) {
+        return { fill: "rgba(16, 185, 129, 0.35)", stroke: "#10b981" };
       }
     }
 
-    return { fill: "rgba(59, 130, 246, 0.15)", stroke: "#3b82f6" };
+    return { fill: "rgba(148, 163, 184, 0.15)", stroke: "#94a3b8" };
   };
 
   return (
-    <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-start", width: "100%", overflow: "hidden" }}>
+    <div style={{ position: "relative", display: "flex", justifyContent: "center", alignItems: "flex-start", width: "100%", overflow: "hidden" }}>
       {imageUrl ? (
         <Stage width={stageWidth} height={stageHeight} scaleX={scale} scaleY={scale}>
           {/* Layer 1: PDF Background */}
@@ -84,7 +95,7 @@ export default function DashboardPolygonViewer({
             )}
           </Layer>
 
-          {/* Layer 2: Room Polygons & Labels */}
+          {/* Layer 2: Room Polygons */}
           <Layer>
             {isZonesActive &&
               rooms.map((room) => {
@@ -93,7 +104,6 @@ export default function DashboardPolygonViewer({
                 const isHovered = hoveredRoomName === room.name;
                 const colors = getRoomColors(room.name);
 
-                // Scale polygon coords to raw canvas space
                 const scaleX = canvasSize.width / (room.pdfWidth || 1);
                 const scaleY = canvasSize.height / (room.pdfHeight || 1);
 
@@ -102,23 +112,40 @@ export default function DashboardPolygonViewer({
                   p.y * scaleY,
                 ]);
 
+                const xs = room.points.map((p) => p.x * scaleX);
+                const ys = room.points.map((p) => p.y * scaleY);
+                const cx = xs.length > 0 ? (Math.min(...xs) + Math.max(...xs)) / 2 : 0;
+                const cy = ys.length > 0 ? (Math.min(...ys) + Math.max(...ys)) / 2 : 0;
+
                 return (
                   <Group key={room.id || room.name}>
                     <Line
                       points={scaledPoints}
                       closed
-                      fill={isHovered ? "rgba(250, 204, 21, 0.3)" : colors.fill}
+                      fill={isHovered ? "rgba(250, 204, 21, 0.45)" : colors.fill}
                       stroke={isHovered ? "#facc15" : colors.stroke}
                       strokeWidth={isHovered ? 3 : 2}
                       onMouseEnter={() => {
                         document.body.style.cursor = "pointer";
                         setHoveredRoomName(room.name);
+                        lockedRoomRef.current = room.name;
+                        if (onHoverRoom) {
+                          onHoverRoom({
+                            name: room.name,
+                            x: cx * scale,
+                            y: cy * scale,
+                          });
+                        }
                       }}
                       onMouseLeave={() => {
                         document.body.style.cursor = "default";
                         setHoveredRoomName(null);
+                        // Don't clear lock — let the parent's timeout handle it
+                        if (onHoverRoom) {
+                          onHoverRoom(null);
+                        }
                       }}
-                      hitStrokeWidth={10}
+                      hitStrokeWidth={12}
                     />
                   </Group>
                 );

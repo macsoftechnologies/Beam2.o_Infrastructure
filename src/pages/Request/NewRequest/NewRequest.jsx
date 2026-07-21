@@ -177,6 +177,7 @@ import { ZONE_MAPPING } from "../../../data/zones";
 import { BUILDINGS } from "../../../data/buildings";
 import { getContractors, getActivities, getElectricalWorks, getMechanicalWorks, getBuildings, getFloors, getZones, getRooms, getUser, getPrecautions } from "../../../services/authService";
 import { createRequest, updateRequest, addRamsFiles, deleteRamsFile, addListReqstNote } from "../../../services/requestService";
+import { API_BASE_URL } from "../../../services/api";
 import { showSuccess, showError } from "../../../components/common/Toast/Toast";
 import { useNavigate, useLocation } from "react-router-dom";
 import { HotWorks, ElectricalSystems, substanceChemical, WorkingAtHight, ConfinedSpace, ExcavationWorks, Craneslifting, electrical_works, mechanical1, testingequipment } from "../../../config/logos";
@@ -232,6 +233,31 @@ const getNextDate = (dateStr) => {
   const nextM = String(dateObj.getMonth() + 1).padStart(2, "0");
   const nextD = String(dateObj.getDate()).padStart(2, "0");
   return `${nextY}-${nextM}-${nextD}`;
+};
+
+const mapFileItem = (f) => {
+  if (!f) return null;
+  if (typeof f === 'string') {
+    const fileName = f.split('/').pop().split('\\').pop();
+    return { id: undefined, name: fileName, file: f };
+  }
+  const fileId = f.id !== undefined ? f.id : (f.ramsFileId !== undefined ? f.ramsFileId : f.rams_file_id);
+  const filePath = f.file || f.ramsFile || f.rams_file || f.file_name || f.name || '';
+  const rawName = f.file_name || f.name || (typeof filePath === 'string' ? filePath : '') || '';
+  const fileName = typeof rawName === 'string' && rawName.trim()
+    ? rawName.split('/').pop().split('\\').pop()
+    : 'Attachment';
+  return { id: fileId, name: fileName, file: filePath };
+};
+
+const getFileUrl = (file) => {
+  if (!file) return "#";
+  const filePath = file.file || file.ramsFile || file.rams_file || "";
+  if (typeof filePath === "string" && (filePath.startsWith("http://") || filePath.startsWith("https://"))) {
+    return filePath;
+  }
+  const filename = file.name || (typeof filePath === "string" ? filePath.split("/").pop().split("\\").pop() : "");
+  return `${API_BASE_URL}/requests/${filename}`;
 };
 
 function NewRequest() {
@@ -324,7 +350,7 @@ function NewRequest() {
           const res = await addRamsFiles(fd);
           showSuccess("RAMS File uploaded successfully");
           if (res?.files) {
-            setExistingFiles(res.files.map(f => ({ id: f.id, name: f.file_name, file: f.file })));
+            setExistingFiles(res.files.map(mapFileItem).filter(Boolean));
           }
         } catch (err) {
           showError("Failed to upload file attachment.");
@@ -366,8 +392,8 @@ function NewRequest() {
     Start_Time: "",
     End_Time: "",
     night_shift: false,
-    new_date: "",
-    new_end_time: "",
+    new_date: "none",
+    new_end_time: "none",
     Site_Id: "5",
     Tools: "",
     Machinery: "",
@@ -682,8 +708,9 @@ function NewRequest() {
       } // end if (editRequest.Room_Nos)
 
       // Display existing file attachments
-      if (editRequest.files) {
-        setExistingFiles(editRequest.files.map(f => ({ id: f.id, name: f.file_name, file: f.file })));
+      const rawFilesList = editRequest.files || editRequest.ramsFiles || editRequest.rams_files || editRequest.rams_file;
+      if (rawFilesList && Array.isArray(rawFilesList)) {
+        setExistingFiles(rawFilesList.map(mapFileItem).filter(Boolean));
       }
 
       // Load notes history
@@ -709,9 +736,13 @@ function NewRequest() {
         Working_Date: editRequest.Working_Date || "",
         Start_Time: editRequest.Start_Time ? editRequest.Start_Time.slice(0, 5) : "",
         End_Time: editRequest.End_Time ? editRequest.End_Time.slice(0, 5) : "",
-        night_shift: editRequest.night_shift === 1 || editRequest.night_shift === true,
-        new_date: editRequest.new_date || "",
-        new_end_time: editRequest.new_end_time ? editRequest.new_end_time.slice(0, 5) : "",
+        night_shift: editRequest.night_shift === 1 || editRequest.night_shift === true || editRequest.night_shift === "1",
+        new_date: (editRequest.night_shift === 1 || editRequest.night_shift === true || editRequest.night_shift === "1")
+          ? (editRequest.new_date && editRequest.new_date !== "none" ? editRequest.new_date : "")
+          : "none",
+        new_end_time: (editRequest.night_shift === 1 || editRequest.night_shift === true || editRequest.night_shift === "1")
+          ? (editRequest.new_end_time && editRequest.new_end_time !== "none" ? editRequest.new_end_time.slice(0, 5) : "")
+          : "none",
         Site_Id: editRequest.Site_Id || "5",
         Tools: editRequest.Tools || "",
         Machinery: editRequest.Machinery || "",
@@ -997,15 +1028,32 @@ function NewRequest() {
         updated.mechanical_works = [];
       }
 
-      if (field === "night_shift" && value === true) {
-        if (prev.Working_Date) {
-          updated.new_date = getNextDate(prev.Working_Date);
+      if (field === "night_shift") {
+        const isNight = value === true || value === 1 || value === "1";
+        if (isNight) {
+          if (prev.Working_Date) {
+            updated.new_date = getNextDate(prev.Working_Date);
+          } else {
+            updated.new_date = "";
+          }
+          updated.End_Time = "23:59";
+          if (updated.new_end_time === "none") {
+            updated.new_end_time = "";
+          }
+        } else {
+          updated.new_date = "none";
+          updated.new_end_time = "none";
         }
-        updated.End_Time = "23:59";
       }
 
-      if (field === "Working_Date" && prev.night_shift === true) {
-        updated.new_date = getNextDate(value);
+      if (field === "Working_Date") {
+        const isNight = prev.night_shift === true || prev.night_shift === 1 || prev.night_shift === "1";
+        if (isNight) {
+          updated.new_date = getNextDate(value);
+        } else {
+          updated.new_date = "none";
+          updated.new_end_time = "none";
+        }
       }
 
       return updated;
@@ -1467,6 +1515,21 @@ function NewRequest() {
     const currentUser = getUser();
     const currentUserId = currentUser?.id || 1;
 
+    const isNightShift = formData.night_shift === true || formData.night_shift === 1 || formData.night_shift === "1";
+
+    const newDateVal = isNightShift
+      ? (formData.new_date && formData.new_date !== "none" ? formData.new_date : (formData.Working_Date ? getNextDate(formData.Working_Date) : "none"))
+      : "none";
+
+    let newEndTimeVal = "none";
+    if (isNightShift) {
+      if (formData.new_end_time && formData.new_end_time !== "none") {
+        newEndTimeVal = formData.new_end_time.includes(":") && formData.new_end_time.split(":").length === 2
+          ? `${formData.new_end_time}:00`
+          : formData.new_end_time;
+      }
+    }
+
     // 2. Prepare payload
     const payload = {
       ...formData,
@@ -1481,10 +1544,11 @@ function NewRequest() {
       userId: currentUserId,
       Request_Date: isEditMode ? editRequest.Request_Date : new Date().toISOString().split("T")[0],
       Working_Date: formData.Working_Date,
-      Start_Time: formData.Start_Time ? `${formData.Start_Time}:00` : "",
-      End_Time: formData.End_Time ? `${formData.End_Time}:00` : "",
-      night_shift: formData.night_shift ? 1 : 0,
-      new_end_time: formData.new_end_time ? `${formData.new_end_time}:00` : "",
+      Start_Time: formData.Start_Time ? (formData.Start_Time.includes(":") && formData.Start_Time.split(":").length === 2 ? `${formData.Start_Time}:00` : formData.Start_Time) : "",
+      End_Time: formData.End_Time ? (formData.End_Time.includes(":") && formData.End_Time.split(":").length === 2 ? `${formData.End_Time}:00` : formData.End_Time) : "",
+      night_shift: isNightShift ? 1 : 0,
+      new_date: newDateVal,
+      new_end_time: newEndTimeVal,
       Assign_Start_Time: formData.Start_Time ? `${formData.Start_Time}:00` : "",
       Assign_End_Time: formData.End_Time ? `${formData.End_Time}:00` : "",
       Assign_Start_Date: formData.Working_Date,
@@ -2199,7 +2263,14 @@ function NewRequest() {
                 {isEditMode ? (
                   existingFiles.map((file, idx) => (
                     <div key={file.id || idx} className="file-item">
-                      <span>{file.name}</span>
+                      <a
+                        href={getFileUrl(file)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: "#3b82f6", textDecoration: "underline", cursor: "pointer", fontWeight: 500 }}
+                      >
+                        {file.name || "Attachment"}
+                      </a>
                       <button
                         type="button"
                         className="file-remove-btn"
@@ -2212,7 +2283,14 @@ function NewRequest() {
                 ) : (
                   uploadedFiles.map((file, idx) => (
                     <div key={idx} className="file-item">
-                      <span>{file.name}</span>
+                      <a
+                        href={file instanceof File ? URL.createObjectURL(file) : "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: "#3b82f6", textDecoration: "underline", cursor: "pointer", fontWeight: 500 }}
+                      >
+                        {file.name}
+                      </a>
                       <button
                         type="button"
                         className="file-remove-btn"
