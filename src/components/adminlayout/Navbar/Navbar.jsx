@@ -33,7 +33,7 @@ const formatCopenhagenTime = (dateStr) => {
 
 const getNotificationStyleInfo = (title = "", message = "") => {
   const t = (title + " " + message).toLowerCase();
-  
+
   if (t.includes("auto-cancelled") || t.includes("auto cancelled")) {
     return { typeClass: "notif-type-autocancelled", badgeText: "AUTO-CANCELLED" };
   }
@@ -458,9 +458,9 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
               {/* Account */}
               <div className="pd-section">
                 <div className="pd-label">Account</div>
-                <a className="pd-item" href="/profile">
+                {/* <a className="pd-item" href="/profile">
                   <i className="ti ti-user" /> My profile
-                </a>
+                </a> */}
                 <button
                   className="pd-item"
                   onClick={handleOpenSettings}

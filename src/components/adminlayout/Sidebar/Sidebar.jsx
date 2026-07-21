@@ -17,6 +17,7 @@ function NavItem({ icon, label, badge, paths, children }) {
       <button
         className={`nav-link nav-link-parent ${isChildActive ? 'active' : ''} ${open ? 'nav-link-open' : ''}`}
         onClick={() => setOpen(p => !p)}
+        data-tooltip={label}
       >
         <span className="nav-icon-box">
           <i className={`ti ${icon}`} aria-hidden="true" />
@@ -64,7 +65,7 @@ function SubItem({ href, label, subChildren }) {
 }
 
 /* ════════════════════════════════════════════ */
-function Sidebar({ sidebarOpen }) {
+function Sidebar({ sidebarOpen, toggleSidebar }) {
   const { pathname } = useLocation()
 
   const [userRole, setUserRole] = useState("")
@@ -201,7 +202,15 @@ function Sidebar({ sidebarOpen }) {
   let renderedReportsLabel = false;
 
   return (
-    <aside className={`sidebar ${sidebarOpen ? '' : 'sidebar-closed'}`}>
+    <aside className={`sidebar ${sidebarOpen ? '' : 'sidebar-collapsed'}`}>
+      {/* Toggle arrow button - visible when sidebar is collapsed */}
+      <button
+        className="sidebar-toggle-arrow"
+        onClick={toggleSidebar}
+        title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+      >
+        <i className={`ti ${sidebarOpen ? 'ti-chevron-left' : 'ti-chevron-right'}`} />
+      </button>
       <div className="sidebar-inner">
 
         {/* Brand */}
@@ -263,6 +272,7 @@ function Sidebar({ sidebarOpen }) {
                   key={itemKey}
                   to={href}
                   className={`nav-link ${isActive(href) ? 'active' : ''}`}
+                  data-tooltip={item.name}
                 >
                   <span className="nav-icon-box">
                     <i className={`ti ${getIconClass(item)}`} aria-hidden="true" />

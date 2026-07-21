@@ -20,8 +20,94 @@
   overflow: hidden;
 }
 
-.sidebar.sidebar-closed {
-  transform: translateX(-100%);
+.sidebar.sidebar-collapsed {
+  width: 60px;
+}
+
+/* Toggle arrow button — hidden by default, shown only on mobile */
+.sidebar-toggle-arrow {
+  display: none;
+  position: absolute;
+  top: 20%;
+  right: 4px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--sb-hover-bg, rgba(255, 255, 255, 0.08));
+  color: var(--sb-text-mid, #94a3b8);
+  border: 1px solid var(--sb-border, #2a2d3e);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10000002;
+  transition: background 0.2s ease, color 0.2s ease;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.sidebar-toggle-arrow:hover {
+  background: var(--sb-active-bg, rgba(255, 255, 255, 0.12));
+  color: var(--sb-text-full, #e2e8f0);
+}
+
+/* ── Collapsed state: hide text, show only icons ─────── */
+.sidebar.sidebar-collapsed .brand-text-wrap,
+.sidebar.sidebar-collapsed .nav-label,
+.sidebar.sidebar-collapsed .nav-badge,
+.sidebar.sidebar-collapsed .nav-chevron,
+.sidebar.sidebar-collapsed .nav-section-label,
+.sidebar.sidebar-collapsed .submenu,
+.sidebar.sidebar-collapsed .sub-submenu {
+  display: none;
+}
+
+.sidebar.sidebar-collapsed .sidebar-brand {
+  justify-content: center;
+  padding: 6px 4px 20px;
+}
+
+.sidebar.sidebar-collapsed .sidebar-inner {
+  padding: 16px 4px 24px;
+}
+
+.sidebar.sidebar-collapsed .nav-link {
+  justify-content: center;
+  padding: 7px 0;
+  gap: 0;
+}
+
+.sidebar.sidebar-collapsed .nav-link.active::before {
+  left: 0;
+}
+
+/* Tooltip on hover for collapsed icons */
+.sidebar.sidebar-collapsed .nav-link {
+  position: relative;
+}
+
+.sidebar.sidebar-collapsed .nav-link::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--sb-bg, #1a1d2e);
+  color: var(--sb-text-full, #e2e8f0);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--sb-border, #2a2d3e);
+  z-index: 10000003;
+}
+
+.sidebar.sidebar-collapsed .nav-link:hover::after {
+  opacity: 1;
 }
 
 /* ── Inner Scroll Area ───────────────────────────────────── */
@@ -358,4 +444,46 @@
 .nav-sub-link.nested.sub-active {
   color: var(--sb-accent);
   background: var(--sb-active-bg);
+}
+
+/* ── Desktop: no toggle arrow, smooth width transition ── */
+@media (min-width: 769px) {
+  .sidebar-toggle-arrow {
+    display: none !important;
+  }
+
+  .sidebar {
+    transition: width 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+  }
+}
+
+/* ── Mobile: sidebar slides out completely when collapsed ── */
+@media (max-width: 768px) {
+  .sidebar {
+    transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+    width: var(--sidebar-w) !important;
+  }
+
+  .sidebar.sidebar-collapsed {
+    transform: translateX(-100%);
+    width: var(--sidebar-w) !important;
+  }
+
+  .sidebar:not(.sidebar-collapsed) {
+    transform: translateX(0);
+  }
+
+  /* Show close button inside sidebar when open on mobile */
+  .sidebar:not(.sidebar-collapsed) .sidebar-toggle-arrow {
+    display: flex;
+  }
+
+  /* Hide text elements in collapsed shouldn't matter since whole sidebar is hidden */
+  .sidebar.sidebar-collapsed .brand-text-wrap,
+  .sidebar.sidebar-collapsed .nav-label,
+  .sidebar.sidebar-collapsed .nav-badge,
+  .sidebar.sidebar-collapsed .nav-chevron,
+  .sidebar.sidebar-collapsed .nav-section-label {
+    display: block;
+  }
 }
