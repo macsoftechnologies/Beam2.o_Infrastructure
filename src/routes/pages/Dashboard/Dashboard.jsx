@@ -1058,7 +1058,13 @@ function Dashboard() {
           <div className="logs-card">
             <div className="card-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Icons.Clock /> Recent Logs</span>
-              <a href="/logs-reports" style={{ fontSize: '12px', color: '#8B5CF6', textDecoration: 'none', fontWeight: 600 }}>View All</a>
+              <button
+                type="button"
+                onClick={() => navigate('/logs-reports')}
+                style={{ background: 'none', border: 'none', fontSize: '12px', color: '#8B5CF6', textDecoration: 'none', fontWeight: 600, cursor: 'pointer', padding: 0 }}
+              >
+                View All
+              </button>
             </div>
             {recentLogsData.length === 0 ? (
               <p style={{ color: 'var(--text-muted)', fontSize: '13px', padding: '12px 0' }}>No logs available</p>

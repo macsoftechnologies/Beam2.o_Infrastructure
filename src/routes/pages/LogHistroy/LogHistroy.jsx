@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
-import Table from "../../components/common/Table/Table";
-import { searchRequests } from "../../services/requestService";
-import "../styles/pages.css";
+import Table from "../../../components/common/Table/Table";
+import { searchRequests } from "../../../services/requestService";
+import { API_BASE_URL } from "../../../services/api";
+import "../../styles/pages.css";
 import LogHistoryModal from "./LogHistoryModel";
 
 // Helper to convert yyyy-mm-dd date to dd-mm-yyyy format
@@ -129,7 +130,7 @@ const LogHistory = () => {
         <button
           className="dept-action-btn dept-action-btn--view"
           title="View Details Drawing"
-          onClick={() => window.open(`http://187.127.171.51/requests/logs-design/${item.PermitNo}`, '_blank')}
+          onClick={() => window.open(`${API_BASE_URL}/requests/logs-design/${item.PermitNo}`, '_blank')}
         >
           👁
         </button>

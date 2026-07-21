@@ -1573,8 +1573,12 @@ function NewRequest() {
       pressurization: formData.pressurization === "1" ? 1 : 0,
       pressure_testing_of_equipment: formData.pressure_testing_of_equipment === "1" ? 1 : 0,
       Number_Of_Workers: formData.Number_Of_Workers,
-      electrical_works: Array.isArray(formData.electrical_works) ? formData.electrical_works.join(",") : "",
-      mechanical_works: Array.isArray(formData.mechanical_works) ? formData.mechanical_works.join(",") : "",
+      electrical_works: (Array.isArray(formData.electrical_works) && formData.electrical_works.filter(x => x && x !== "N/A").length > 0)
+        ? formData.electrical_works.filter(x => x && x !== "N/A").join(",")
+        : "N/A",
+      mechanical_works: (Array.isArray(formData.mechanical_works) && formData.mechanical_works.filter(x => x && x !== "N/A").length > 0)
+        ? formData.mechanical_works.filter(x => x && x !== "N/A").join(",")
+        : "N/A",
       Safety_Precautions: Array.isArray(formData.Safety_Precautions) ? formData.Safety_Precautions.join(",") : "",
 
       // General Safety Checklist
