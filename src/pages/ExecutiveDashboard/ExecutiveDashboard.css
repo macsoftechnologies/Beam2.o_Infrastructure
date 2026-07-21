@@ -642,12 +642,30 @@
 }
 
 .companies-scroll-list {
-  overflow: visible;
+  max-height: 220px;
+  overflow-y: auto;
+  overflow-x: hidden;
   border: 1px solid var(--border-color);
   border-radius: 4px;
   background-color: rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
+  padding-right: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.companies-scroll-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.companies-scroll-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.companies-scroll-list::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
 }
 
 .company-list-item {
@@ -723,7 +741,8 @@
   position: relative;
   width: 100%;
   min-width: 0;
-  overflow-x: hidden;
+  overflow: visible;
+  z-index: 5;
 }
 
 /* Collapse Toggle Tabs */
@@ -767,6 +786,8 @@
   display: flex;
   justify-content: center;
   background-color: #101726;
+  position: relative;
+  z-index: 2;
 }
 
 .map-title-badge {
@@ -787,7 +808,7 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   padding: 20px;
   box-sizing: border-box;
   width: 100%;
@@ -1126,6 +1147,21 @@ html[data-theme="light"] .mini-avatar {
   border-color: #ffffff;
 }
 
+.hover-card-comp-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+.hover-card-comp-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+}
+.hover-card-comp-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+.hover-card-comp-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.55);
+}
+
 .panel-auto-approve-wrapper {
   display: flex;
   flex-direction: column;
@@ -1200,4 +1236,23 @@ html[data-theme="light"] .exec-building-select {
 .room-type-select option {
   background-color: var(--bg-card, #111827);
   color: var(--text-main, #ffffff);
+}
+
+/* Hover card scrollbar styling */
+.hover-card-comp-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+.hover-card-comp-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.hover-card-comp-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.hover-card-comp-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
 }

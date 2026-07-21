@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from "react";
 import "./PortalSelection.css";
 import { navigateTo } from "../../config/basePath";
+import { isTokenValid } from "../../components/common/PublicRoute";
 
 function PortalSelection() {
   const [overlayActive, setOverlayActive] = useState(false);
 
   useEffect(() => {
+    if (isTokenValid()) {
+      navigateTo("/dashboard");
+      return;
+    }
+
     const canvas = document.getElementById("particles");
     if (!canvas) return;
     const ctx = canvas.getContext("2d");

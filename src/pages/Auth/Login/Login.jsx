@@ -1,10 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { login } from "../../../services/authService";
 import { showSuccess, showError } from "../../../components/common/Toast/Toast";
 import { navigateTo } from "../../../config/basePath";
+import { isTokenValid } from "../../../components/common/PublicRoute";
 import "./Login.css";
 
 export default function Login() {
+  useEffect(() => {
+    if (isTokenValid()) {
+      navigateTo("/dashboard");
+    }
+  }, []);
+
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");

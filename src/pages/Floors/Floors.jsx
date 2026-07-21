@@ -124,7 +124,6 @@ const Floors = () => {
     { header: "S.No", accessor: "serial" },
     { header: "Building", accessor: "buildingName" },
     { header: "Floor Name", accessor: "floor_name" },
-    { header: "Status", accessor: "floor_status" },
     { header: "Actions", accessor: "actions" },
   ];
 

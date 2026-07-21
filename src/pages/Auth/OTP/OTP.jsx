@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { verifyOtp } from "../../../services/authService";
 import { showSuccess, showError } from "../../../components/common/Toast/Toast";
 import { navigateTo } from "../../../config/basePath";
+import { isTokenValid } from "../../../components/common/PublicRoute";
 import "./OTP.css";
 
 // ─── DIVISION CONFIG (must match Login.jsx) ─────────────────────────
@@ -29,11 +30,24 @@ const ACTIVE_DIVISION = "north"; // ← change to match Login.jsx
 const OTP_LENGTH = 6;
 
 export default function OTP() {
+<<<<<<< Updated upstream
   const [digits, setDigits] = useState(Array(OTP_LENGTH).fill(""));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [resent, setResent] = useState(false);
   const [timer, setTimer] = useState(30);
+=======
+  useEffect(() => {
+    if (isTokenValid()) {
+      navigateTo("/dashboard");
+    }
+  }, []);
+  const [digits,   setDigits]   = useState(Array(OTP_LENGTH).fill(""));
+  const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState("");
+  const [resent,   setResent]   = useState(false);
+  const [timer,    setTimer]    = useState(30);
+>>>>>>> Stashed changes
   const [canResend, setCanResend] = useState(false);
 
   const inputRefs = useRef([]);
