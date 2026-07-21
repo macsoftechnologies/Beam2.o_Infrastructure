@@ -35,8 +35,57 @@ export default function ZonePolygonViewer({
     }, [pdf, width]);
 
     return (
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-start", width: "100%" }}>
-            <Stage width={stageSize.width} height={stageSize.height}>
+        <div
+            style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "flex-start",
+                width: "100%",
+                position: "relative",
+                minHeight: "400px",
+            }}
+        >
+            <style>{`
+                .pdf-loader-spinner {
+                    width: 44px;
+                    height: 44px;
+                    border: 3.5px solid rgba(59, 130, 246, 0.1);
+                    border-top-color: #3b82f6;
+                    border-radius: 50%;
+                    animation: pdf-spin 0.8s linear infinite;
+                }
+                @keyframes pdf-spin {
+                    to { transform: rotate(360deg); }
+                }
+            `}</style>
+
+            {!image && (
+                <div
+                    style={{
+                        position: "absolute",
+                        inset: 0,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "14px",
+                        background: "#151d30",
+                        zIndex: 10,
+                        borderRadius: "8px",
+                    }}
+                >
+                    <div className="pdf-loader-spinner" />
+                    <span style={{ color: "#9ca3af", fontSize: "13.5px", fontWeight: 500, letterSpacing: "0.3px" }}>
+                        Loading Floor Plan...
+                    </span>
+                </div>
+            )}
+
+            <Stage
+                width={stageSize.width || width}
+                height={stageSize.height || 600}
+                style={{ visibility: image ? "visible" : "hidden" }}
+            >
 
                 {/* Layer 1 – PDF background image (non-interactive) */}
                 <Layer listening={false}>
@@ -51,7 +100,7 @@ export default function ZonePolygonViewer({
 
                 {/* Layer 2 – Zone polygons */}
                 <Layer>
-                    {zones.map((zone) => {
+                    {zones.map((zone, index) => {
                         const isSelected = selectedZoneId === zone.id;
                         const isHovered = hoveredZoneId === zone.id;
 

@@ -26,7 +26,7 @@ export default function Login() {
 
     try {
       const response = await login({ username, password });
-      
+
       if (response && (response.statusCode === 200 || response.status === true)) {
         // Save tempUser details in localStorage
         const tempUser = {
@@ -37,9 +37,9 @@ export default function Login() {
           auth_token: response.auth_token
         };
         localStorage.setItem("tempUser", JSON.stringify(tempUser));
-        
+
         showSuccess("Login successful. OTP sent.");
-        
+
         setTimeout(() => {
           setLoading(false);
           navigateTo("/otp");
@@ -74,7 +74,7 @@ export default function Login() {
       </div>
 
       {/* Back Link */}
-      <a href="/" className="back-link">
+      <a href="https://187.127.171.51/m3infrastructure_frontend/" className="back-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M19 12H5M12 19l-7-7 7-7" />
         </svg>
@@ -129,7 +129,7 @@ export default function Login() {
             <form id="loginForm" onSubmit={handleSubmit} noValidate>
               <div className="field-group">
                 <label className="field-label" htmlFor="username">
-                  Username or Email
+                  Username
                 </label>
                 <div className="field-wrap">
                   <svg className="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -200,10 +200,10 @@ export default function Login() {
                     onChange={(e) => setRemember(e.target.checked)}
                   />
                   <span className="remember-label">Remember me</span>
-                </label> */}
+                </label> 
                 <a href="#" className="forgot-link">
                   Forgot password?
-                </a>
+                </a>*/}
               </div>
 
               <button
