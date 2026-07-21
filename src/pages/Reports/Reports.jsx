@@ -1180,7 +1180,7 @@ const Reports = () => {
   });
 
   return (
-    <div className="dept-page">
+    <div className="dept-page reports-page">
       {/* Page Header */}
       <div className="dept-page-header">
         <div className="dept-page-header__left">
@@ -1298,7 +1298,7 @@ const Reports = () => {
             </div>
 
             {/* Row 5: Start Time | End Time & Night Shift (3 columns nested in full-width wrapper) */}
-            <div className="df-field--full" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "18px" }}>
+            <div className="df-field--full time-nightshift-grid">
               <div className="df-field">
                 <label className="df-label">Start Time</label>
                 <input

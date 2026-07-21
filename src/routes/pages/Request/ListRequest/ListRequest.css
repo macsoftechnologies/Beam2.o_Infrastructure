@@ -434,3 +434,62 @@ th.sticky-col-operations {
 .animate-slide-in {
   animation: slide-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+@media (max-width: 768px) {
+  .sticky-col-status,
+  .sticky-col-operations {
+    position: static !important;
+    box-shadow: none !important;
+    border-left: none !important;
+  }
+  
+  th.sticky-col-status,
+  th.sticky-col-operations {
+    position: static !important;
+  }
+
+  .beam-table {
+    min-width: 1500px !important;
+  }
+
+  /* Bulk Toolbar mobile styles */
+  .bulk-actions-toolbar {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 16px !important;
+    padding: 16px !important;
+    text-align: center;
+  }
+  
+  .bat-info {
+    flex-direction: column !important;
+    gap: 6px !important;
+  }
+  
+  .bat-buttons {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  
+  .bat-btn {
+    flex: 1 1 calc(50% - 8px) !important;
+    min-width: 120px !important;
+    justify-content: center !important;
+  }
+
+  .bulk-edit-dropdown-container {
+    flex: 1 1 calc(50% - 8px) !important;
+    width: 100% !important;
+  }
+  
+  .bulk-edit-dropdown-container .bat-btn {
+    width: 100% !important;
+  }
+
+  .bulk-edit-dropdown-menu {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+}

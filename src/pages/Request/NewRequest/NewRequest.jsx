@@ -2456,7 +2456,7 @@ function NewRequest() {
             <h2 className="form-card-title">Safety Precautions & Tasks</h2>
 
             {/* Hotwork dropdown */}
-            <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center" }}>
+            <div className="precaution-row">
               <img src={HotWorks} alt="HotWorks" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.08)", background: "#fff" }} />
               <div className="df-field" style={{ flex: 1 }}>
                 <label className="df-label">Is Hotwork Required?</label>
@@ -2625,7 +2625,7 @@ function NewRequest() {
             )}
 
             {/* Temporary Electrical Systems dropdown */}
-            <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center" }}>
+            <div className="precaution-row">
               <img src={ElectricalSystems} alt="ElectricalSystems" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.08)", background: "#fff" }} />
               <div className="df-field" style={{ flex: 1 }}>
                 <label className="df-label">Working on Site Temporary Electrical Systems?</label>
@@ -2706,7 +2706,7 @@ function NewRequest() {
             )}
 
             {/* Hazardous Substances dropdown */}
-            <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center" }}>
+            <div className="precaution-row">
               <img src={substanceChemical} alt="Chemicals" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.08)", background: "#fff" }} />
               <div className="df-field" style={{ flex: 1 }}>
                 <label className="df-label">Working with Hazardous Substances/Chemicals?</label>
@@ -2822,7 +2822,7 @@ function NewRequest() {
             )}
 
             {/* Working at Height dropdown */}
-            <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center" }}>
+            <div className="precaution-row">
               <img src={WorkingAtHight} alt="Working at Height" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.08)", background: "#fff" }} />
               <div className="df-field" style={{ flex: 1 }}>
                 <label className="df-label">WORKING AT HEIGHT?</label>
@@ -2999,7 +2999,7 @@ function NewRequest() {
             )}
 
             {/* Working in Confined Spaces dropdown */}
-            <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center" }}>
+            <div className="precaution-row">
               <img src={ConfinedSpace} alt="Confined Spaces" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.08)", background: "#fff" }} />
               <div className="df-field" style={{ flex: 1 }}>
                 <label className="df-label">WORKING IN CONFINED SPACES?</label>
@@ -3115,7 +3115,7 @@ function NewRequest() {
             )}
 
             {/* Excavation Works dropdown */}
-            <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center" }}>
+            <div className="precaution-row">
               <img src={ExcavationWorks} alt="Excavation Works" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.08)", background: "#fff" }} />
               <div className="df-field" style={{ flex: 1 }}>
                 <label className="df-label">EXCAVATION WORKS?</label>
@@ -3244,7 +3244,7 @@ function NewRequest() {
             )}
 
             {/* Using Crane or Lifting dropdown */}
-            <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center" }}>
+            <div className="precaution-row">
               <img src={Craneslifting} alt="Crane Lifting" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.08)", background: "#fff" }} />
               <div className="df-field" style={{ flex: 1 }}>
                 <label className="df-label">USING CRANE OR LIFTING?</label>
@@ -3636,7 +3636,7 @@ function NewRequest() {
                     )}
 
                     {/* Working on OR near live electrical systems */}
-                    <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center", marginTop: "20px" }}>
+                    <div className="precaution-row" style={{ marginTop: "20px" }}>
                       <img src={electrical_works} alt="electrical_works" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.08)", background: "#fff" }} />
                       <div className="df-field" style={{ flex: 1 }}>
                         <label className="df-label">Working on OR near live electrical systems (Live testing, commissioning, fault finding, working inside live enclosures)</label>
@@ -3762,7 +3762,7 @@ function NewRequest() {
             {/* pressurization starts */}
             {formData.permit_type === "Commissioning" && !shouldShowElectricianCert() && (
               <>
-                <div style={{ display: "flex", gap: "16px", marginBottom: "20px", alignItems: "center", marginTop: "20px" }}>
+                <div className="precaution-row" style={{ marginTop: "20px" }}>
                   <img src={mechanical1} alt="mechanical1" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.08)", background: "#fff" }} />
                   <div className="df-field" style={{ flex: 1 }}>
                     <label className="df-label">Energization of Mechanical equipment</label>
@@ -3887,7 +3887,7 @@ function NewRequest() {
             {/* Pressure Testing dropdown */}
             {formData.permit_type === "Commissioning" && !shouldShowElectricianCert() && (
               <>
-                <div style={{ display: "flex", gap: "16px", alignItems: "center", marginTop: "20px" }}>
+                <div className="precaution-row" style={{ marginTop: "20px" }}>
                   <img src={testingequipment} alt="testingequipment" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "1px solid rgba(255,255,255,0.08)", background: "#fff" }} />
                   <div className="df-field" style={{ flex: 1 }}>
                     <label className="df-label">PRESSURE TESTING OF EQUIPMENT REQUIRED?</label>
@@ -4052,7 +4052,7 @@ function NewRequest() {
 
             <div style={{ marginBottom: "20px" }}>
               <label className="df-label" style={{ marginBottom: "16px" }}>Task Specific PPE Required: <span className="req-star">*</span></label>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px" }}>
+              <div className="ppe-grid">
 
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", background: "rgba(255,255,255,0.02)", padding: "16px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.05)" }}>
                   <img src={Eyeprotection} alt="Eye Protection" style={{ width: "64px", height: "64px", marginBottom: "8px" }} />

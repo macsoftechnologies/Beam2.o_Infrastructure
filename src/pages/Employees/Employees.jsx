@@ -315,7 +315,7 @@ const Employees = () => {
       <div className="dept-table-card" style={{ marginBottom: "16px", padding: "16px 24px" }}>
         <h3 style={{ margin: "0 0 12px 0", fontSize: "1rem", fontWeight: "600", color: "#F9FAFB" }}>Filters</h3>
         <div className="df-form" style={{ padding: "0" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "2.5fr 1.5fr auto", gap: "16px", alignItems: "flex-end", width: "100%" }}>
+          <div className="filters-grid">
             <div className="df-field" style={{ marginBottom: 0 }}>
               <label className="df-label" style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>EMPLOYEE NAME / SEARCH KEYWORD</label>
               <input type="text" className="df-input" placeholder="Search by name, email, badge, designation..." value={filterName} onChange={(e) => setFilterName(e.target.value)} />
@@ -329,7 +329,7 @@ const Employees = () => {
                 ))}
               </select>
             </div>
-            <div style={{ display: "flex", gap: "12px", paddingBottom: "2px" }}>
+            <div className="filters-actions">
               <button onClick={handleFilter} type="button" className="dept-add-btn" style={{ backgroundColor: '#CA8A04', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
                 <FaSearch style={{ marginRight: '6px' }} /> Search
               </button>
