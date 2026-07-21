@@ -646,14 +646,18 @@ const ListRequest = () => {
   const location = useLocation();
 
   useEffect(() => {
-    if (location.state) {
-      const { status, fromDate, toDate } = location.state;
+    const queryParams = new URLSearchParams(location.search);
+    const qPermitNo = queryParams.get("permitNo") || queryParams.get("permit_no") || queryParams.get("search");
+
+    if (location.state || qPermitNo) {
+      const stateObj = location.state || {};
+      const { status, fromDate, toDate, permitNo, permit_no, search, keyword } = stateObj;
+      const targetPermit = permitNo || permit_no || search || keyword || qPermitNo;
+
       setSearchFilters(prev => {
         const updated = { ...prev };
         if (status) {
           updated.statuses = Array.isArray(status) ? status : [status];
-        } else {
-          updated.statuses = [];
         }
         if (fromDate !== undefined) {
           updated.fromDate = fromDate;
@@ -661,12 +665,15 @@ const ListRequest = () => {
         if (toDate !== undefined) {
           updated.toDate = toDate;
         }
+        if (targetPermit !== undefined && targetPermit !== null && targetPermit !== "") {
+          updated.permitNo = String(targetPermit).trim();
+        }
         return updated;
       });
       // Clear location state so they don't persist on page reload
       window.history.replaceState({}, document.title);
     }
-  }, [location.state]);
+  }, [location.state, location.search]);
 
   // ─── Component States ──────────────────────────────────────────────────────
   const [requests, setRequests] = useState([]);

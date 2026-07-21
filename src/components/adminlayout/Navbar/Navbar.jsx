@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { useNavigate } from "react-router-dom";
 import "./Navbar.css";
 import { logout } from "../../../services/authService";
 import { navigateTo } from "../../../config/basePath";
@@ -31,35 +32,130 @@ const formatCopenhagenTime = (dateStr) => {
   return formatToDenmarkDateTime(localStr);
 };
 
-const getNotificationStyleInfo = (title = "", message = "") => {
-  const t = (title + " " + message).toLowerCase();
+const extractPermitNo = (n) => {
+  if (!n) return "";
 
-  if (t.includes("auto-cancelled") || t.includes("auto cancelled")) {
+  // 1. Check metadata (string or object)
+  if (n.metadata) {
+    try {
+      const meta = typeof n.metadata === "string" ? JSON.parse(n.metadata) : n.metadata;
+      if (meta && meta.permitNo) return String(meta.permitNo).trim();
+      if (meta && meta.permit_no) return String(meta.permit_no).trim();
+      if (meta && meta.permitNumber) return String(meta.permitNumber).trim();
+      if (meta && meta.PermitNo) return String(meta.PermitNo).trim();
+      if (meta && meta.requestId) return String(meta.requestId).trim();
+      if (meta && meta.request_id) return String(meta.request_id).trim();
+    } catch (e) {
+      console.error("Error parsing notification metadata:", e);
+    }
+  }
+
+  // 2. Check direct properties on n
+  if (n.PermitNo) return String(n.PermitNo).trim();
+  if (n.permitNo) return String(n.permitNo).trim();
+  if (n.permit_no) return String(n.permit_no).trim();
+  if (n.permitNumber) return String(n.permitNumber).trim();
+  if (n.permit_number) return String(n.permit_number).trim();
+  if (n.permitRequestId) return String(n.permitRequestId).trim();
+  if (n.permit_request_id) return String(n.permit_request_id).trim();
+  if (n.request_id) return String(n.request_id).trim();
+  if (n.requestId) return String(n.requestId).trim();
+  if (n.requestNo) return String(n.requestNo).trim();
+  if (n.request_no) return String(n.request_no).trim();
+  if (n.id_number) return String(n.id_number).trim();
+
+  // 3. Fallback: Parse from title or message using regex
+  const text = `${n.title || ""} ${n.message || ""}`;
+
+  const match =
+    text.match(/(?:permit|request|id|no\.?)\s*(?:#|\:|\s)*([a-z0-9\-_]+)/i) ||
+    text.match(/#([a-z0-9\-_]+)/i);
+
+  if (
+    match &&
+    match[1] &&
+    !["changed", "status", "has", "been", "was", "for", "the", "and"].includes(match[1].toLowerCase())
+  ) {
+    return match[1].trim();
+  }
+
+  return "";
+};
+
+const getNotificationStyleInfo = (n) => {
+  if (!n) return { typeClass: "notif-type-opened", badgeText: "OPENED" };
+
+  let rawStatus = n.permitStatus || n.permit_status || n.status;
+
+  if (!rawStatus && n.metadata) {
+    try {
+      const meta = typeof n.metadata === "string" ? JSON.parse(n.metadata) : n.metadata;
+      if (meta && (meta.newStatus || meta.permitStatus || meta.status)) {
+        rawStatus = meta.newStatus || meta.permitStatus || meta.status;
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  const titleMsg = `${n.title || ""} ${n.message || ""}`;
+  const statusToTest = (rawStatus ? String(rawStatus) : titleMsg).toLowerCase().trim();
+
+  if (statusToTest.includes("auto-cancelled") || statusToTest.includes("auto cancelled")) {
     return { typeClass: "notif-type-autocancelled", badgeText: "AUTO-CANCELLED" };
   }
-  if (t.includes("pre-approved") || t.includes("pre approved") || t.includes("preok") || t.includes("pre-ok")) {
+  if (statusToTest.includes("pre-approved") || statusToTest.includes("pre approved") || statusToTest.includes("preok") || statusToTest.includes("pre-ok")) {
     return { typeClass: "notif-type-preapproved", badgeText: "PRE-APPROVED" };
   }
-  if (t.includes("approved")) {
+  if (statusToTest.includes("approved")) {
     return { typeClass: "notif-type-approved", badgeText: "APPROVED" };
   }
-  if (t.includes("reject") || t.includes("denied")) {
+  if (statusToTest.includes("reject") || statusToTest.includes("denied")) {
     return { typeClass: "notif-type-rejected", badgeText: "REJECTED" };
   }
-  if (t.includes("cancelled") || t.includes("cancel")) {
+  if (statusToTest.includes("cancelled") || statusToTest.includes("cancel")) {
     return { typeClass: "notif-type-cancelled", badgeText: "CANCELLED" };
   }
-  if (t.includes("closed") || t.includes("close")) {
+  if (statusToTest.includes("closed") || statusToTest.includes("close")) {
     return { typeClass: "notif-type-closed", badgeText: "CLOSED" };
   }
-  if (t.includes("hold")) {
+  if (statusToTest.includes("hold")) {
     return { typeClass: "notif-type-hold", badgeText: "HOLD" };
   }
-  if (t.includes("draft")) {
+  if (statusToTest.includes("draft")) {
     return { typeClass: "notif-type-draft", badgeText: "DRAFT" };
   }
-  // Default to Opened
-  return { typeClass: "notif-type-opened", badgeText: "OPENED" };
+  if (statusToTest.includes("opened") || statusToTest.includes("open")) {
+    return { typeClass: "notif-type-opened", badgeText: "OPENED" };
+  }
+
+  const altText = titleMsg.toLowerCase();
+  if (altText.includes("auto-cancelled") || altText.includes("auto cancelled")) {
+    return { typeClass: "notif-type-autocancelled", badgeText: "AUTO-CANCELLED" };
+  }
+  if (altText.includes("pre-approved") || altText.includes("pre approved")) {
+    return { typeClass: "notif-type-preapproved", badgeText: "PRE-APPROVED" };
+  }
+  if (altText.includes("approved")) {
+    return { typeClass: "notif-type-approved", badgeText: "APPROVED" };
+  }
+  if (altText.includes("reject")) {
+    return { typeClass: "notif-type-rejected", badgeText: "REJECTED" };
+  }
+  if (altText.includes("cancelled")) {
+    return { typeClass: "notif-type-cancelled", badgeText: "CANCELLED" };
+  }
+  if (altText.includes("closed")) {
+    return { typeClass: "notif-type-closed", badgeText: "CLOSED" };
+  }
+  if (altText.includes("hold")) {
+    return { typeClass: "notif-type-hold", badgeText: "HOLD" };
+  }
+  if (altText.includes("draft")) {
+    return { typeClass: "notif-type-draft", badgeText: "DRAFT" };
+  }
+
+  return { typeClass: "notif-type-opened", badgeText: rawStatus ? String(rawStatus).toUpperCase() : "OPENED" };
 };
 
 /* ── Live Clock ── */
@@ -150,6 +246,7 @@ function ThemeSwitcher({ theme, onThemeChange }) {
 
 /* ════════════════════════════════════════════ */
 function Navbar({ toggleSidebar, theme, onThemeChange }) {
+  const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
 
@@ -239,11 +336,18 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
     return () => document.removeEventListener('mousedown', handler)
   }, []);
 
-  const handleToggleNotifications = () => {
-    setNotificationsOpen(!notificationsOpen);
-    if (!notificationsOpen) {
-      fetchNotificationsList(1, false);
-      fetchUnreadCount();
+  const handleToggleNotifications = async () => {
+    const nextOpenState = !notificationsOpen;
+    setNotificationsOpen(nextOpenState);
+    if (nextOpenState) {
+      await fetchNotificationsList(1, false);
+      try {
+        await markAllNotificationsRead();
+        setUnreadCount(0);
+        setNotifications(prev => prev.map(n => ({ ...n, isRead: 1 })));
+      } catch (e) {
+        console.error("Error marking all notifications as read on open:", e);
+      }
     }
   };
 
@@ -266,6 +370,17 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
       } catch (e) {
         console.error("Error marking notification as read:", e);
       }
+    }
+
+    setNotificationsOpen(false);
+
+    const permitNo = extractPermitNo(n);
+    if (permitNo) {
+      navigate(`/list-request?permitNo=${encodeURIComponent(permitNo)}`, {
+        state: { permitNo }
+      });
+    } else {
+      navigate("/list-request");
     }
   };
 
@@ -394,7 +509,8 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
                   </div>
                 ) : (
                   notifications.map((n) => {
-                    const styleInfo = getNotificationStyleInfo(n.title, n.message);
+                    const styleInfo = getNotificationStyleInfo(n);
+                    const permitNo = extractPermitNo(n);
                     return (
                       <button
                         key={n.id}
@@ -406,6 +522,11 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
                           <span className="nd-status-badge">{styleInfo.badgeText}</span>
                           <span className="nd-item-time">{formatCopenhagenTime(n.createdAt)}</span>
                         </div>
+                        {permitNo && (
+                          <div className="nd-item-permit">
+                            <span className="nd-permit-label">Permit No:</span> <span className="nd-permit-value">#{permitNo}</span>
+                          </div>
+                        )}
                         <span className="nd-item-title">{n.title}</span>
                         <span className="nd-item-msg">{n.message}</span>
                       </button>
