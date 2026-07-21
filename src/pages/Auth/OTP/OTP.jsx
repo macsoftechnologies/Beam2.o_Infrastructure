@@ -30,24 +30,16 @@ const ACTIVE_DIVISION = "north"; // ← change to match Login.jsx
 const OTP_LENGTH = 6;
 
 export default function OTP() {
-<<<<<<< Updated upstream
-  const [digits, setDigits] = useState(Array(OTP_LENGTH).fill(""));
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [resent, setResent] = useState(false);
-  const [timer, setTimer] = useState(30);
-=======
   useEffect(() => {
     if (isTokenValid()) {
       navigateTo("/dashboard");
     }
   }, []);
-  const [digits,   setDigits]   = useState(Array(OTP_LENGTH).fill(""));
-  const [loading,  setLoading]  = useState(false);
-  const [error,    setError]    = useState("");
-  const [resent,   setResent]   = useState(false);
-  const [timer,    setTimer]    = useState(30);
->>>>>>> Stashed changes
+  const [digits, setDigits] = useState(Array(OTP_LENGTH).fill(""));
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [resent, setResent] = useState(false);
+  const [timer, setTimer] = useState(30);
   const [canResend, setCanResend] = useState(false);
 
   const inputRefs = useRef([]);
