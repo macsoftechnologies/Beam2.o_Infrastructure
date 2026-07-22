@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from "react";
+import { Navigate } from "react-router-dom";
 import "./PortalSelection.css";
 import { navigateTo } from "../../config/basePath";
 import { isTokenValid } from "../../components/common/PublicRoute";
 
 function PortalSelection() {
+  if (isTokenValid()) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   const [overlayActive, setOverlayActive] = useState(false);
 
   useEffect(() => {
     if (isTokenValid()) {
-      navigateTo("/dashboard");
+      navigateTo("/dashboard", true);
       return;
     }
 

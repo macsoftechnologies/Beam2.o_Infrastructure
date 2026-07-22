@@ -297,8 +297,6 @@ const HRA_LIST = [
   { key: "pressure_testing_of_equipment", label: "Testing Equipment", icon: "testingequipment.png", image: LOGO_MAP["testingequipment.png"] },
   { key: "working_at_height", label: "Working at Height", icon: "WorkingAtHight.png", image: LOGO_MAP["WorkingAtHight.png"] },
   { key: "working_confined_spaces", label: "Confined Space", icon: "ConfinedSpace.png", image: LOGO_MAP["ConfinedSpace.png"] },
-  { key: "work_in_atex_area", label: "ATEX Area", icon: "ATEXarea.png", image: LOGO_MAP["ATEXarea.png"] || null },
-  { key: "securing_facilities", label: "Securing Facilities", icon: "SecuringFacilities.png", image: LOGO_MAP["SecuringFacilities.png"] || null },
   { key: "excavation_works", label: "Excavation Works", icon: "ExcavationWorks.png", image: LOGO_MAP["ExcavationWorks.png"] },
   { key: "using_cranes_or_lifting", label: "Cranes & Lifting", icon: "Craneslifting.png", image: LOGO_MAP["Craneslifting.png"] },
   { key: "power_on", label: "Electrical Works", icon: "electrical_works.png", image: LOGO_MAP["electrical_works.png"] },
@@ -542,6 +540,7 @@ const MultiSelectDropdown = ({
             const val = String(opt.value ?? opt.key ?? opt.id ?? opt.build_id ?? opt);
             const displayLabel = opt.label || opt.building_name || opt.floor_name || opt.subContractorName || opt;
             const isChecked = selectedValues.includes(val);
+            const imgUrl = opt.image || (opt.icon ? LOGO_MAP[opt.icon] : null);
 
             return (
               <label
@@ -549,7 +548,7 @@ const MultiSelectDropdown = ({
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "12px",
+                  gap: "10px",
                   padding: "10px 16px",
                   cursor: "pointer",
                   transition: "background-color 0.2s",
@@ -573,6 +572,19 @@ const MultiSelectDropdown = ({
                     borderRadius: "4px"
                   }}
                 />
+                {imgUrl && (
+                  <img
+                    src={imgUrl}
+                    alt={displayLabel}
+                    style={{
+                      width: "22px",
+                      height: "22px",
+                      objectFit: "contain",
+                      borderRadius: "4px",
+                      flexShrink: 0
+                    }}
+                  />
+                )}
                 <span>{displayLabel}</span>
               </label>
             );
@@ -809,6 +821,47 @@ const ListRequest = () => {
     return floorsList.filter(f => searchFilters.buildings.includes(String(f.build_id)));
   }, [searchFilters.buildings, floorsList]);
 
+  // Filter zones based on selected levels/floors (and buildings)
+  const filteredZones = useMemo(() => {
+    let zonesToFilter = zonesList;
+
+    if (searchFilters.buildings && searchFilters.buildings.length > 0) {
+      const selectedBuildingIds = searchFilters.buildings.map(Number);
+      zonesToFilter = zonesToFilter.filter(z =>
+        z.building_id !== undefined && z.building_id !== null && selectedBuildingIds.includes(Number(z.building_id))
+      );
+    }
+
+    if (searchFilters.levels && searchFilters.levels.length > 0) {
+      const matchedFloorIds = floorsList
+        .filter(f => searchFilters.levels.includes(f.floor_name))
+        .map(f => Number(f.fl_id));
+
+      const zoneIdsFromRooms = roomsList
+        .filter(r => matchedFloorIds.includes(Number(r.fl_id)))
+        .map(r => Number(r.zone_id))
+        .filter(Boolean);
+
+      zonesToFilter = zonesToFilter.filter(z => {
+        const matchDirectFloorId = z.floor_id !== undefined && z.floor_id !== null && matchedFloorIds.includes(Number(z.floor_id));
+        const matchDirectLevelName = z.level !== undefined && z.level !== null && searchFilters.levels.includes(z.level);
+        const matchViaRooms = zoneIdsFromRooms.includes(Number(z.id));
+        return matchDirectFloorId || matchDirectLevelName || matchViaRooms;
+      });
+    }
+
+    const seenNames = new Set();
+    const result = [];
+    zonesToFilter.forEach(z => {
+      if (z.zone && !seenNames.has(z.zone)) {
+        seenNames.add(z.zone);
+        result.push(z);
+      }
+    });
+
+    return result;
+  }, [zonesList, floorsList, roomsList, searchFilters.buildings, searchFilters.levels]);
+
   // Filter rooms based on selected levels/floors and group them by zone names
   const filteredRooms = useMemo(() => {
     let roomsToGroup = roomsList;
@@ -866,9 +919,9 @@ const ListRequest = () => {
       const payload = {
         Activity: searchFilters.keyword || null,
         PermitNo: searchFilters.permitNo || null,
-        Sub_Contractor_Id: searchFilters.contractors.length > 0 ? Number(searchFilters.contractors[0]) : null,
+        Sub_Contractor_Id: searchFilters.contractors.length > 0 ? searchFilters.contractors.join(",") : null,
         Request_status: searchFilters.statuses.length > 0 ? searchFilters.statuses.join(",") : null,
-        Building_Id: searchFilters.buildings.length > 0 ? Number(searchFilters.buildings[0]) : null,
+        Building_Id: searchFilters.buildings.length > 0 ? searchFilters.buildings.join(",") : null,
         Room_Type: searchFilters.levels.length > 0 ? searchFilters.levels.join(",") : null,
         Room_Nos: searchFilters.areas.length > 0 ? searchFilters.areas.join(",") : null,
         zoneIds: zonesList.filter(z => searchFilters.zones && searchFilters.zones.includes(z.zone)).map(z => z.id).length > 0
@@ -926,6 +979,15 @@ const ListRequest = () => {
       setIsLoading(false);
     }
   }, [searchFilters, limit]);
+
+  const isFirstFilterRender = useRef(true);
+  useEffect(() => {
+    if (isFirstFilterRender.current) {
+      isFirstFilterRender.current = false;
+      return;
+    }
+    setCurrentPage(1);
+  }, [searchFilters]);
 
   useEffect(() => {
     fetchRequests(currentPage);
@@ -1282,8 +1344,7 @@ const ListRequest = () => {
         payload.ConM_initials1 = modalTarget.ConM_initials1 || "";
       }
     } else if (nextStatus === "Closed") {
-      if (!closeNote.trim()) return showError("Please enter closing notes.");
-      payload.close_note = closeNote.trim();
+      if (!closeNote.trim()) return showError("Please enter closing notes / remarks.");
       if (modalTarget.Hot_work === 1) {
         if (hHeatSource === null || hHeatSource === undefined) {
           return showError("Please inspect the work area for smoldering materials or residual heat.");
@@ -1649,11 +1710,11 @@ const ListRequest = () => {
 
     try {
       await createByCount(payload);
-      showSuccess("Permits cloned successfully");
+      showSuccess("Permits copied successfully");
       setActiveModal(null);
       fetchRequests(currentPage);
     } catch {
-      showError("Clone operation failed");
+      showError("Copy operation failed");
     }
   };
 
@@ -1840,7 +1901,7 @@ const ListRequest = () => {
           {currentUser?.role !== "Observer" && (
             <button
               className="op-action-btn op-action-btn--copy"
-              title="Clone/Copy Request"
+              title="Copy Request"
               onClick={() => handleCopyTrigger(row)}
             >
               <FaCopy />
@@ -1987,7 +2048,7 @@ const ListRequest = () => {
                   placeholder="Select Levels"
                   options={filteredLevels.map(f => f.floor_name)}
                   selectedValues={searchFilters.levels}
-                  onChange={(vals) => setSearchFilters(prev => ({ ...prev, levels: vals, areas: [] }))}
+                  onChange={(vals) => setSearchFilters(prev => ({ ...prev, levels: vals, areas: [], zones: [] }))}
                   disabled={searchFilters.buildings.length === 0}
                 />
               </div>
@@ -2132,7 +2193,7 @@ const ListRequest = () => {
                 <label className="df-label">Zones</label>
                 <MultiSelectDropdown
                   placeholder="Select Zones"
-                  options={zonesList.map(z => z.zone)}
+                  options={filteredZones.map(z => z.zone)}
                   selectedValues={searchFilters.zones || []}
                   onChange={(vals) => setSearchFilters(prev => ({ ...prev, zones: vals }))}
                 />
@@ -2614,18 +2675,6 @@ const ListRequest = () => {
                   <button
                     type="submit"
                     className="df-btn df-btn--submit"
-                    disabled={
-                      !closeNote.trim() ||
-                      (modalTarget.Hot_work === 1 &&
-                        (hHeatSource === null ||
-                          hHeatSource === undefined ||
-                          hWorkplaceCheck === null ||
-                          hWorkplaceCheck === undefined ||
-                          hFireDetectors === null ||
-                          hFireDetectors === undefined ||
-                          !hStartTime ||
-                          !hEndTime))
-                    }
                     onClick={() => setSubmitStatusOverride("Closed")}
                   >
                     Close Permit
@@ -2924,14 +2973,14 @@ const ListRequest = () => {
       <Modal
         open={activeModal === "copy"}
         onClose={() => setActiveModal(null)}
-        title="Copy/Clone Request to Consecutive Dates"
+        title="Copy Request to Consecutive Dates"
         size="md"
       >
         {modalTarget && (
           <form onSubmit={handleCopySubmit} className="df-form">
             <div style={{ marginBottom: "16px" }}>
               <p style={{ color: "#d1d5db" }}>
-                Cloning request Permit No: <strong style={{ color: "#fff" }}>{modalTarget.PermitNo}</strong>
+                Copying request Permit No: <strong style={{ color: "#fff" }}>{modalTarget.PermitNo}</strong>
               </p>
             </div>
             <div className="df-grid">
@@ -2964,7 +3013,7 @@ const ListRequest = () => {
                 Cancel
               </button>
               <button type="submit" className="df-btn df-btn--submit">
-                Clone Permits
+                Copy Permits
               </button>
             </div>
           </form>

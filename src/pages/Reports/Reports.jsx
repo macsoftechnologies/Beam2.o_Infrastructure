@@ -172,6 +172,7 @@ import {
   getBuildings,
   getFloors,
   getZones,
+  getRooms,
   getPlans
 } from "../../services/authService";
 import { planRequests, searchRequests } from "../../services/requestService";
@@ -196,16 +197,15 @@ import MechanicalWorksLogo from "../../assets/images/logos/mechanical1.png";
 const YEARS = [2024, 2025, 2026, 2027, 2028, 2029];
 
 const STATUS_OPTIONS = [
-  "Hold",
   "Draft",
+  "Hold",
+  "Pre-Approved",
   "Approved",
   "Rejected",
   "Opened",
   "Closed",
   "Cancelled",
-  "Pre-Approved",
   "Auto-Cancelled",
-  "Auto-Cancel"
 ];
 
 const HRA_LIST = [
@@ -215,8 +215,6 @@ const HRA_LIST = [
   { key: "pressure_tesing_of_equipment", label: "Testing Equipment", image: TestingEquipmentLogo },
   { key: "working_at_height", label: "Working at Height", image: WorkingAtHightLogo },
   { key: "working_confined_spaces", label: "Confined Space", image: ConfinedSpaceLogo },
-  { key: "work_in_atex_area", label: "ATEX Area", image: null },
-  { key: "securing_facilities", label: "Securing Facilities", image: null },
   { key: "excavation_works", label: "Excavation Works", image: ExcavationWorksLogo },
   { key: "using_cranes_or_lifting", label: "Cranes & Lifting", image: CranesLiftingLogo },
   { key: "power_on", label: "Electrical Works", image: ElectricalWorksLogo },
@@ -355,7 +353,13 @@ const MultiSelectDropdown = ({
       const allOpts = [];
       options.forEach(opt => {
         if (opt.zones) {
-          opt.zones.forEach(z => allOpts.push({ value: z, label: z }));
+          opt.zones.forEach(z => {
+            if (typeof z === "object") {
+              allOpts.push({ value: String(z.id ?? z.value ?? z), label: z.name ?? z.label ?? z });
+            } else {
+              allOpts.push({ value: z, label: z });
+            }
+          });
         } else {
           allOpts.push(opt);
         }
@@ -482,7 +486,10 @@ const MultiSelectDropdown = ({
                     {opt.floorName}
                   </div>
                   {opt.zones.map((z, zIdx) => {
-                    const isChecked = selectedValues.includes(z);
+                    const zVal = String(typeof z === "object" ? (z.id ?? z.value ?? z) : z);
+                    const zLabel = typeof z === "object" ? (z.name ?? z.label ?? z) : z;
+                    const isChecked = selectedValues.includes(zVal);
+
                     return (
                       <label
                         key={zIdx}
@@ -504,7 +511,7 @@ const MultiSelectDropdown = ({
                         <input
                           type="checkbox"
                           checked={isChecked}
-                          onChange={(e) => handleCheckboxChange(z, e.target.checked)}
+                          onChange={(e) => handleCheckboxChange(zVal, e.target.checked)}
                           style={{
                             width: "16px",
                             height: "16px",
@@ -513,7 +520,7 @@ const MultiSelectDropdown = ({
                             borderRadius: "4px"
                           }}
                         />
-                        <span>{z}</span>
+                        <span>{zLabel}</span>
                       </label>
                     );
                   })}
@@ -555,11 +562,11 @@ const MultiSelectDropdown = ({
                     borderRadius: "4px"
                   }}
                 />
-                {isHra && opt.image && (
+                {(opt.image || opt.icon) && (
                   <img
-                    src={opt.image}
+                    src={opt.image || opt.icon}
                     alt={displayLabel}
-                    style={{ width: "24px", height: "24px", objectFit: "contain", borderRadius: "4px" }}
+                    style={{ width: "22px", height: "22px", objectFit: "contain", borderRadius: "4px", flexShrink: 0 }}
                   />
                 )}
                 <span>{displayLabel}</span>
@@ -628,6 +635,7 @@ const Reports = () => {
   const [buildingsList, setBuildingsList] = useState([]);
   const [floorsList, setFloorsList] = useState([]);
   const [zonesList, setZonesList] = useState([]);
+  const [roomsList, setRoomsList] = useState([]);
   const [weeksList, setWeeksList] = useState([]);
   const [isLoadingSelectors, setIsLoadingSelectors] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
@@ -636,16 +644,18 @@ const Reports = () => {
   useEffect(() => {
     const fetchSelectors = async () => {
       try {
-        const [subRes, buildRes, floorRes, zoneRes] = await Promise.all([
+        const [subRes, buildRes, floorRes, zoneRes, roomRes] = await Promise.all([
           getContractors(1, 1000),
           getBuildings(1, 1000),
           getFloors(1, 1000),
-          getZones(1, 1000)
+          getZones(1, 10000),
+          getRooms(1, 10000)
         ]);
         setContractors(subRes?.data?.rows ?? subRes?.data ?? subRes ?? []);
         setBuildingsList(buildRes?.data ?? []);
         setFloorsList(floorRes?.data ?? []);
         setZonesList(zoneRes?.data ?? []);
+        setRoomsList(roomRes?.data?.rows ?? roomRes?.data ?? roomRes ?? []);
       } catch (err) {
         console.error("Failed to load selectors lists", err);
       } finally {
@@ -655,8 +665,9 @@ const Reports = () => {
     fetchSelectors();
   }, []);
 
-  // ─── Filtered Levels and Areas derived from buildingDataWithIds ────────────
+  // ─── Filtered Levels, Zones, and Areas ─────────────────────────────────────
   const buildingsOptions = useMemo(() => {
+    if (buildingsList && buildingsList.length > 0) return buildingsList;
     const uniqueIds = [...new Set(buildingDataWithIds.map(b => String(b.buildingId)))];
     return uniqueIds.map(id => {
       const apiBuild = buildingsList.find(b => String(b.build_id) === id);
@@ -667,52 +678,87 @@ const Reports = () => {
     });
   }, [buildingsList]);
 
-  const allFloors = useMemo(() => {
-    const floors = [];
-    buildingDataWithIds.forEach(building => {
-      floors.push({
-        buildingId: String(building.buildingId),
-        floorName: building.planType
-      });
-    });
-    return floors;
-  }, []);
+  // Filter levels based on selected buildings
+  const filteredLevels = useMemo(() => {
+    if (filters.building.length === 0) return floorsList;
+    return floorsList.filter(f => filters.building.includes(String(f.build_id)));
+  }, [filters.building, floorsList]);
 
-  const allRooms = useMemo(() => {
-    const rooms = [];
-    buildingDataWithIds.forEach(building => {
-      building.zoneList?.forEach(zone => {
-        rooms.push({
-          buildingId: String(building.buildingId),
-          planType: building.planType,
-          floorName: zone.floorName,
-          zones: zone.zoneSubList?.map(sub => sub.value) || []
-        });
-      });
-    });
-    return rooms;
-  }, []);
+  // Filter zones based on selected levels/floors (and buildings)
+  const filteredZones = useMemo(() => {
+    let zonesToFilter = zonesList;
 
-  const filteredFloors = useMemo(() => {
-    if (filters.building.length === 0) {
-      return [...new Set(allFloors.map(f => f.floorName))];
+    if (filters.building && filters.building.length > 0) {
+      const selectedBuildingIds = filters.building.map(Number);
+      zonesToFilter = zonesToFilter.filter(z =>
+        z.building_id !== undefined && z.building_id !== null && selectedBuildingIds.includes(Number(z.building_id))
+      );
     }
-    return [
-      ...new Set(
-        allFloors
-          .filter(f => filters.building.includes(f.buildingId))
-          .map(f => f.floorName)
-      )
-    ];
-  }, [filters.building, allFloors]);
 
-  const filteredRooms = useMemo(() => {
-    return allRooms.filter(room => {
-      const buildingMatch = filters.building.length === 0 || filters.building.includes(room.buildingId);
-      const levelMatch = filters.level.length === 0 || filters.level.includes(room.planType);
-      return buildingMatch && levelMatch;
+    if (filters.level && filters.level.length > 0) {
+      const matchedFloorIds = floorsList
+        .filter(f => filters.level.includes(f.floor_name))
+        .map(f => Number(f.fl_id));
+
+      const zoneIdsFromRooms = roomsList
+        .filter(r => matchedFloorIds.includes(Number(r.fl_id)))
+        .map(r => Number(r.zone_id))
+        .filter(Boolean);
+
+      zonesToFilter = zonesToFilter.filter(z => {
+        const matchDirectFloorId = z.floor_id !== undefined && z.floor_id !== null && matchedFloorIds.includes(Number(z.floor_id));
+        const matchDirectLevelName = z.level !== undefined && z.level !== null && filters.level.includes(z.level);
+        const matchViaRooms = zoneIdsFromRooms.includes(Number(z.id));
+        return matchDirectFloorId || matchDirectLevelName || matchViaRooms;
+      });
+    }
+
+    const seenNames = new Set();
+    const result = [];
+    zonesToFilter.forEach(z => {
+      if (z.zone && !seenNames.has(z.zone)) {
+        seenNames.add(z.zone);
+        result.push(z);
+      }
     });
-  }, [filters.building, filters.level, allRooms]);
+
+    return result;
+  }, [zonesList, floorsList, roomsList, filters.building, filters.level]);
+
+  // Filter rooms based on selected levels/floors and group them by zone names
+  const filteredRooms = useMemo(() => {
+    let roomsToGroup = roomsList;
+
+    if (filters.building.length > 0) {
+      roomsToGroup = roomsToGroup.filter(r => filters.building.includes(String(r.building_id)));
+    }
+
+    if (filters.level.length > 0) {
+      const matchedFloorIds = floorsList
+        .filter(f => filters.level.includes(f.floor_name))
+        .map(f => f.fl_id);
+      roomsToGroup = roomsToGroup.filter(r => matchedFloorIds.includes(r.fl_id));
+    }
+
+    const groupMap = {};
+
+    roomsToGroup.forEach(r => {
+      const zoneObj = zonesList.find(z => String(z.id) === String(r.zone_id));
+      const zoneName = zoneObj ? zoneObj.zone : "Other Areas";
+      if (!groupMap[zoneName]) {
+        groupMap[zoneName] = [];
+      }
+      groupMap[zoneName].push({
+        id: r.room_id,
+        name: r.room_name
+      });
+    });
+
+    return Object.keys(groupMap).map(zoneName => ({
+      floorName: zoneName,
+      zones: groupMap[zoneName]
+    }));
+  }, [roomsList, zonesList, floorsList, filters.building, filters.level]);
 
   // ─── Change Handlers ────────────────────────────────────────────────────────
   const handleChange = (field, value) => {
@@ -793,21 +839,36 @@ const Reports = () => {
       searchPayload.Site_Id = 5;
       // searchPayload.Page = 1;
       // searchPayload.End = 5000;
-      searchPayload.Building_Id = filters.building.length > 0 ? Number(filters.building[0]) : null;
-      searchPayload.Sub_Contractor_Id = filters.subContractor ? Number(filters.subContractor) : null;
+      searchPayload.Building_Id = Array.isArray(filters.building) && filters.building.length > 0 ? filters.building.join(",") : (filters.building || null);
+      searchPayload.Sub_Contractor_Id = Array.isArray(filters.subContractor) && filters.subContractor.length > 0 ? filters.subContractor.join(",") : (filters.subContractor || null);
       searchPayload.Room_Type = filters.level.length > 0 ? filters.level.join(",") : "";
       const selectedZoneIds = zonesList
         .filter(z => filters.zones && filters.zones.includes(z.zone))
         .map(z => z.id);
       searchPayload.zoneIds = selectedZoneIds.length > 0 ? selectedZoneIds : null;
-      searchPayload.area = filters.area.length > 0 ? filters.area.join("|") : "";
+      searchPayload.zone = filters.zones && filters.zones.length > 0 ? filters.zones.join(",") : null;
+      searchPayload.Room_Nos = filters.area.length > 0 ? filters.area.join(",") : null;
+      searchPayload.area = filters.area.length > 0 ? filters.area.join(",") : "";
       searchPayload.permit_type = filters.permitType || "";
       searchPayload.permit_under = filters.permitUnder || "";
       searchPayload.night_shift = filters.nightShift ? "1" : "0";
 
       const targetDate = (filters.reportType === "1" && filters.date) ? filters.date : "";
-      searchPayload.fromDate = targetDate || filters.workingDateFrom || "";
-      searchPayload.toDate = targetDate || filters.workingDateTo || "";
+
+      // For Weekly Report, parse the selected week string to extract fromDate and toDate
+      // Week string format: "2026/07/20  -  2026/07/26  -  30"
+      let weekFromDate = "";
+      let weekToDate = "";
+      if (filters.reportType === "2" && filters.weekno) {
+        const parts = filters.weekno.split("-").map(p => p.trim());
+        if (parts.length >= 2) {
+          weekFromDate = parts[0].trim().replace(/\//g, "-");
+          weekToDate = parts[1].trim().replace(/\//g, "-");
+        }
+      }
+
+      searchPayload.fromDate = weekFromDate || targetDate || filters.workingDateFrom || "";
+      searchPayload.toDate = weekToDate || targetDate || filters.workingDateTo || "";
 
       // Suffix start/end time with :00 if present
       searchPayload.Start_Time = filters.startTime ? (filters.startTime.length === 5 ? `${filters.startTime}:00` : filters.startTime) : "";
@@ -824,9 +885,9 @@ const Reports = () => {
       const hrasList = Array.isArray(filters.hras) ? filters.hras : [];
       const hasNone = hrasList.includes("none");
       if (hasNone) {
-        searchPayload.hras = 0;
+        searchPayload.hras = "0";
       } else if (hrasList.length > 0) {
-        searchPayload.hras = 1;
+        searchPayload.hras = "1";
         hrasList.forEach(hraKey => {
           searchPayload[hraKey] = 1;
         });
@@ -1417,10 +1478,10 @@ const Reports = () => {
               <label className="df-label">Level (Multiple)</label>
               <MultiSelectDropdown
                 placeholder="Select Levels"
-                options={filteredFloors}
+                options={filteredLevels.map(f => f.floor_name)}
                 selectedValues={filters.level}
                 onChange={(vals) => {
-                  setFilters(prev => ({ ...prev, level: vals, area: [] }));
+                  setFilters(prev => ({ ...prev, level: vals, area: [], zones: [] }));
                 }}
               />
             </div>
@@ -1489,7 +1550,7 @@ const Reports = () => {
               <label className="df-label">Zones (Multiple)</label>
               <MultiSelectDropdown
                 placeholder="Select Zones"
-                options={zonesList.map(z => z.zone)}
+                options={filteredZones.map(z => z.zone)}
                 selectedValues={filters.zones || []}
                 onChange={(vals) => handleChange("zones", vals)}
               />
