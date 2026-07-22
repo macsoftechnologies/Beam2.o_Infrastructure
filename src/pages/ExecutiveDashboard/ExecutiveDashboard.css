@@ -1256,3 +1256,280 @@ html[data-theme="light"] .exec-building-select {
   background-color: rgba(255, 255, 255, 0.25);
   border-radius: 4px;
 }
+
+/* ══════════════════════════════════════════════════
+   MOBILE RESPONSIVE — Executive Dashboard
+   ══════════════════════════════════════════════════ */
+
+/* ── Tablet (≤1024px) ── */
+@media (max-width: 1024px) {
+  .overview-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .overview-middle-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .filter-panel.panel-open {
+    flex: 0 0 28%;
+    width: 28%;
+  }
+
+  .review-panel.panel-open {
+    flex: 0 0 28%;
+    width: 28%;
+  }
+
+  .exec-building-selector-group {
+    width: 100%;
+  }
+}
+
+/* ── Mobile (≤768px) ── */
+@media (max-width: 768px) {
+
+  .exec-dashboard-container {
+    gap: 10px;
+  }
+
+  /* NavBar */
+  .permithub-navbar {
+    height: auto;
+    flex-wrap: wrap;
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .ph-nav-left {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .ph-brand {
+    font-size: 15px;
+  }
+
+  .ph-status-badges {
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .ph-badge-item {
+    font-size: 10px;
+    padding: 3px 7px;
+  }
+
+  /* Tabs */
+  .exec-tabs-container {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .exec-tabs-left {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    gap: 0;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .exec-tabs-left::-webkit-scrollbar {
+    display: none;
+  }
+
+  .exec-tab-btn {
+    font-size: 12px;
+    padding: 8px 14px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .exec-tabs-right {
+    width: 100%;
+    justify-content: flex-end;
+    padding-bottom: 6px;
+  }
+
+  /* Overview metrics: 2 columns on mobile */
+  .overview-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .overview-card {
+    padding: 14px;
+  }
+
+  .card-val {
+    font-size: 26px;
+  }
+
+  /* Overview middle row: stacked */
+  .overview-middle-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .floors-mini-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Building selector */
+  .exec-building-selector-row {
+    padding: 10px 12px;
+    margin-top: 6px;
+    margin-bottom: 8px;
+  }
+
+  .exec-building-selector-group {
+    width: 100%;
+  }
+
+  /* Action bar: stacked */
+  .floor-layout-actionbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .actionbar-left {
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .action-btn-toggle {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+
+  .actionbar-right {
+    width: 100%;
+  }
+
+  .auto-approve-btn-wrap {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .auto-approve-btn {
+    width: 100%;
+    justify-content: center;
+    font-size: 12px;
+    padding: 9px 16px;
+  }
+
+  /* Three column → vertical stack */
+  .three-column-grid {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .panel-col {
+    width: 100% !important;
+    flex: none !important;
+  }
+
+  /* Force both panels visible when stacked on mobile */
+  .filter-panel.panel-open,
+  .filter-panel.panel-closed {
+    flex: none !important;
+    width: 100% !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    padding: 12px !important;
+    margin: 0 !important;
+    border: 1px solid var(--border-color) !important;
+    pointer-events: auto !important;
+  }
+
+  .review-panel.panel-open,
+  .review-panel.panel-closed {
+    flex: none !important;
+    width: 100% !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    padding: 12px !important;
+    margin: 0 !important;
+    border: 1px solid var(--border-color) !important;
+    pointer-events: auto !important;
+  }
+
+  /* Hide panel collapse tabs on mobile */
+  .panel-toggle-tab {
+    display: none !important;
+  }
+
+  /* Map: reduced height */
+  .map-image-wrapper {
+    min-height: 280px;
+    padding: 12px;
+  }
+
+  .static-cad-image {
+    max-height: 260px;
+  }
+
+  /* Selects: full width */
+  .room-type-select {
+    width: 100%;
+  }
+
+  /* Scroll containers: shorter on mobile */
+  .review-scroll-container {
+    max-height: 50vh;
+  }
+
+  .companies-scroll-list {
+    max-height: 160px;
+  }
+
+  /* Map legend: wrap */
+  .map-legend-footer {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 8px 12px;
+  }
+}
+
+/* ── Small Phones (≤480px) ── */
+@media (max-width: 480px) {
+  .overview-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .floors-mini-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .exec-tab-btn {
+    font-size: 11px;
+    padding: 7px 11px;
+  }
+
+  .card-val {
+    font-size: 24px;
+  }
+
+  .map-image-wrapper {
+    min-height: 220px;
+    padding: 8px;
+  }
+
+  .static-cad-image {
+    max-height: 200px;
+  }
+
+  .ph-brand {
+    font-size: 14px;
+  }
+
+  .map-legend-footer {
+    gap: 8px;
+  }
+}

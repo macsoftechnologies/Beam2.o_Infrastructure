@@ -203,36 +203,39 @@ function Sidebar({ sidebarOpen, toggleSidebar }) {
 
   return (
     <aside className={`sidebar ${sidebarOpen ? '' : 'sidebar-collapsed'}`}>
-      {/* Toggle arrow button - visible when sidebar is collapsed */}
+
+      {/* Mobile close (✕) button — top-right corner of sidebar */}
       <button
-        className="sidebar-toggle-arrow"
+        className="sidebar-close-btn"
         onClick={toggleSidebar}
-        title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+        title="Close menu"
+        aria-label="Close menu"
       >
-        <i className={`ti ${sidebarOpen ? 'ti-chevron-left' : 'ti-chevron-right'}`} />
+        <i className="ti ti-x" />
       </button>
-      <div className="sidebar-inner">
 
-        {/* Brand */}
-        <div className="sidebar-brand">
-          <div className="brand-mark" style={{ background: "transparent" }}>
-            <img
-              src={LogoImg}
-              alt="M3 Logo"
-              style={{
-                width: "100%",
-                height: "100%",
-                borderRadius: "11px",
-                objectFit: "cover",
-              }}
-            />
-          </div>
-          <div className="brand-text-wrap">
-            <span className="brand-name">M3 INFRASTRUCTURE</span>
-            <span className="brand-sub">MANAGEMENT</span>
-          </div>
+      {/* Brand — sticky header, never scrolls */}
+      <div className="sidebar-brand">
+        <div className="brand-mark" style={{ background: "transparent" }}>
+          <img
+            src={LogoImg}
+            alt="M3 Logo"
+            style={{
+              width: "100%",
+              height: "100%",
+              borderRadius: "11px",
+              objectFit: "cover",
+            }}
+          />
         </div>
+        <div className="brand-text-wrap">
+          <span className="brand-name">M3 INFRASTRUCTURE</span>
+          <span className="brand-sub">MANAGEMENT</span>
+        </div>
+      </div>
 
+      {/* Scrollable nav area */}
+      <div className="sidebar-inner">
         <nav>
           {menuItems.map((item) => {
             const itemKey = item.name;

@@ -446,13 +446,17 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
     navigateTo("/login");
   };
 
-  const getInitials = (name) => {
-    if (!name) return "US";
+  const getInitials = (name, role = "") => {
+    if (!name) return "SA";
     const parts = name.trim().split(/\s+/);
     if (parts.length > 1) {
+      // Multi-word name: use first letter of each word
       return (parts[0][0] + parts[1][0]).toUpperCase();
     }
-    return name.substring(0, 2).toUpperCase();
+    // Single-word name: use first letter of name + first letter of role
+    const nameLetter = name[0].toUpperCase();
+    const roleLetter = role ? role[0].toUpperCase() : name[1]?.toUpperCase() || "A";
+    return nameLetter + roleLetter;
   };
 
   return (
@@ -557,7 +561,7 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
             aria-expanded={dropdownOpen}
             aria-haspopup="true"
           >
-            <div className="navbar-avatar-img">{getInitials(currentUser.name)}</div>
+            <div className="navbar-avatar-img">{getInitials(currentUser.name, currentUser.role)}</div>
             <div className="navbar-user-info">
               <span className="navbar-user-name">{currentUser.name}</span>
               <span className="navbar-user-role">{currentUser.role}</span>
@@ -569,7 +573,7 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
 
               {/* Header */}
               <div className="pd-head">
-                <div className="pd-avatar">{getInitials(currentUser.name)}</div>
+                <div className="pd-avatar">{getInitials(currentUser.name, currentUser.role)}</div>
                 <div>
                   <div className="pd-name">{currentUser.name}</div>
                   <div className="pd-role">{currentUser.role} · M3 Infrastructure</div>
