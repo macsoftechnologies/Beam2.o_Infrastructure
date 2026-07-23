@@ -386,7 +386,7 @@ function NewRequest() {
     Activity: "",
     Type_Of_Activity_Id: "",
     rams_number: "",
-    permit_type: "Construction",
+    permit_type: "",
     description_of_activity: "",
     Working_Date: "",
     Start_Time: "",
@@ -731,7 +731,7 @@ function NewRequest() {
         Activity: editRequest.Activity || "",
         Type_Of_Activity_Id: editRequest.Type_Of_Activity_Id || "",
         rams_number: editRequest.rams_number || "",
-        permit_type: editRequest.permit_type || "Construction",
+        permit_type: editRequest.permit_type || "",
         description_of_activity: editRequest.description_of_activity || "",
         Working_Date: editRequest.Working_Date || "",
         Start_Time: editRequest.Start_Time ? editRequest.Start_Time.slice(0, 5) : "",
@@ -1060,6 +1060,17 @@ function NewRequest() {
     });
   };
 
+  const roomStatusMap = useMemo(() => {
+    const mapping = {};
+    roomsList.forEach(r => {
+      const zoneObj = zonesList.find(z => String(z.id) === String(r.zone_id));
+      if (zoneObj && r.room_name) {
+        mapping[r.room_name.toLowerCase().trim()] = zoneObj.status;
+      }
+    });
+    return mapping;
+  }, [roomsList, zonesList]);
+
   const handleRoomsSelected = (rooms, zone) => {
     const zoneRoomNames = zone.rooms.map(r => typeof r === "object" ? r.name : r);
     setSelectedRooms(prev => {
@@ -1101,6 +1112,7 @@ function NewRequest() {
   // Validate all mandatory fields; show inline errors below each field
   const validateHoldFields = () => {
     const errors = {};
+    if (!formData.permit_type) errors.permit_type = "Please select Permit Type.";
     if (!formData.Sub_Contractor_Id) errors.Sub_Contractor_Id = "Please select a Contractor.";
     if (!formData.new_sub_contractor?.trim()) errors.new_sub_contractor = "Please enter Sub Contractor name.";
     if (!formData.Foreman?.trim()) errors.Foreman = "Please enter Foreman-Supervisor name.";
@@ -1112,6 +1124,14 @@ function NewRequest() {
     if (!formData.Working_Date) errors.Working_Date = "Please select a working Date.";
     if (!formData.Start_Time) errors.Start_Time = "Please enter Start Time.";
     if (!formData.End_Time) errors.End_Time = "Please enter End Time.";
+    if (formData.night_shift) {
+      if (!formData.new_date || formData.new_date === "none" || !formData.new_date.trim()) {
+        errors.new_date = "Please select New Date.";
+      }
+      if (!formData.new_end_time || formData.new_end_time === "none" || !formData.new_end_time.trim()) {
+        errors.new_end_time = "Please enter New End Time.";
+      }
+    }
 
     // Commissioning permit type validation
     if (formData.permit_type === "Commissioning") {
@@ -1343,6 +1363,17 @@ function NewRequest() {
       return;
     }
 
+    if (!formData.permit_type) {
+      setFieldErrors(prev => ({ ...prev, permit_type: "Please select Permit Type." }));
+      setTimeout(() => {
+        const firstErr = document.querySelector(".field-error");
+        if (firstErr) firstErr.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
+      return;
+    }
+
+    // Night shift validations are handled at the field level inside timeErrors/errors checking
+
     // 1. Tally selected location items to resolve database IDs
     const Building_Id = building ? Number(building) : null;
 
@@ -1428,6 +1459,14 @@ function NewRequest() {
     }
     if (formData.night_shift && formData.new_end_time && !timeRegex.test(formData.new_end_time)) {
       timeErrors.new_end_time = "New End time must be in 24-hour format (HH:MM).";
+    }
+    if (formData.night_shift) {
+      if (!formData.new_date || formData.new_date === "none" || !String(formData.new_date).trim()) {
+        timeErrors.new_date = "Please select New Date.";
+      }
+      if (!formData.new_end_time || formData.new_end_time === "none" || !String(formData.new_end_time).trim()) {
+        timeErrors.new_end_time = "Please enter New End Time.";
+      }
     }
 
     if (formData.Start_Time) {
@@ -1908,15 +1947,17 @@ function NewRequest() {
 
             <div className="df-grid" style={{ marginTop: "16px" }}>
               <div className="df-field">
-                <label className="df-label">Permit Type</label>
+                <label className="df-label">Permit Type <span className="req-star">*</span></label>
                 <select
-                  className="df-select"
+                  className={`df-select${fieldErrors.permit_type ? " field-input-error" : ""}`}
                   value={formData.permit_type}
                   onChange={(e) => handleFieldChange("permit_type", e.target.value)}
                 >
+                  <option value="">Select Permit Type</option>
                   <option value="Construction">Construction</option>
                   <option value="Commissioning">Commissioning</option>
                 </select>
+                {fieldErrors.permit_type && <span className="field-error">{fieldErrors.permit_type}</span>}
               </div>
               <div className="df-field">
                 <label className="df-label">Foreman-Supervisor <span className="req-star">*</span></label>
@@ -2052,13 +2093,16 @@ function NewRequest() {
                   type="text"
                   placeholder="00:00"
                   readOnly
-                  className={`df-input${fieldErrors.End_Time ? " field-input-error" : ""}`}
+                  className={`df-input${fieldErrors.End_Time ? " field-input-error" : ""}${formData.night_shift ? " df-readonly" : ""}`}
                   value={formData.End_Time}
+                  disabled={formData.night_shift}
                   onClick={() => {
-                    setTempEndTime(formData.End_Time || "12:00");
-                    setShowEndPicker(true);
+                    if (!formData.night_shift) {
+                      setTempEndTime(formData.End_Time || "12:00");
+                      setShowEndPicker(true);
+                    }
                   }}
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: formData.night_shift ? 'not-allowed' : 'pointer' }}
                 />
                 {fieldErrors.End_Time && <span className="field-error">{fieldErrors.End_Time}</span>}
 
@@ -2090,16 +2134,19 @@ function NewRequest() {
             {formData.night_shift && (
               <div className="df-grid night-shift-subform" style={{ marginTop: "16px" }}>
                 <div className="df-field">
-                  <label className="df-label">New Date (Night Shift)</label>
+                  <label className="df-label">New Date (Night Shift) <span className="req-star">*</span></label>
                   <input
                     type="date"
-                    className="df-input"
+                    className={`df-input${fieldErrors.new_date ? " field-input-error" : ""}${formData.night_shift ? " df-readonly" : ""}`}
                     value={formData.new_date}
+                    disabled={formData.night_shift}
                     onChange={(e) => handleFieldChange("new_date", e.target.value)}
+                    style={{ cursor: formData.night_shift ? 'not-allowed' : 'default' }}
                   />
+                  {fieldErrors.new_date && <span className="field-error">{fieldErrors.new_date}</span>}
                 </div>
                 <div className="df-field">
-                  <label className="df-label">New End Time (Night Shift)</label>
+                  <label className="df-label">New End Time (Night Shift) <span className="req-star">*</span></label>
                   <input
                     type="text"
                     placeholder="00:00"
@@ -4434,6 +4481,7 @@ function NewRequest() {
             level={level}
             selectedRooms={selectedRooms}
             onRoomsSelected={handleRoomsSelected}
+            roomStatusMap={roomStatusMap}
           />
           {selectedRooms.length > 0 && (
             <div className="drawing-floating-action" style={{ display: "flex", justifyContent: "center", margin: "16px 0" }}>

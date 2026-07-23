@@ -145,6 +145,8 @@ function ExecutiveDashboard() {
   const [selectedBuilding, setSelectedBuilding] = useState("APM Terminal");
   const [floorPdfImg, setFloorPdfImg] = useState(null);
   const [loadingPdf, setLoadingPdf] = useState(false);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
   useEffect(() => {
     if (activeTab !== "Overview" && activeTab !== "Ground Floor") {
@@ -254,30 +256,90 @@ function ExecutiveDashboard() {
         </div>
       </header>
 
-      {/* ── BUILDING SELECTOR ── */}
-      {activeTab !== "Overview" && (
-        <div className="exec-building-selector-row">
-          <div className="exec-building-selector-group">
-            <span className="exec-building-lbl">BUILDING</span>
-            <select
-              className="exec-building-select"
-              value={selectedBuilding}
-              onChange={(e) => setSelectedBuilding(e.target.value)}
-            >
-              <option value="APM Terminal">APM Terminal</option>
-              <option value="EH Lake West">EH Lake West</option>
-              <option value="EH Lake East">EH Lake East</option>
-              <option value="Rendsborg Park">Rendsborg Park</option>
-              <option value="P-hus">P-hus</option>
-              <option value="NN East">NN East</option>
-              <option value="Hovvej West">Hovvej West</option>
-              <option value="Hovvej East">Hovvej East</option>
-              <option value="EC-JCP1">EC-JCP1</option>
-              <option value="BA-DD">BA-DD</option>
-            </select>
-          </div>
+      {/* ── BUILDING & DATE SELECTOR ── */}
+      <div className="exec-building-selector-row" style={{ margin: "10px 24px 12px 24px", padding: "12px 16px", display: "flex", gap: "24px", flexWrap: "wrap", alignItems: "center" }}>
+        <div className="exec-building-selector-group">
+          <span className="exec-building-lbl">BUILDING</span>
+          <select
+            className="exec-building-select"
+            value={selectedBuilding}
+            onChange={(e) => setSelectedBuilding(e.target.value)}
+          >
+            <option value="" disabled>— Select a Building —</option>
+            <option value="APM Terminal">APM Terminal</option>
+            <option value="EH Lake West">EH Lake West</option>
+            <option value="EH Lake East">EH Lake East</option>
+            <option value="Rendsborg Park">Rendsborg Park</option>
+            <option value="P-hus">P-hus</option>
+            <option value="NN East">NN East</option>
+            <option value="Hovvej West">Hovvej West</option>
+            <option value="Hovvej East">Hovvej East</option>
+            <option value="EC-JCP1">EC-JCP1</option>
+            <option value="BA-DD">BA-DD</option>
+          </select>
         </div>
-      )}
+
+        {/* Date Range Inputs */}
+        <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <span className="exec-building-lbl">START DATE</span>
+            <input
+              type="date"
+              className="exec-date-input"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              style={{
+                borderRadius: "6px",
+                padding: "8px 12px",
+                fontSize: "13px",
+                height: "38px",
+                outline: "none"
+              }}
+            />
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <span className="exec-building-lbl">END DATE</span>
+            <input
+              type="date"
+              className="exec-date-input"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              style={{
+                borderRadius: "6px",
+                padding: "8px 12px",
+                fontSize: "13px",
+                height: "38px",
+                outline: "none"
+              }}
+            />
+          </div>
+
+          {(fromDate || toDate) && (
+            <button
+              type="button"
+              onClick={() => {
+                setFromDate("");
+                setToDate("");
+              }}
+              style={{
+                marginTop: "16px",
+                backgroundColor: "transparent",
+                border: "none",
+                color: "var(--accent, #00e5a0)",
+                cursor: "pointer",
+                fontSize: "13px",
+                fontWeight: "600",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px"
+              }}
+            >
+              ✕ Clear Date
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* ── FLOOR TABS ── */}
       <div className="exec-tabs-container">

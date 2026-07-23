@@ -108,7 +108,7 @@ export const createByCount = async (payload) => {
 };
 
 // Executive Dashboard Overview API
-export const getDashboardOverview = async (buildingParam) => {
+export const getDashboardOverview = async (buildingParam, fromDate, toDate) => {
   const params = {};
   if (buildingParam) {
     if (typeof buildingParam === "object" && buildingParam !== null) {
@@ -116,6 +116,8 @@ export const getDashboardOverview = async (buildingParam) => {
       if (buildingParam.building || buildingParam.name || buildingParam.building_name) {
         params.building = buildingParam.building || buildingParam.name || buildingParam.building_name;
       }
+      if (buildingParam.fromDate) params.fromDate = buildingParam.fromDate;
+      if (buildingParam.toDate) params.toDate = buildingParam.toDate;
     } else if (typeof buildingParam === "number" || (!isNaN(Number(buildingParam)) && String(buildingParam).trim() !== "")) {
       params.buildingId = buildingParam;
       params.building = buildingParam;
@@ -123,6 +125,8 @@ export const getDashboardOverview = async (buildingParam) => {
       params.building = buildingParam;
     }
   }
+  if (fromDate) params.fromDate = fromDate;
+  if (toDate) params.toDate = toDate;
   const res = await api.get("/requests/dashboard/overview", { params });
   return res.data;
 };

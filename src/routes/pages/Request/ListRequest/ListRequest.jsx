@@ -1345,6 +1345,7 @@ const ListRequest = () => {
       }
     } else if (nextStatus === "Closed") {
       if (!closeNote.trim()) return showError("Please enter closing notes / remarks.");
+      payload.close_note = closeNote.trim();
       if (modalTarget.Hot_work === 1) {
         if (hHeatSource === null || hHeatSource === undefined) {
           return showError("Please inspect the work area for smoldering materials or residual heat.");
@@ -2049,7 +2050,16 @@ const ListRequest = () => {
                   options={filteredLevels.map(f => f.floor_name)}
                   selectedValues={searchFilters.levels}
                   onChange={(vals) => setSearchFilters(prev => ({ ...prev, levels: vals, areas: [], zones: [] }))}
-                  disabled={searchFilters.buildings.length === 0}
+                />
+              </div>
+
+              <div className="df-field">
+                <label className="df-label">Zones</label>
+                <MultiSelectDropdown
+                  placeholder="Select Zones"
+                  options={filteredZones.map(z => z.zone)}
+                  selectedValues={searchFilters.zones || []}
+                  onChange={(vals) => setSearchFilters(prev => ({ ...prev, zones: vals }))}
                 />
               </div>
 
@@ -2060,19 +2070,6 @@ const ListRequest = () => {
                   options={filteredRooms}
                   selectedValues={searchFilters.areas}
                   onChange={(vals) => setSearchFilters(prev => ({ ...prev, areas: vals }))}
-                  disabled={searchFilters.levels.length === 0}
-                />
-              </div>
-
-              <div className="df-field">
-                <label className="df-label">HRA Checklists</label>
-                <MultiSelectDropdown
-                  placeholder="Select HRA Checklists"
-                  options={HRA_LIST.map(h => ({ ...h, image: h.image || LOGO_MAP[h.icon] }))}
-                  selectedValues={searchFilters.hras}
-                  onChange={(vals) => setSearchFilters(prev => ({ ...prev, hras: vals }))}
-                  hasNone={true}
-                  isHra={true}
                 />
               </div>
             </div>
@@ -2128,15 +2125,40 @@ const ListRequest = () => {
             <div className="df-grid df-grid--4-cols" style={{ marginTop: "16px" }}>
               <div className="df-field">
                 <label className="df-label">Start Time</label>
-                <input
-                  type="text"
-                  placeholder="00:00"
-                  readOnly
-                  className="df-input"
-                  value={searchFilters.startTime}
-                  onClick={() => setShowStartPicker(true)}
-                  style={{ cursor: 'pointer' }}
-                />
+                <div style={{ position: "relative", width: "100%" }}>
+                  <input
+                    type="text"
+                    placeholder="00:00"
+                    readOnly
+                    className="df-input"
+                    value={searchFilters.startTime}
+                    onClick={() => setShowStartPicker(true)}
+                    style={{ cursor: 'pointer', paddingRight: searchFilters.startTime ? "30px" : "12px" }}
+                  />
+                  {searchFilters.startTime && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSearchFilters(prev => ({ ...prev, startTime: "" }));
+                      }}
+                      style={{
+                        position: "absolute",
+                        right: "10px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        background: "none",
+                        border: "none",
+                        color: "var(--text-muted, #9ca3af)",
+                        cursor: "pointer",
+                        fontSize: "14px",
+                        padding: "4px"
+                      }}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
                 {showStartPicker && (
                   <div className="timekeeper-modal-overlay" onClick={() => setShowStartPicker(false)}>
                     <AnalogTimePicker
@@ -2153,15 +2175,40 @@ const ListRequest = () => {
 
               <div className="df-field">
                 <label className="df-label">End Time</label>
-                <input
-                  type="text"
-                  placeholder="00:00"
-                  readOnly
-                  className="df-input"
-                  value={searchFilters.endTime}
-                  onClick={() => setShowEndPicker(true)}
-                  style={{ cursor: 'pointer' }}
-                />
+                <div style={{ position: "relative", width: "100%" }}>
+                  <input
+                    type="text"
+                    placeholder="00:00"
+                    readOnly
+                    className="df-input"
+                    value={searchFilters.endTime}
+                    onClick={() => setShowEndPicker(true)}
+                    style={{ cursor: 'pointer', paddingRight: searchFilters.endTime ? "30px" : "12px" }}
+                  />
+                  {searchFilters.endTime && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSearchFilters(prev => ({ ...prev, endTime: "" }));
+                      }}
+                      style={{
+                        position: "absolute",
+                        right: "10px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        background: "none",
+                        border: "none",
+                        color: "var(--text-muted, #9ca3af)",
+                        cursor: "pointer",
+                        fontSize: "14px",
+                        padding: "4px"
+                      }}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
                 {showEndPicker && (
                   <div className="timekeeper-modal-overlay" onClick={() => setShowEndPicker(false)}>
                     <AnalogTimePicker
@@ -2190,12 +2237,14 @@ const ListRequest = () => {
               </div>
 
               <div className="df-field">
-                <label className="df-label">Zones</label>
+                <label className="df-label">HRA Checklists</label>
                 <MultiSelectDropdown
-                  placeholder="Select Zones"
-                  options={filteredZones.map(z => z.zone)}
-                  selectedValues={searchFilters.zones || []}
-                  onChange={(vals) => setSearchFilters(prev => ({ ...prev, zones: vals }))}
+                  placeholder="Select HRA Checklists"
+                  options={HRA_LIST.map(h => ({ ...h, image: h.image || LOGO_MAP[h.icon] }))}
+                  selectedValues={searchFilters.hras}
+                  onChange={(vals) => setSearchFilters(prev => ({ ...prev, hras: vals }))}
+                  hasNone={true}
+                  isHra={true}
                 />
               </div>
             </div>

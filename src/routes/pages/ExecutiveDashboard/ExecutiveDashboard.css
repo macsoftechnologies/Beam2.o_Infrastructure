@@ -1110,11 +1110,37 @@ html[data-theme="light"] .mini-avatar {
   border-color: var(--accent-primary);
 }
 
+.exec-date-input {
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color, #374151);
+  color: var(--text-main, #ffffff);
+  font-family: inherit;
+}
+
+.exec-date-input:focus {
+  border-color: var(--accent-primary);
+}
+
+.exec-date-input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
 /* Light theme overrides */
 html[data-theme="light"] .exec-building-select {
   background-color: #ffffff;
   border-color: #cbd5e1;
   color: #0f172a;
+}
+
+html[data-theme="light"] .exec-date-input {
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+html[data-theme="light"] .exec-date-input::-webkit-calendar-picker-indicator {
+  filter: none;
 }
 
 /* Styling for option tags in dropdowns to prevent white-on-white text in dark/color themes */

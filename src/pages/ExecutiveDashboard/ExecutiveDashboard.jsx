@@ -145,6 +145,8 @@ function ExecutiveDashboard() {
   const [selectedBuilding, setSelectedBuilding] = useState("APM Terminal");
   const [overviewData, setOverviewData] = useState(null);
   const [buildingData, setBuildingData] = useState(null);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
   // Checkbox Filter States (declared at top to prevent TDZ ReferenceError)
   const [permitTypes, setPermitTypes] = useState({
@@ -227,12 +229,12 @@ function ExecutiveDashboard() {
     setHasInitializedCompanies(false);
   }, [selectedBuilding]);
 
-  // Fetch Overview metrics when Overview tab or selectedBuilding changes
+  // Fetch Overview metrics when Overview tab, selectedBuilding, or date range changes
   useEffect(() => {
     let isMounted = true;
     if (activeTab === "Overview") {
       const bName = selectedBuilding || "APM Terminal";
-      getDashboardOverview(bName)
+      getDashboardOverview(bName, fromDate, toDate)
         .then((res) => {
           if (isMounted && res && res.data) {
             setOverviewData(res.data);
@@ -241,9 +243,9 @@ function ExecutiveDashboard() {
         .catch((err) => console.error("Error fetching overview metrics:", err));
     }
     return () => { isMounted = false; };
-  }, [activeTab, selectedBuilding]);
+  }, [activeTab, selectedBuilding, fromDate, toDate]);
 
-  // Fetch Building / Floor metrics when building, floor, or Left Panel checkbox filters change
+  // Fetch Building / Floor metrics when building, floor, date range, or Left Panel checkbox filters change
   useEffect(() => {
     let isMounted = true;
     const bName = selectedBuilding || "APM Terminal";
@@ -257,6 +259,8 @@ function ExecutiveDashboard() {
       activityRiskTypes,
       selectedCompanies: Array.from(selectedCompanies),
       roomSearch,
+      fromDate,
+      toDate,
     };
 
     getDashboardBuildingMetrics(filterPayload)
@@ -271,7 +275,7 @@ function ExecutiveDashboard() {
       })
       .catch((err) => console.error("Error fetching building metrics:", err));
     return () => { isMounted = false; };
-  }, [selectedBuilding, activeTab, permitTypes, permitStatuses, activityRiskTypes, selectedCompanies, roomSearch, hasInitializedCompanies]);
+  }, [selectedBuilding, activeTab, permitTypes, permitStatuses, activityRiskTypes, selectedCompanies, roomSearch, hasInitializedCompanies, fromDate, toDate]);
 
   const levels = useMemo(() => {
     if (!selectedBuilding || selectedBuilding === "") return [];
@@ -659,8 +663,8 @@ function ExecutiveDashboard() {
   return (
     <>
     <div className="exec-dashboard-container">
-      {/* ── BUILDING SELECTOR ── */}
-      <div className="exec-building-selector-row" style={{ margin: "10px 24px 12px 24px", padding: "12px 16px" }}>
+      {/* ── BUILDING & DATE SELECTOR ── */}
+      <div className="exec-building-selector-row" style={{ margin: "10px 24px 12px 24px", padding: "12px 16px", display: "flex", gap: "24px", flexWrap: "wrap", alignItems: "center" }}>
         <div className="exec-building-selector-group">
           <span className="exec-building-lbl">BUILDING</span>
           <select
@@ -680,6 +684,67 @@ function ExecutiveDashboard() {
             <option value="EC-JCP1">EC-JCP1</option>
             <option value="BA-DD">BA-DD</option>
           </select>
+        </div>
+
+        {/* Date Range Inputs */}
+        <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <span className="exec-building-lbl">START DATE</span>
+            <input
+              type="date"
+              className="exec-date-input"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              style={{
+                borderRadius: "6px",
+                padding: "8px 12px",
+                fontSize: "13px",
+                height: "38px",
+                outline: "none"
+              }}
+            />
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <span className="exec-building-lbl">END DATE</span>
+            <input
+              type="date"
+              className="exec-date-input"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              style={{
+                borderRadius: "6px",
+                padding: "8px 12px",
+                fontSize: "13px",
+                height: "38px",
+                outline: "none"
+              }}
+            />
+          </div>
+
+          {(fromDate || toDate) && (
+            <button
+              type="button"
+              onClick={() => {
+                setFromDate("");
+                setToDate("");
+              }}
+              style={{
+                marginTop: "16px",
+                backgroundColor: "transparent",
+                border: "none",
+                color: "var(--accent, #00e5a0)",
+                cursor: "pointer",
+                fontSize: "13px",
+                fontWeight: "600",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px"
+              }}
+            >
+              ✕ Clear Date
+            </button>
+          )}
         </div>
       </div>
 

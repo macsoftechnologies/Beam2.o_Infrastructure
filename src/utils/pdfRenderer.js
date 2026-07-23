@@ -1,30 +1,48 @@
 import { pdfjs } from "react-pdf";
 
-export async function renderPdf(pdf, width, height) {
+// Cache for loaded PDF documents to avoid re-fetching and re-parsing.
+const docCache = new Map();
+const fileDocCache = new WeakMap();
 
-    let loadingTask;
-
-    // Uploaded File
+async function getPdfDocument(pdf) {
     if (pdf instanceof File) {
+        if (fileDocCache.has(pdf)) {
+            return fileDocCache.get(pdf);
+        }
 
-        const buffer = await pdf.arrayBuffer();
-
-        loadingTask = pdfjs.getDocument({
-            data: buffer,
+        const objectUrl = URL.createObjectURL(pdf);
+        const loadingTask = pdfjs.getDocument(objectUrl);
+        const promise = loadingTask.promise.then((doc) => {
+            try {
+                URL.revokeObjectURL(objectUrl);
+            } catch (e) {
+                console.error("Error revoking object URL:", e);
+            }
+            return doc;
+        }).catch((err) => {
+            try {
+                URL.revokeObjectURL(objectUrl);
+            } catch (e) {}
+            throw err;
         });
 
+        fileDocCache.set(pdf, promise);
+        return promise;
+    } else {
+        if (docCache.has(pdf)) {
+            return docCache.get(pdf);
+        }
+
+        const loadingTask = pdfjs.getDocument(pdf);
+        const promise = loadingTask.promise;
+        docCache.set(pdf, promise);
+        return promise;
     }
-    // Imported PDF
-    else {
+}
 
-        loadingTask = pdfjs.getDocument(pdf);
-
-    }
-
-    const pdfDoc = await loadingTask.promise;
-
+export async function renderPdf(pdf, width, height) {
+    const pdfDoc = await getPdfDocument(pdf);
     const page = await pdfDoc.getPage(1);
-
     const viewport = page.getViewport({ scale: 1 });
 
     let scale = width / viewport.width;
@@ -37,7 +55,6 @@ export async function renderPdf(pdf, width, height) {
     });
 
     const canvas = document.createElement("canvas");
-
     const context = canvas.getContext("2d");
 
     canvas.width = scaledViewport.width;

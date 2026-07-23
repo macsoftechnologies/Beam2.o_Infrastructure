@@ -771,6 +771,10 @@ const Reports = () => {
         next.date = "";
         next.year = "";
         next.weekno = "";
+        if (value === "2") {
+          next.workingDateFrom = "";
+          next.workingDateTo = "";
+        }
       }
       return next;
     });
@@ -1299,7 +1303,7 @@ const Reports = () => {
               </select>
             </div>
 
-            {/* Row 3: Contractor | Building */}
+            {/* Row 3: Contractor | Status */}
             <div className="df-field">
               <label className="df-label">Contractor</label>
               <select
@@ -1315,14 +1319,12 @@ const Reports = () => {
             </div>
 
             <div className="df-field">
-              <label className="df-label">Building (Multiple)</label>
+              <label className="df-label">Status (Multiple)</label>
               <MultiSelectDropdown
-                placeholder="Select Buildings"
-                options={buildingsOptions}
-                selectedValues={filters.building}
-                onChange={(vals) => {
-                  setFilters(prev => ({ ...prev, building: vals, level: [], area: [] }));
-                }}
+                placeholder="Select Statuses"
+                options={STATUS_OPTIONS}
+                selectedValues={filters.status}
+                onChange={(vals) => handleChange("status", vals)}
               />
             </div>
 
@@ -1332,6 +1334,7 @@ const Reports = () => {
               <input
                 type="date"
                 className="df-input"
+                disabled={filters.reportType === "2"}
                 value={filters.workingDateFrom}
                 onChange={(e) => handleChange("workingDateFrom", e.target.value)}
               />
@@ -1342,6 +1345,7 @@ const Reports = () => {
               <input
                 type="date"
                 className="df-input"
+                disabled={filters.reportType === "2"}
                 value={filters.workingDateTo}
                 onChange={(e) => handleChange("workingDateTo", e.target.value)}
               />
@@ -1351,15 +1355,40 @@ const Reports = () => {
             <div className="df-field--full time-nightshift-grid">
               <div className="df-field">
                 <label className="df-label">Start Time</label>
-                <input
-                  type="text"
-                  placeholder="00:00"
-                  readOnly
-                  className="df-input"
-                  value={filters.startTime}
-                  onClick={() => setShowStartPicker(true)}
-                  style={{ cursor: 'pointer' }}
-                />
+                <div style={{ position: "relative", width: "100%" }}>
+                  <input
+                    type="text"
+                    placeholder="00:00"
+                    readOnly
+                    className="df-input"
+                    value={filters.startTime}
+                    onClick={() => setShowStartPicker(true)}
+                    style={{ cursor: 'pointer', paddingRight: filters.startTime ? "30px" : "12px" }}
+                  />
+                  {filters.startTime && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleChange("startTime", "");
+                      }}
+                      style={{
+                        position: "absolute",
+                        right: "10px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        background: "none",
+                        border: "none",
+                        color: "var(--text-muted, #9ca3af)",
+                        cursor: "pointer",
+                        fontSize: "14px",
+                        padding: "4px"
+                      }}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
                 {showStartPicker && (
                   <div className="timekeeper-modal-overlay" onClick={() => setShowStartPicker(false)}>
                     <AnalogTimePicker
@@ -1376,15 +1405,40 @@ const Reports = () => {
 
               <div className="df-field">
                 <label className="df-label">End Time</label>
-                <input
-                  type="text"
-                  placeholder="00:00"
-                  readOnly
-                  className="df-input"
-                  value={filters.endTime}
-                  onClick={() => setShowEndPicker(true)}
-                  style={{ cursor: 'pointer' }}
-                />
+                <div style={{ position: "relative", width: "100%" }}>
+                  <input
+                    type="text"
+                    placeholder="00:00"
+                    readOnly
+                    className="df-input"
+                    value={filters.endTime}
+                    onClick={() => setShowEndPicker(true)}
+                    style={{ cursor: 'pointer', paddingRight: filters.endTime ? "30px" : "12px" }}
+                  />
+                  {filters.endTime && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleChange("endTime", "");
+                      }}
+                      style={{
+                        position: "absolute",
+                        right: "10px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        background: "none",
+                        border: "none",
+                        color: "var(--text-muted, #9ca3af)",
+                        cursor: "pointer",
+                        fontSize: "14px",
+                        padding: "4px"
+                      }}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
                 {showEndPicker && (
                   <div className="timekeeper-modal-overlay" onClick={() => setShowEndPicker(false)}>
                     <AnalogTimePicker
@@ -1437,15 +1491,40 @@ const Reports = () => {
                 </div>
                 <div className="df-field">
                   <label className="df-label">New End Time</label>
-                  <input
-                    type="text"
-                    placeholder="00:00"
-                    readOnly
-                    className="df-input"
-                    value={filters.newEndTime}
-                    onClick={() => setShowNewEndPicker(true)}
-                    style={{ cursor: 'pointer' }}
-                  />
+                  <div style={{ position: "relative", width: "100%" }}>
+                    <input
+                      type="text"
+                      placeholder="00:00"
+                      readOnly
+                      className="df-input"
+                      value={filters.newEndTime}
+                      onClick={() => setShowNewEndPicker(true)}
+                      style={{ cursor: 'pointer', paddingRight: filters.newEndTime ? "30px" : "12px" }}
+                    />
+                    {filters.newEndTime && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleChange("newEndTime", "");
+                        }}
+                        style={{
+                          position: "absolute",
+                          right: "10px",
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          background: "none",
+                          border: "none",
+                          color: "var(--text-muted, #9ca3af)",
+                          cursor: "pointer",
+                          fontSize: "14px",
+                          padding: "4px"
+                        }}
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
                   {showNewEndPicker && (
                     <div className="timekeeper-modal-overlay" onClick={() => setShowNewEndPicker(false)}>
                       <AnalogTimePicker
@@ -1462,30 +1541,7 @@ const Reports = () => {
               </>
             )}
 
-            {/* Row 6: Level | Area */}
-            <div className="df-field">
-              <label className="df-label">Level (Multiple)</label>
-              <MultiSelectDropdown
-                placeholder="Select Levels"
-                options={filteredLevels.map(f => f.floor_name)}
-                selectedValues={filters.level}
-                onChange={(vals) => {
-                  setFilters(prev => ({ ...prev, level: vals, area: [], zones: [] }));
-                }}
-              />
-            </div>
-
-            <div className="df-field">
-              <label className="df-label">Area (Multiple)</label>
-              <MultiSelectDropdown
-                placeholder="Select Areas"
-                options={filteredRooms}
-                selectedValues={filters.area}
-                onChange={(vals) => handleChange("area", vals)}
-              />
-            </div>
-
-            {/* Row 7: Permit Type | Permit Under */}
+            {/* Row 6: Permit Type | Permit Under */}
             <div className="df-field">
               <label className="df-label">Permit Type</label>
               <select
@@ -1512,17 +1568,7 @@ const Reports = () => {
               </select>
             </div>
 
-            {/* Row 8: Status | HRA'S */}
-            <div className="df-field">
-              <label className="df-label">Status (Multiple)</label>
-              <MultiSelectDropdown
-                placeholder="Select Statuses"
-                options={STATUS_OPTIONS}
-                selectedValues={filters.status}
-                onChange={(vals) => handleChange("status", vals)}
-              />
-            </div>
-
+            {/* Row 7: HRA Checklists (Multiple) | Dummy */}
             <div className="df-field">
               <label className="df-label">HRA Checklists (Multiple)</label>
               <MultiSelectDropdown
@@ -1534,7 +1580,34 @@ const Reports = () => {
                 isHra={true}
               />
             </div>
+            <div className="df-field"></div>
 
+            {/* Row 8: Building (Multiple) | Level (Multiple) */}
+            <div className="df-field">
+              <label className="df-label">Building (Multiple)</label>
+              <MultiSelectDropdown
+                placeholder="Select Buildings"
+                options={buildingsOptions}
+                selectedValues={filters.building}
+                onChange={(vals) => {
+                  setFilters(prev => ({ ...prev, building: vals, level: [], area: [] }));
+                }}
+              />
+            </div>
+
+            <div className="df-field">
+              <label className="df-label">Level (Multiple)</label>
+              <MultiSelectDropdown
+                placeholder="Select Levels"
+                options={filteredLevels.map(f => f.floor_name)}
+                selectedValues={filters.level}
+                onChange={(vals) => {
+                  setFilters(prev => ({ ...prev, level: vals, area: [], zones: [] }));
+                }}
+              />
+            </div>
+
+            {/* Row 9: Zones (Multiple) | Area (Multiple) */}
             <div className="df-field">
               <label className="df-label">Zones (Multiple)</label>
               <MultiSelectDropdown
@@ -1542,6 +1615,16 @@ const Reports = () => {
                 options={filteredZones.map(z => z.zone)}
                 selectedValues={filters.zones || []}
                 onChange={(vals) => handleChange("zones", vals)}
+              />
+            </div>
+
+            <div className="df-field">
+              <label className="df-label">Area (Multiple)</label>
+              <MultiSelectDropdown
+                placeholder="Select Areas"
+                options={filteredRooms}
+                selectedValues={filters.area}
+                onChange={(vals) => handleChange("area", vals)}
               />
             </div>
 
