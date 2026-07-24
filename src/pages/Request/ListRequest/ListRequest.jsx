@@ -211,18 +211,10 @@ const formatDateToDDMMYYYY = (dateStr) => {
   return dateStr;
 };
 
-// Helper to truncate long string values and attach title for hover info
-const trimLongValue = (value, maxLen) => {
+// Helper to pass long string values directly to Table component (where CSS handles ellipsis)
+const trimLongValue = (value) => {
   if (!value || value === "—") return "—";
-  const valStr = String(value);
-  if (valStr.length > maxLen) {
-    return (
-      <span title={valStr}>
-        {valStr.slice(0, maxLen)}...
-      </span>
-    );
-  }
-  return valStr;
+  return String(value);
 };
 
 // Helper to resolve zone name from building, floor/level, and rooms data

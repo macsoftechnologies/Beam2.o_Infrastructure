@@ -15,19 +15,10 @@ const formatDateToDDMMYYYY = (dateStr) => {
   }
   return dateStr;
 };
-
-// Helper to truncate long string values and attach title for hover info
-const trimLongValue = (value, maxLen) => {
+// Helper to pass long string values directly to Table component (where CSS handles ellipsis)
+const trimLongValue = (value) => {
   if (!value || value === "—") return "—";
-  const valStr = String(value);
-  if (valStr.length > maxLen) {
-    return (
-      <span title={valStr}>
-        {valStr.slice(0, maxLen)}...
-      </span>
-    );
-  }
-  return valStr;
+  return String(value);
 };
 
 const PAGE_LIMIT_DEFAULT = 30;
