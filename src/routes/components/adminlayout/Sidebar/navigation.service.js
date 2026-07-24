@@ -202,7 +202,6 @@ const UsericonMenu = [
         state: "",
         sub: [
             { name: "Operations Dashboard", state: "user/dashboard" },
-            { name: "Executive Dashboard", state: "user/executive-dashboard" },
         ],
     },
     {
@@ -319,7 +318,6 @@ const ObservericonMenu = [
         state: "",
         sub: [
             { name: "Operations Dashboard", state: "user/dashboard" },
-            { name: "Executive Dashboard", state: "user/executive-dashboard" },
         ],
     },
     {

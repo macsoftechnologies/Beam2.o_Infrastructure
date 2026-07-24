@@ -57,7 +57,14 @@ function AppRoutes() {
           }
         >
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/executive-dashboard" element={<ExecutiveDashboard />} />
+          <Route
+            path="/executive-dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["Admin", "admin", "SuperAdmin", "superadmin", "Department", "department", "Department1", "department1"]}>
+                <ExecutiveDashboard />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/departments"
             element={

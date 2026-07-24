@@ -767,12 +767,41 @@ const ListRequest = () => {
   const [logsData, setLogsData] = useState([]);
   const [copyDates, setCopyDates] = useState({ from: "", to: "" });
 
-  // Check operator credentials
-  const isAdmin = currentUser?.role === "Admin";
-  const isDept = currentUser?.role === "Department";
-  const isDept1 = currentUser?.role === "Department1";
-  const isSubcontractor = currentUser?.role === "Subcontractor";
+  // Check operator credentials (with multi-role support)
+  const userRoles = useMemo(() => {
+    const roleVal = currentUser?.role || currentUser?.userType || "";
+    if (typeof roleVal === "string") {
+      return roleVal.split(",").map(r => r.trim().toLowerCase());
+    }
+    if (Array.isArray(roleVal)) {
+      return roleVal.map(r => String(r).trim().toLowerCase());
+    }
+    return [String(roleVal).trim().toLowerCase()];
+  }, [currentUser]);
+
+  const isAdmin = userRoles.includes("admin");
+  const isDept = userRoles.includes("department");
+  const isDept1 = userRoles.includes("department1");
+  const isSubcontractor = userRoles.includes("subcontractor");
+  const isObserver = userRoles.includes("observer");
   const canBulkAction = isAdmin || isDept || isDept1;
+  const isMultiDept = isDept && isDept1;
+
+  const checkIfHideCheckbox = useCallback((row) => {
+    if (isObserver) return true;
+    if (isAdmin || isMultiDept) return false;
+    if (isDept) {
+      const eitherIsConstruction = String(row.permit_under).toLowerCase() === "construction" ||
+                                    String(row.permit_type).toLowerCase() === "construction";
+      return !eitherIsConstruction;
+    }
+    if (isDept1) {
+      const bothAreConstruction = String(row.permit_under).toLowerCase() === "construction" &&
+                                   String(row.permit_type).toLowerCase() === "construction";
+      return bothAreConstruction;
+    }
+    return false;
+  }, [isAdmin, isDept, isDept1, isMultiDept, isObserver]);
 
   // ─── Fetch Selector Lists ──────────────────────────────────────────────────
   useEffect(() => {
@@ -1024,7 +1053,8 @@ const ListRequest = () => {
   // ─── Select Handling ───────────────────────────────────────────────────────
   const handleSelectAll = (checked) => {
     if (checked) {
-      setSelectedIds(requests.map(r => r.id));
+      const selectableRequests = requests.filter(r => !checkIfHideCheckbox(r));
+      setSelectedIds(selectableRequests.map(r => r.id));
     } else {
       setSelectedIds([]);
     }
@@ -1719,13 +1749,17 @@ const ListRequest = () => {
     }
   };
 
+  const selectableRequestsCount = useMemo(() => {
+    return requests.filter(r => !checkIfHideCheckbox(r)).length;
+  }, [requests, checkIfHideCheckbox]);
+
   // ─── Table Configuration ──────────────────────────────────────────────────
   const columns = [
     {
-      header: (
+      header: !isObserver && (
         <input
           type="checkbox"
-          checked={requests.length > 0 && selectedIds.length === requests.length}
+          checked={selectableRequestsCount > 0 && selectedIds.length === selectableRequestsCount}
           onChange={(e) => handleSelectAll(e.target.checked)}
         />
       ),
@@ -1797,13 +1831,71 @@ const ListRequest = () => {
         </div>
       );
 
-      const isEditable = (isAdmin || isSubcontractor) &&
-        row.Request_status !== "Cancelled" &&
-        row.Request_status !== "Closed" &&
-        row.Request_status !== "Rejected" &&
-        row.Request_status !== "Auto-Cancelled" &&
-        row.Request_status !== "Auto Cancelled" &&
-        currentUser?.role !== "Observer";
+      const isDept1Commissioning = isDept1 && (
+        String(row.permit_under).toLowerCase() === "commissioning" ||
+        String(row.permit_type).toLowerCase() === "commissioning"
+      );
+
+      const isMultiDept = isDept && isDept1;
+
+      const isEditable = (() => {
+        const isStatusAllowed = row.Request_status !== "Cancelled" &&
+          row.Request_status !== "Closed" &&
+          row.Request_status !== "Rejected" &&
+          row.Request_status !== "Auto-Cancelled" &&
+          row.Request_status !== "Auto Cancelled" &&
+          currentUser?.role !== "Observer";
+
+        if (!isStatusAllowed) return false;
+        if (isAdmin || isSubcontractor || isMultiDept) return true;
+
+        if (isDept) {
+          const eitherIsConstruction = String(row.permit_under).toLowerCase() === "construction" ||
+                                        String(row.permit_type).toLowerCase() === "construction";
+          return eitherIsConstruction;
+        }
+
+        if (isDept1) {
+          return isDept1Commissioning;
+        }
+
+        return false;
+      })();
+
+      const isDeletable = (() => {
+        if (isAdmin || isMultiDept) return true;
+
+        if (isDept) {
+          const eitherIsConstruction = String(row.permit_under).toLowerCase() === "construction" ||
+                                        String(row.permit_type).toLowerCase() === "construction";
+          return eitherIsConstruction;
+        }
+
+        if (isDept1) {
+          return isDept1Commissioning;
+        }
+
+        return false;
+      })();
+
+      const isCopyable = (() => {
+        if (currentUser?.role === "Observer") return false;
+        if (isAdmin || isSubcontractor || isMultiDept) return true;
+
+        if (isDept) {
+          const eitherIsConstruction = String(row.permit_under).toLowerCase() === "construction" ||
+                                        String(row.permit_type).toLowerCase() === "construction";
+          return eitherIsConstruction;
+        }
+
+        if (isDept1) {
+          const bothAreConstruction = String(row.permit_under).toLowerCase() === "construction" &&
+                                       String(row.permit_type).toLowerCase() === "construction";
+          return !bothAreConstruction;
+        }
+
+        return false;
+      })();
 
       // Status chip render
       const statusClass = `status-badge status-badge--${row.Request_status?.toLowerCase().replace(" ", "-")}`;
@@ -1899,7 +1991,7 @@ const ListRequest = () => {
             <FaEye />
           </a>
 
-          {currentUser?.role !== "Observer" && (
+          {isCopyable && (
             <button
               className="op-action-btn op-action-btn--copy"
               title="Copy Request"
@@ -1909,7 +2001,7 @@ const ListRequest = () => {
             </button>
           )}
 
-          {isAdmin && (
+          {isDeletable && (
             <button
               className="op-action-btn op-action-btn--delete"
               title="Delete Request"
@@ -1931,13 +2023,13 @@ const ListRequest = () => {
 
       return {
         ...row,
-        checkboxCell: (
+        checkboxCell: !checkIfHideCheckbox(row) ? (
           <input
             type="checkbox"
             checked={selectedIds.includes(row.id)}
             onChange={(e) => handleSelectRow(e.target.checked, row.id)}
           />
-        ),
+        ) : null,
         contractorName: trimLongValue(contractorName, 25),
         buildingName: trimLongValue(buildingName, 20),
         zone: trimLongValue(zoneName, 20),

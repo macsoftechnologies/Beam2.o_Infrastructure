@@ -308,8 +308,56 @@ function ExecutiveDashboard() {
   }, [selectedLevelZones]);
 
   const rooms = useMemo(() => {
-    return selectedLevelZones.flatMap(z => z.rooms || []);
-  }, [selectedLevelZones]);
+    return selectedLevelZones.flatMap(zone => {
+      if (!zone.rooms) return [];
+
+      // Get the floor's PDF for this building
+      const floorPdf = BUILDING_PDFS[selectedBuilding] || selectedLevelZones[0]?.pdf;
+
+      // If the zone uses the same PDF as the floor plan itself,
+      // the coordinates of the rooms are already correct relative to the floor. Skip projection.
+      if (zone.pdf === floorPdf) {
+        return zone.rooms;
+      }
+
+      const zonePoints = zone.points || [];
+      if (zonePoints.length === 0) return zone.rooms;
+
+      const xs = zonePoints.map(p => p.x);
+      const ys = zonePoints.map(p => p.y);
+      const xMin = Math.min(...xs);
+      const xMax = Math.max(...xs);
+      const yMin = Math.min(...ys);
+      const yMax = Math.max(...ys);
+
+      const zoneWidthOnFloor = xMax - xMin;
+      const zoneHeightOnFloor = yMax - yMin;
+
+      return zone.rooms.map(room => {
+        if (!room.points || room.points.length === 0) return room;
+
+        const roomPdfWidth = room.pdfWidth || 1;
+        const roomPdfHeight = room.pdfHeight || 1;
+
+        const mappedPoints = room.points.map(p => {
+          const normX = p.x / roomPdfWidth;
+          const normY = p.y / roomPdfHeight;
+          return {
+            ...p,
+            x: xMin + (normX * zoneWidthOnFloor),
+            y: yMin + (normY * zoneHeightOnFloor)
+          };
+        });
+
+        return {
+          ...room,
+          pdfWidth: zone.pdfWidth,
+          pdfHeight: zone.pdfHeight,
+          points: mappedPoints
+        };
+      });
+    });
+  }, [selectedLevelZones, selectedBuilding]);
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
