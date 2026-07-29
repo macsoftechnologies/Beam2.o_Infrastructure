@@ -111,6 +111,10 @@ export default function OTP() {
     }
     if (e.key === "ArrowLeft" && idx > 0) inputRefs.current[idx - 1]?.focus();
     if (e.key === "ArrowRight" && idx < OTP_LENGTH - 1) inputRefs.current[idx + 1]?.focus();
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleVerify();
+    }
   };
 
   // Handle paste
@@ -166,7 +170,8 @@ export default function OTP() {
           id: response.id,
           username: response.username,
           role: response.userType, // UserType is the role
-          name: response.username
+          name: response.username,
+          typeId: response.typeId
         };
         localStorage.setItem("user", JSON.stringify(activeUser));
         localStorage.setItem("UserType", response.userType);

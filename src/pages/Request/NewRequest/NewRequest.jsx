@@ -1,7 +1,9 @@
 import { useMemo, useState, useRef, useEffect } from "react";
+import { FaSearch } from "react-icons/fa";
 import "../../styles/pages.css";
 import "../../../forms/styles/forms.css";
 import "./NewRequest.css";
+import Modal from "../../../components/common/Modal/Modal";
 
 const AnalogTimePicker = ({ initialTime, onSave, onCancel }) => {
   const [hour, setHour] = useState(12);
@@ -170,6 +172,194 @@ const AnalogTimePicker = ({ initialTime, onSave, onCancel }) => {
   );
 };
 
+const SearchableSingleSelect = ({ options = [], value, onChange, placeholder, disabled, className, valueKey = "id", labelKey = "subContractorName" }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find(o => String(o[valueKey] ?? o.value ?? o.id) === String(value));
+  const displayText = selectedOption ? (selectedOption[labelKey] || selectedOption.label || selectedOption.name) : placeholder;
+
+  const filteredOptions = useMemo(() => {
+    if (!search.trim()) return options;
+    const q = search.toLowerCase();
+    return options.filter(o => {
+      const label = o[labelKey] || o.label || o.name || "";
+      return String(label).toLowerCase().includes(q);
+    });
+  }, [options, search, labelKey]);
+
+  return (
+    <div ref={containerRef} style={{ position: "relative", width: "100%" }}>
+      <div
+        className={`df-input ${className || ""}`}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          cursor: disabled ? "not-allowed" : "pointer",
+          userSelect: "none",
+          opacity: disabled ? 0.6 : 1,
+          color: selectedOption ? "var(--text-main, #f9fafb)" : "var(--text-muted, #9ca3af)"
+        }}
+      >
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {displayText}
+        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          {value && !disabled && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange({ target: { value: "" } });
+              }}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#9ca3af",
+                cursor: "pointer",
+                padding: "2px",
+                fontSize: "12px"
+              }}
+            >
+              ✕
+            </button>
+          )}
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </div>
+      </div>
+
+      {isOpen && !disabled && (
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(100% + 4px)",
+            left: 0,
+            width: "100%",
+            maxHeight: "260px",
+            backgroundColor: "var(--bg-card, #111827)",
+            border: "1.5px solid var(--border-color, #374151)",
+            borderRadius: "8px",
+            zIndex: 99999,
+            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden"
+          }}
+        >
+          <div style={{ padding: "8px", borderBottom: "1px solid var(--border-color, #374151)", display: "flex", gap: "6px" }}>
+            <input
+              type="text"
+              placeholder="Search contractor..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              autoFocus
+              style={{
+                flex: 1,
+                padding: "6px 10px",
+                fontSize: "13px",
+                borderRadius: "6px",
+                border: "1px solid var(--border-color, #374151)",
+                backgroundColor: "rgba(255, 255, 255, 0.05)",
+                color: "var(--text-main, #f9fafb)",
+                outline: "none"
+              }}
+            />
+            <button
+              type="button"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                padding: "6px 10px",
+                backgroundColor: "var(--primary-color, #3b82f6)",
+                border: "none",
+                borderRadius: "6px",
+                color: "#fff",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+            >
+              <FaSearch size={12} />
+            </button>
+          </div>
+
+          <div style={{ overflowY: "auto", maxHeight: "200px", padding: "4px 0" }}>
+            <div
+              onClick={() => {
+                onChange({ target: { value: "" } });
+                setIsOpen(false);
+                setSearch("");
+              }}
+              style={{
+                padding: "8px 12px",
+                cursor: "pointer",
+                fontSize: "13px",
+                color: "var(--text-muted, #9ca3af)",
+                backgroundColor: !value ? "rgba(255,255,255,0.05)" : "transparent"
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.08)"}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = !value ? "rgba(255,255,255,0.05)" : "transparent"}
+            >
+              {placeholder}
+            </div>
+
+            {filteredOptions.map((o) => {
+              const val = String(o[valueKey] ?? o.value ?? o.id);
+              const label = o[labelKey] || o.label || o.name;
+              const isSelected = String(value) === val;
+
+              return (
+                <div
+                  key={val}
+                  onClick={() => {
+                    onChange({ target: { value: val } });
+                    setIsOpen(false);
+                    setSearch("");
+                  }}
+                  style={{
+                    padding: "8px 12px",
+                    cursor: "pointer",
+                    fontSize: "13px",
+                    color: isSelected ? "#00e5a0" : "var(--text-main, #f9fafb)",
+                    backgroundColor: isSelected ? "rgba(0, 229, 160, 0.1)" : "transparent",
+                    fontWeight: isSelected ? "600" : "normal"
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isSelected ? "rgba(0, 229, 160, 0.15)" : "rgba(255, 255, 255, 0.08)"}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = isSelected ? "rgba(0, 229, 160, 0.1)" : "transparent"}
+                >
+                  {label}
+                </div>
+              );
+            })}
+
+            {filteredOptions.length === 0 && (
+              <div style={{ padding: "12px", textAlign: "center", color: "#9ca3af", fontSize: "13px" }}>
+                No contractors found
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 import FloorDrawing from "../FloorDrawing/FloorDrawing";
 
 import { FLOOR_PDFS } from "../../../data/pdfMapping";
@@ -287,6 +477,18 @@ function NewRequest() {
 
   const [building, setBuilding] = useState("");
   const [level, setLevel] = useState("");
+  const currentUser = useMemo(() => getUser(), []);
+  const userRoles = useMemo(() => {
+    const roleVal = currentUser?.role || currentUser?.userType || "";
+    if (typeof roleVal === "string") {
+      return roleVal.split(",").map(r => r.trim().toLowerCase());
+    }
+    if (Array.isArray(roleVal)) {
+      return roleVal.map(r => String(r).trim().toLowerCase());
+    }
+    return [String(roleVal).trim().toLowerCase()];
+  }, [currentUser]);
+  const isSubcontractor = userRoles.includes("subcontractor");
   const [isnewrequestcreated, setIsnewrequestcreated] = useState(false);
   const [selectedRooms, setSelectedRooms] = useState([]);
   const [selectedZone, setSelectedZone] = useState(null);
@@ -294,12 +496,20 @@ function NewRequest() {
   const [isElectricalDropdownOpen, setIsElectricalDropdownOpen] = useState(false);
   const [isMechanicalDropdownOpen, setIsMechanicalDropdownOpen] = useState(false);
   const [isPrecautionsDropdownOpen, setIsPrecautionsDropdownOpen] = useState(false);
+  const [eleSearch, setEleSearch] = useState("");
+  const [mechSearch, setMechSearch] = useState("");
+  const [electricalCategory, setElectricalCategory] = useState("");
+  const [isFetchingEle, setIsFetchingEle] = useState(false);
+  const [isFetchingMech, setIsFetchingMech] = useState(false);
+  const electricalWorksNamesCache = useRef({});
+  const mechanicalWorksNamesCache = useRef({});
 
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [fieldErrors, setFieldErrors] = useState({});
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [showNewEndPicker, setShowNewEndPicker] = useState(false);
+  const [showRamsHoldModal, setShowRamsHoldModal] = useState(false);
   const [tempStartTime, setTempStartTime] = useState("");
   const [tempEndTime, setTempEndTime] = useState("");
   const [tempNewEndTime, setTempNewEndTime] = useState("");
@@ -574,7 +784,17 @@ function NewRequest() {
           getPrecautions(1, 1000)
         ]);
 
-        setContractors(contractorsRes?.data?.rows ?? contractorsRes?.data ?? contractorsRes ?? []);
+        const rawContractors = contractorsRes?.data?.rows ?? contractorsRes?.data ?? contractorsRes ?? [];
+        const loadedContractors = rawContractors
+          .slice()
+          .sort((a, b) => (a.subContractorName || "").localeCompare(b.subContractorName || "", undefined, { sensitivity: "base" }));
+        setContractors(loadedContractors);
+        if (isSubcontractor && loadedContractors.length > 0) {
+          setFormData(prev => ({
+            ...prev,
+            Sub_Contractor_Id: String(loadedContractors[0].id)
+          }));
+        }
         setActivitiesList(activitiesRes?.data?.rows ?? activitiesRes?.data ?? activitiesRes ?? []);
         setElectricalWorksList(electricalRes?.data ?? []);
         setMechanicalWorksList(mechanicalRes?.data ?? []);
@@ -593,6 +813,57 @@ function NewRequest() {
     loadSelectors();
   }, []);
 
+  // Cache electrical and mechanical works names to persist them during filtering
+  useEffect(() => {
+    electricalWorksList.forEach(x => {
+      if (x.id) {
+        electricalWorksNamesCache.current[String(x.id)] = x.electrical_works;
+      }
+    });
+  }, [electricalWorksList]);
+
+  useEffect(() => {
+    mechanicalWorksList.forEach(x => {
+      if (x.id) {
+        mechanicalWorksNamesCache.current[String(x.id)] = x.mechanical_works || x.name;
+      }
+    });
+  }, [mechanicalWorksList]);
+
+  // Fetch electrical works dynamically on search or category select
+  useEffect(() => {
+    if (formData.work_type !== "Electrical Works") return;
+    const delayDebounce = setTimeout(async () => {
+      setIsFetchingEle(true);
+      try {
+        const res = await getElectricalWorks(1, 1000, eleSearch, electricalCategory);
+        setElectricalWorksList(res?.data ?? []);
+      } catch (err) {
+        console.error("Error fetching electrical works:", err);
+      } finally {
+        setIsFetchingEle(false);
+      }
+    }, 300);
+    return () => clearTimeout(delayDebounce);
+  }, [electricalCategory, eleSearch, formData.work_type]);
+
+  // Fetch mechanical works dynamically on search
+  useEffect(() => {
+    if (formData.work_type !== "Mechanical Works") return;
+    const delayDebounce = setTimeout(async () => {
+      setIsFetchingMech(true);
+      try {
+        const res = await getMechanicalWorks(1, 1000, mechSearch);
+        setMechanicalWorksList(res?.data ?? []);
+      } catch (err) {
+        console.error("Error fetching mechanical works:", err);
+      } finally {
+        setIsFetchingMech(false);
+      }
+    }, 300);
+    return () => clearTimeout(delayDebounce);
+  }, [mechSearch, formData.work_type]);
+
   // Handle click outside for precautions dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -605,6 +876,16 @@ function NewRequest() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  // Default subcontractor id if current user is a contractor
+  useEffect(() => {
+    if (isSubcontractor && currentUser?.typeId) {
+      setFormData(prev => ({
+        ...prev,
+        Sub_Contractor_Id: String(currentUser.typeId)
+      }));
+    }
+  }, [isSubcontractor, currentUser]);
 
   // Bind edit request data once selectors have finished loading
   useEffect(() => {
@@ -1009,7 +1290,7 @@ function NewRequest() {
       if (start) {
         if (shift) {
           if (newEnd && newEnd >= start) {
-            next.new_end_time = "For night shift, new end time must be earlier than start time.";
+            next.new_end_time = "For working after midnight, new end time must be earlier than start time.";
           }
         } else {
           if (end && start >= end) {
@@ -1026,6 +1307,9 @@ function NewRequest() {
       if (field === "work_type") {
         updated.electrical_works = [];
         updated.mechanical_works = [];
+        setEleSearch("");
+        setMechSearch("");
+        setElectricalCategory("");
       }
 
       if (field === "night_shift") {
@@ -1327,7 +1611,7 @@ function NewRequest() {
       if (formData.night_shift) {
         if (formData.new_end_time) {
           if (formData.new_end_time >= formData.Start_Time) {
-            errors.new_end_time = "For night shift, new end time must be earlier than start time.";
+            errors.new_end_time = "For working after midnight, new end time must be earlier than start time.";
           }
         }
       } else {
@@ -1473,7 +1757,7 @@ function NewRequest() {
       if (formData.night_shift) {
         if (formData.new_end_time) {
           if (formData.new_end_time >= formData.Start_Time) {
-            timeErrors.new_end_time = "For night shift, new end time must be earlier than start time.";
+            timeErrors.new_end_time = "For working after midnight, new end time must be earlier than start time.";
           }
         }
       } else {
@@ -1918,20 +2202,26 @@ function NewRequest() {
             <div className="df-grid" style={{ marginTop: "16px" }}>
               <div className="df-field">
                 <label className="df-label">Contractor <span className="req-star">*</span></label>
-                <select
-                  className={`df-select${fieldErrors.Sub_Contractor_Id ? " field-input-error" : ""}`}
-                  value={formData.Sub_Contractor_Id}
-                  onChange={(e) => handleFieldChange("Sub_Contractor_Id", e.target.value)}
-                >
-                  <option value="">Select Contractor</option>
-                  {contractors.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.subContractorName}
-                    </option>
-                  ))}
-                </select>
+                {isSubcontractor ? (
+                  <input
+                    type="text"
+                    className="df-input df-readonly"
+                    value={contractors.length > 0 ? (contractors.find(c => String(c.id) === String(formData.Sub_Contractor_Id))?.subContractorName || contractors[0]?.subContractorName) : "Loading..."}
+                    readOnly
+                  />
+                ) : (
+                  <SearchableSingleSelect
+                    options={contractors}
+                    value={formData.Sub_Contractor_Id}
+                    onChange={(e) => handleFieldChange("Sub_Contractor_Id", e.target.value)}
+                    placeholder="Select Contractor"
+                    disabled={isSubcontractor}
+                    className={fieldErrors.Sub_Contractor_Id ? "field-input-error" : ""}
+                  />
+                )}
                 {fieldErrors.Sub_Contractor_Id && <span className="field-error">{fieldErrors.Sub_Contractor_Id}</span>}
               </div>
+
               <div className="df-field">
                 <label className="df-label">Sub Contractor <span className="req-star">*</span></label>
                 <input
@@ -2126,7 +2416,7 @@ function NewRequest() {
                     checked={formData.night_shift}
                     onChange={(e) => handleFieldChange("night_shift", e.target.checked)}
                   />
-                  <span className="checkbox-label">Is this a night shift?</span>
+                  <span className="checkbox-label">Is this working after midnight?</span>
                 </label>
               </div>
             </div>
@@ -2134,7 +2424,7 @@ function NewRequest() {
             {formData.night_shift && (
               <div className="df-grid night-shift-subform" style={{ marginTop: "16px" }}>
                 <div className="df-field">
-                  <label className="df-label">New Date (Night Shift) <span className="req-star">*</span></label>
+                  <label className="df-label">New Date (Working After Midnight) <span className="req-star">*</span></label>
                   <input
                     type="date"
                     className={`df-input${fieldErrors.new_date ? " field-input-error" : ""}${formData.night_shift ? " df-readonly" : ""}`}
@@ -2146,7 +2436,7 @@ function NewRequest() {
                   {fieldErrors.new_date && <span className="field-error">{fieldErrors.new_date}</span>}
                 </div>
                 <div className="df-field">
-                  <label className="df-label">New End Time (Night Shift) <span className="req-star">*</span></label>
+                  <label className="df-label">New End Time (Working After Midnight) <span className="req-star">*</span></label>
                   <input
                     type="text"
                     placeholder="00:00"
@@ -2382,60 +2672,94 @@ function NewRequest() {
                 </div>
 
                 {formData.work_type === "Electrical Works" && (
-                  <div className="df-field" ref={electricalDropdownRef} style={{ position: "relative" }}>
-                    <label className="df-label">Electrical Works <span className="req-star">*</span></label>
-                    <div style={{ position: "relative" }}>
-                      <input
-                        type="text"
-                        className={`df-input${fieldErrors.electrical_works ? " field-input-error" : ""}`}
-                        style={{ cursor: "pointer", background: "rgba(255, 255, 255, 0.02)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
-                        placeholder="Click to select electrical works..."
-                        value={
-                          formData.electrical_works?.length > 0
-                            ? formData.electrical_works.map(id => electricalWorksList.find(x => String(x.id) === String(id))?.electrical_works || id).join(", ")
-                            : ""
-                        }
-                        readOnly
-                        onClick={() => setIsElectricalDropdownOpen(prev => !prev)}
-                      />
-                      <i className="ti ti-chevron-down" style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: "#9ca3af", pointerEvents: "none", fontSize: "16px" }} />
+                  <>
+                    <div className="df-field">
+                      <label className="df-label">Electrical Category</label>
+                      <select
+                        className="df-select"
+                        value={electricalCategory}
+                        onChange={(e) => {
+                          setElectricalCategory(e.target.value);
+                          setEleSearch(""); // Reset search query on category switch
+                        }}
+                      >
+                        <option value="">All Categories</option>
+                        <option value="Panel Numbers">Panel Numbers</option>
+                        <option value="System Numbers">System Numbers</option>
+                      </select>
                     </div>
-                    {fieldErrors.electrical_works && <span className="field-error">{fieldErrors.electrical_works}</span>}
 
-                    {isElectricalDropdownOpen && groupedElectrical.length > 0 && (
-                      <div className="zone-rooms-dropdown" style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "16px", marginTop: "8px", boxShadow: "var(--shadow-md)", position: "absolute", top: "100%", left: 0, width: "100%", zIndex: 100, maxHeight: "300px", overflowY: "auto" }}>
-                        {groupedElectrical.map((g) => (
-                          <div key={g.module} style={{ marginBottom: "20px" }}>
-                            <div style={{ fontWeight: "bold", color: "var(--color-safe, #00e5a0)", marginBottom: "12px", fontSize: "14px", textTransform: "uppercase" }}>
-                              {g.module}
-                            </div>
-                            <div style={{ display: "flex", flexDirection: "column", gap: "12px", paddingLeft: "8px" }}>
-                              {g.items.map((i) => {
-                                const isChecked = (formData.electrical_works || []).includes(String(i.id));
-                                return (
-                                  <label key={i.id} className="custom-checkbox-label" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                    <input
-                                      type="checkbox"
-                                      className="custom-checkbox-input"
-                                      checked={isChecked}
-                                      onChange={() => {
-                                        const current = formData.electrical_works || [];
-                                        const newValues = isChecked
-                                          ? current.filter(val => val !== String(i.id))
-                                          : [...current, String(i.id)];
-                                        handleFieldChange("electrical_works", newValues);
-                                      }}
-                                    />
-                                    <span>{i.name}</span>
-                                  </label>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ))}
+                    <div className="df-field" ref={electricalDropdownRef} style={{ position: "relative" }}>
+                      <label className="df-label">Electrical Works <span className="req-star">*</span></label>
+                      <div style={{ position: "relative" }}>
+                        <input
+                          type="text"
+                          className={`df-input${fieldErrors.electrical_works ? " field-input-error" : ""}`}
+                          style={{ cursor: "pointer", background: "rgba(255, 255, 255, 0.02)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+                          placeholder="Click to select electrical works..."
+                          value={
+                            formData.electrical_works?.length > 0
+                              ? formData.electrical_works.map(id => electricalWorksNamesCache.current[String(id)] || id).join(", ")
+                              : ""
+                          }
+                          readOnly
+                          onClick={() => setIsElectricalDropdownOpen(prev => !prev)}
+                        />
+                        <i className="ti ti-chevron-down" style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: "#9ca3af", pointerEvents: "none", fontSize: "16px" }} />
                       </div>
-                    )}
-                  </div>
+                      {fieldErrors.electrical_works && <span className="field-error">{fieldErrors.electrical_works}</span>}
+
+                      {isElectricalDropdownOpen && groupedElectrical.length > 0 && (
+                        <div className="zone-rooms-dropdown" style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "16px", marginTop: "8px", boxShadow: "var(--shadow-md)", position: "absolute", top: "100%", left: 0, width: "100%", zIndex: 100, maxHeight: "300px", overflowY: "auto" }}>
+                          <div style={{ marginBottom: "12px", position: "sticky", top: 0, zIndex: 10, background: "var(--bg-card)" }}>
+                            <input
+                              type="text"
+                              className="df-input"
+                              placeholder="Search..."
+                              value={eleSearch}
+                              onChange={(e) => setEleSearch(e.target.value)}
+                              onClick={(e) => e.stopPropagation()}
+                              style={{ width: "100%", padding: "8px 12px", fontSize: "13px" }}
+                            />
+                            {isFetchingEle && (
+                              <div style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)" }}>
+                                <span className="spinner-mini" />
+                              </div>
+                            )}
+                          </div>
+                          {groupedElectrical.map((g) => (
+                            <div key={g.module} style={{ marginBottom: "20px" }}>
+                              <div style={{ fontWeight: "bold", color: "var(--color-safe, #00e5a0)", marginBottom: "12px", fontSize: "14px", textTransform: "uppercase" }}>
+                                {g.module}
+                              </div>
+                              <div style={{ display: "flex", flexDirection: "column", gap: "12px", paddingLeft: "8px" }}>
+                                {g.items.map((i) => {
+                                  const isChecked = (formData.electrical_works || []).includes(String(i.id));
+                                  return (
+                                    <label key={i.id} className="custom-checkbox-label" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                      <input
+                                        type="checkbox"
+                                        className="custom-checkbox-input"
+                                        checked={isChecked}
+                                        onChange={() => {
+                                          const current = formData.electrical_works || [];
+                                          const newValues = isChecked
+                                            ? current.filter(val => val !== String(i.id))
+                                            : [...current, String(i.id)];
+                                          handleFieldChange("electrical_works", newValues);
+                                        }}
+                                      />
+                                      <span>{i.name}</span>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </>
                 )}
 
                 {formData.work_type === "Mechanical Works" && (
@@ -2449,7 +2773,7 @@ function NewRequest() {
                         placeholder="Click to select mechanical works..."
                         value={
                           formData.mechanical_works?.length > 0
-                            ? formData.mechanical_works.map(id => mechanicalWorksOptions.find(x => String(x.id) === String(id))?.name || id).join(", ")
+                            ? formData.mechanical_works.map(id => mechanicalWorksNamesCache.current[String(id)] || id).join(", ")
                             : ""
                         }
                         readOnly
@@ -2461,6 +2785,22 @@ function NewRequest() {
 
                     {isMechanicalDropdownOpen && mechanicalWorksOptions.length > 0 && (
                       <div className="zone-rooms-dropdown" style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "16px", marginTop: "8px", boxShadow: "var(--shadow-md)", position: "absolute", top: "100%", left: 0, width: "100%", zIndex: 100, maxHeight: "300px", overflowY: "auto" }}>
+                        <div style={{ marginBottom: "12px", position: "sticky", top: 0, zIndex: 10, background: "var(--bg-card)" }}>
+                          <input
+                            type="text"
+                            className="df-input"
+                            placeholder="Search..."
+                            value={mechSearch}
+                            onChange={(e) => setMechSearch(e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ width: "100%", padding: "8px 12px", fontSize: "13px" }}
+                          />
+                          {isFetchingMech && (
+                            <div style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)" }}>
+                              <span className="spinner-mini" />
+                            </div>
+                          )}
+                        </div>
                         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                           {mechanicalWorksOptions.map((m) => {
                             const isChecked = (formData.mechanical_works || []).includes(String(m.id));
@@ -4387,7 +4727,11 @@ function NewRequest() {
                   type="button"
                   className="nr-btn nr-btn--ghost"
                   style={{ background: "#2563eb", color: "#fff", borderColor: "#2563eb", boxShadow: "0 0 18px rgba(37, 99, 235, 0.2)" }}
-                  onClick={(e) => { if (validateHoldFields()) handleSubmit(e, "Hold"); }}
+                  onClick={(e) => {
+                    if (validateHoldFields()) {
+                      setShowRamsHoldModal(true);
+                    }
+                  }}
                 >
                   Change to Hold
                 </button>
@@ -4402,6 +4746,44 @@ function NewRequest() {
             )}
           </div>
         </form>
+
+        <Modal
+          open={showRamsHoldModal}
+          onClose={() => setShowRamsHoldModal(false)}
+          title="RAMS Confirmation"
+          size="sm"
+          centered={true}
+        >
+          <div className="df-form" style={{ padding: "8px 0" }}>
+            <p style={{ color: "var(--text-main, inherit)", fontSize: "15px", marginBottom: "24px", lineHeight: "1.5" }}>
+              Can you confirm the RAMS for this work is approved by ConM/HSE?
+            </p>
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button
+                type="button"
+                className="nr-btn nr-btn--primary"
+                style={{ padding: "8px 24px" }}
+                onClick={(e) => {
+                  setShowRamsHoldModal(false);
+                  handleSubmit(e, "Hold");
+                }}
+              >
+                Yes
+              </button>
+              <button
+                type="button"
+                className="nr-btn nr-btn--ghost"
+                style={{ padding: "8px 24px" }}
+                onClick={(e) => {
+                  setShowRamsHoldModal(false);
+                  handleSubmit(e, "Draft");
+                }}
+              >
+                No
+              </button>
+            </div>
+          </div>
+        </Modal>
       </div>
 
     );

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
-import Table from "../../../components/common/Table/Table";
-import { searchRequests } from "../../../services/requestService";
-import { API_BASE_URL } from "../../../services/api";
-import "../../styles/pages.css";
+import Table from "../../components/common/Table/Table";
+import { searchRequests } from "../../services/requestService";
+import { API_BASE_URL } from "../../services/api";
+import "../styles/pages.css";
 import LogHistoryModal from "./LogHistoryModel";
 
 // Helper to convert yyyy-mm-dd date to dd-mm-yyyy format
@@ -91,7 +91,7 @@ const LogHistory = () => {
     { header: "Area", accessor: "area" },
     { header: "Level", accessor: "level" },
     { header: "Working Date", accessor: "workingDate" },
-    { header: "Night Shift", accessor: "nightShift" },
+    { header: "Working After Midnight", accessor: "nightShift" },
     { header: "New Date", accessor: "newDate" },
     { header: "Actions", accessor: "actions" },
   ];

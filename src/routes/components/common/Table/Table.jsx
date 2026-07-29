@@ -341,7 +341,7 @@ const Table = ({
               data.map((row, index) => (
                 <tr
                   key={index}
-                  className={`beam-tr ${row._rowonClick ? "beam-tr--clickable" : ""}`}
+                  className={`beam-tr ${row._rowonClick ? "beam-tr--clickable" : ""} ${row._rowClassName || ""}`}
                   onClick={(e) => {
                     if (!row._rowonClick) return;
                     const target = e.target;

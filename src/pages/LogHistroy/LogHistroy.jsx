@@ -91,7 +91,7 @@ const LogHistory = () => {
     { header: "Area", accessor: "area" },
     { header: "Level", accessor: "level" },
     { header: "Working Date", accessor: "workingDate" },
-    { header: "Night Shift", accessor: "nightShift" },
+    { header: "Working After Midnight", accessor: "nightShift" },
     { header: "New Date", accessor: "newDate" },
     { header: "Actions", accessor: "actions" },
   ];
