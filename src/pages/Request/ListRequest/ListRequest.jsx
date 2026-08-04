@@ -280,6 +280,88 @@ const resolveZoneNameFromRooms = (row) => {
   return "—";
 };
 
+// Helper to resolve zone objects array [{ Zone_Id, zone }] from room names and ZONE_MAPPING for copy request
+const resolveZoneObjectsFromRequest = (row) => {
+  if (!row) return [];
+
+  const roomStr = row.room_names || row.Room_Nos || row.Room_Name || "";
+  const roomsToMatch = String(roomStr)
+    .split(",")
+    .map(r => r.trim().toLowerCase())
+    .filter(Boolean);
+
+  const levelKey = row.Room_Type || "";
+  let zonesToSearch = [];
+
+  if (levelKey) {
+    const levelLower = String(levelKey).toLowerCase().trim();
+    const foundKey = Object.keys(ZONE_MAPPING).find(k =>
+      k.toLowerCase().trim().includes(levelLower) || levelLower.includes(k.toLowerCase().trim())
+    );
+    if (foundKey) {
+      zonesToSearch = ZONE_MAPPING[foundKey] || [];
+    }
+  }
+
+  if (zonesToSearch.length === 0) {
+    zonesToSearch = Object.values(ZONE_MAPPING).flat();
+  }
+
+  const foundZoneNames = new Set();
+
+  if (roomsToMatch.length > 0) {
+    for (const zoneGroup of zonesToSearch) {
+      if (zoneGroup.rooms) {
+        for (const room of zoneGroup.rooms) {
+          const roomName = (typeof room === "object" ? room.name : room) || "";
+          const roomId = (typeof room === "object" ? room.id : "") || "";
+          if (
+            roomsToMatch.includes(roomName.toLowerCase().trim()) ||
+            (roomId && roomsToMatch.includes(String(roomId).toLowerCase().trim()))
+          ) {
+            if (zoneGroup.name) {
+              foundZoneNames.add(zoneGroup.name);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Fallback if no room matched or roomStr is empty, use row's DB zone / zone_name
+  if (foundZoneNames.size === 0) {
+    const dbZoneName = (row.zone && typeof row.zone === "object")
+      ? row.zone.zone
+      : (row.zone_name || row.zone || "");
+    if (dbZoneName && dbZoneName !== "—") {
+      foundZoneNames.add(String(dbZoneName));
+    }
+  }
+
+  const primaryZoneId = row.Zone_Id
+    ? Number(row.Zone_Id)
+    : (row.zone?.id ? Number(row.zone.id) : null);
+
+  const zoneObjects = [];
+  let idx = 0;
+  foundZoneNames.forEach((zName) => {
+    zoneObjects.push({
+      Zone_Id: idx === 0 ? primaryZoneId : null,
+      zone: String(zName)
+    });
+    idx++;
+  });
+
+  if (zoneObjects.length === 0 && primaryZoneId) {
+    zoneObjects.push({
+      Zone_Id: primaryZoneId,
+      zone: String(primaryZoneId)
+    });
+  }
+
+  return zoneObjects;
+};
+
 const STATUS_OPTIONS = [
   "Draft",
   "Hold",
@@ -1800,10 +1882,6 @@ const ListRequest = () => {
   // Copy permit request to range
   const handleCopyTrigger = (row) => {
     setModalTarget(row);
-    // Default the from/to date to the next calendar day after the permit's working date
-    const workingDate = row.Working_Date ? new Date(row.Working_Date) : new Date();
-    workingDate.setDate(workingDate.getDate() + 1);
-    const nextDateStr = workingDate.toISOString().split("T")[0];
     const isNight = row.night_shift === 1 || row.night_shift === true;
     const formatTimeHHMM = (t) => {
       if (!t) return "";
@@ -1811,8 +1889,8 @@ const ListRequest = () => {
       return str.length >= 5 ? str.substring(0, 5) : str;
     };
     setCopyDates({
-      from: nextDateStr,
-      to: nextDateStr,
+      from: "",
+      to: "",
       startTime: formatTimeHHMM(row.Start_Time || row.start_time),
       endTime: formatTimeHHMM(row.End_Time || row.end_time),
       nightShift: isNight,
@@ -1848,17 +1926,8 @@ const ListRequest = () => {
     }
     const diffDays = Math.round(Math.abs((toVal - fromVal) / oneDay)) + 1;
 
-    // Build zone array matching backend ZoneItemDto: { Zone_Id: number, zone: string }
-    const zoneId = modalTarget.Zone_Id
-      ? Number(modalTarget.Zone_Id)
-      : (modalTarget.zone?.id ? Number(modalTarget.zone.id) : null);
-    const zoneName = modalTarget.zone_name
-      || (modalTarget.zone && typeof modalTarget.zone === "object" ? modalTarget.zone.zone : null)
-      || modalTarget.zone
-      || "";
-    const zoneObjects = zoneId
-      ? [{ Zone_Id: zoneId, zone: String(zoneName) }]
-      : [];
+    // Build zone array by matching room names against ZONE_MAPPING
+    const zoneObjects = resolveZoneObjectsFromRequest(modalTarget);
 
     const payload = {
       userId: currentUser?.id || 1,
