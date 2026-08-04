@@ -280,8 +280,8 @@ const resolveZoneNameFromRooms = (row) => {
   return "—";
 };
 
-// Helper to resolve zone objects array [{ Zone_Id, zone }] from room names and ZONE_MAPPING for copy request
-const resolveZoneObjectsFromRequest = (row) => {
+// Helper to resolve zone objects array [{ Zone_Id: number, zone: string }] from DB zonesList/roomsList & ZONE_MAPPING for copy request
+const resolveZoneObjectsFromRequest = (row, zonesList = [], roomsList = []) => {
   if (!row) return [];
 
   const roomStr = row.room_names || row.Room_Nos || row.Room_Name || "";
@@ -290,6 +290,24 @@ const resolveZoneObjectsFromRequest = (row) => {
     .map(r => r.trim().toLowerCase())
     .filter(Boolean);
 
+  const matchedZoneMap = new Map();
+
+  // 1. Try matching room names in DB roomsList to find real database zone_id & zone name
+  if (roomsToMatch.length > 0 && roomsList.length > 0) {
+    roomsToMatch.forEach(rNameLower => {
+      const matchedRoom = roomsList.find(r => (r.room_name || "").toLowerCase().trim() === rNameLower);
+      if (matchedRoom && matchedRoom.zone_id) {
+        const zId = Number(matchedRoom.zone_id);
+        const dbZone = zonesList.find(z => String(z.id ?? z.zoneStatusId) === String(zId));
+        const zName = dbZone ? (dbZone.zone || dbZone.zone_name) : (matchedRoom.zone_name || "");
+        if (zName) {
+          matchedZoneMap.set(zName.toLowerCase().trim(), { Zone_Id: zId, zone: String(zName) });
+        }
+      }
+    });
+  }
+
+  // 2. Resolve canonical zone names from ZONE_MAPPING using room names
   const levelKey = row.Room_Type || "";
   let zonesToSearch = [];
 
@@ -307,8 +325,7 @@ const resolveZoneObjectsFromRequest = (row) => {
     zonesToSearch = Object.values(ZONE_MAPPING).flat();
   }
 
-  const foundZoneNames = new Set();
-
+  const mappingZoneNames = [];
   if (roomsToMatch.length > 0) {
     for (const zoneGroup of zonesToSearch) {
       if (zoneGroup.rooms) {
@@ -319,8 +336,8 @@ const resolveZoneObjectsFromRequest = (row) => {
             roomsToMatch.includes(roomName.toLowerCase().trim()) ||
             (roomId && roomsToMatch.includes(String(roomId).toLowerCase().trim()))
           ) {
-            if (zoneGroup.name) {
-              foundZoneNames.add(zoneGroup.name);
+            if (zoneGroup.name && !mappingZoneNames.includes(zoneGroup.name)) {
+              mappingZoneNames.push(zoneGroup.name);
             }
           }
         }
@@ -328,34 +345,69 @@ const resolveZoneObjectsFromRequest = (row) => {
     }
   }
 
-  // Fallback if no room matched or roomStr is empty, use row's DB zone / zone_name
-  if (foundZoneNames.size === 0) {
+  // 3. For each zone name from ZONE_MAPPING, find database zone object in zonesList
+  mappingZoneNames.forEach(mappingName => {
+    const key = mappingName.toLowerCase().trim();
+    if (!matchedZoneMap.has(key)) {
+      const dbZone = zonesList.find(z => (z.zone || z.zone_name || "").toLowerCase().trim() === key);
+      if (dbZone) {
+        const zId = Number(dbZone.id ?? dbZone.zoneStatusId);
+        matchedZoneMap.set(key, { Zone_Id: zId, zone: dbZone.zone || dbZone.zone_name || mappingName });
+      }
+    }
+  });
+
+  // 4. Fallback if modalTarget already has database zone object or Zone_Id / zone_name
+  if (matchedZoneMap.size === 0) {
     const dbZoneName = (row.zone && typeof row.zone === "object")
-      ? row.zone.zone
+      ? (row.zone.zone || row.zone.zone_name)
       : (row.zone_name || row.zone || "");
+    const dbZoneId = row.Zone_Id
+      ? Number(row.Zone_Id)
+      : (row.zone?.id ? Number(row.zone.id) : null);
+
     if (dbZoneName && dbZoneName !== "—") {
-      foundZoneNames.add(String(dbZoneName));
+      let finalId = dbZoneId;
+      if (!finalId) {
+        const found = zonesList.find(z => (z.zone || z.zone_name || "").toLowerCase().trim() === String(dbZoneName).toLowerCase().trim());
+        if (found) finalId = Number(found.id ?? found.zoneStatusId);
+      }
+      if (finalId) {
+        matchedZoneMap.set(String(dbZoneName).toLowerCase().trim(), { Zone_Id: finalId, zone: String(dbZoneName) });
+      }
+    } else if (dbZoneId) {
+      const found = zonesList.find(z => Number(z.id ?? z.zoneStatusId) === dbZoneId);
+      const name = found ? (found.zone || found.zone_name) : `Zone ${dbZoneId}`;
+      matchedZoneMap.set(name.toLowerCase().trim(), { Zone_Id: dbZoneId, zone: name });
+    }
+  }
+
+  // 5. Final fallback: match first zone in zonesList for this building / floor
+  if (matchedZoneMap.size === 0 && zonesList.length > 0) {
+    const bId = row.Building_Id ? Number(row.Building_Id) : null;
+    const fId = row.Floor_Id ? Number(row.Floor_Id) : null;
+    const matchedDbZone = zonesList.find(z =>
+      (fId ? Number(z.floor_id) === fId : true) &&
+      (bId ? Number(z.build_id || z.building_id) === bId : true)
+    ) || zonesList[0];
+
+    if (matchedDbZone) {
+      const zId = Number(matchedDbZone.id ?? matchedDbZone.zoneStatusId);
+      const zName = matchedDbZone.zone || matchedDbZone.zone_name || "Zone";
+      matchedZoneMap.set(zName.toLowerCase().trim(), { Zone_Id: zId, zone: String(zName) });
     }
   }
 
   const primaryZoneId = row.Zone_Id
     ? Number(row.Zone_Id)
-    : (row.zone?.id ? Number(row.zone.id) : null);
+    : (row.zone?.id ? Number(row.zone.id) : 0);
 
-  const zoneObjects = [];
-  let idx = 0;
-  foundZoneNames.forEach((zName) => {
-    zoneObjects.push({
-      Zone_Id: idx === 0 ? primaryZoneId : null,
-      zone: String(zName)
-    });
-    idx++;
-  });
+  const zoneObjects = Array.from(matchedZoneMap.values());
 
-  if (zoneObjects.length === 0 && primaryZoneId) {
+  if (zoneObjects.length === 0) {
     zoneObjects.push({
-      Zone_Id: primaryZoneId,
-      zone: String(primaryZoneId)
+      Zone_Id: typeof primaryZoneId === "number" && !isNaN(primaryZoneId) ? primaryZoneId : 0,
+      zone: String(row.zone_name || row.zone || "Zone")
     });
   }
 
@@ -1926,8 +1978,8 @@ const ListRequest = () => {
     }
     const diffDays = Math.round(Math.abs((toVal - fromVal) / oneDay)) + 1;
 
-    // Build zone array by matching room names against ZONE_MAPPING
-    const zoneObjects = resolveZoneObjectsFromRequest(modalTarget);
+    // Build zone array by matching room names against DB roomsList/zonesList & ZONE_MAPPING
+    const zoneObjects = resolveZoneObjectsFromRequest(modalTarget, zonesList, roomsList);
 
     const payload = {
       userId: currentUser?.id || 1,
