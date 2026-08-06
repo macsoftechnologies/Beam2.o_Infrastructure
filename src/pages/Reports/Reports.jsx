@@ -394,7 +394,8 @@ import ElectricalWorksLogo from "../../assets/images/logos/electrical_works.png"
 import MechanicalWorksLogo from "../../assets/images/logos/mechanical1.png";
 
 // ─── Static options ───────────────────────────────────────────────────────────
-const YEARS = [2024, 2025, 2026, 2027, 2028, 2029];
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: 11 }, (_, i) => String(CURRENT_YEAR - 5 + i));
 
 const STATUS_OPTIONS = [
   "Draft",
@@ -1604,6 +1605,7 @@ const Reports = () => {
               />
             </div>
 
+            {/* Row 2: Year | Week */}
             <div className="df-field">
               <label className="df-label">Year</label>
               <select
