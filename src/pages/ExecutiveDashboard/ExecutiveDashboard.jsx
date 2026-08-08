@@ -76,9 +76,9 @@ const formatCompanyLogoUrl = (logoVal) => {
   }
   const cleanPath = str.startsWith("/") ? str.slice(1) : str;
   if (cleanPath.startsWith("subcontractors/")) {
-    return `http://187.127.171.51/${cleanPath}`;
+    return `https://api.beam.safesiteworks.com/m3infrastructure/${cleanPath}`;
   }
-  return `http://187.127.171.51/subcontractors/${cleanPath}`;
+  return `https://api.beam.safesiteworks.com/m3infrastructure/subcontractors/${cleanPath}`;
 };
 
 const CompanyLogo = ({ logo, name, code, color, size = 22, style = {}, className = "mini-company-badge" }) => {
@@ -250,7 +250,7 @@ function ExecutiveDashboard() {
     let isMounted = true;
     const bName = selectedBuilding || "APM Terminal";
     const fName = activeTab === "Overview" ? "" : activeTab;
-    
+
     const filterPayload = {
       building: bName,
       floor: fName,
@@ -710,249 +710,249 @@ function ExecutiveDashboard() {
 
   return (
     <>
-    <div className="exec-dashboard-container">
-      {/* ── BUILDING & DATE SELECTOR ── */}
-      <div className="exec-building-selector-row" style={{ margin: "10px 24px 12px 24px", padding: "12px 16px", display: "flex", gap: "24px", flexWrap: "wrap", alignItems: "center" }}>
-        <div className="exec-building-selector-group">
-          <span className="exec-building-lbl">BUILDING</span>
-          <select
-            className="exec-building-select"
-            value={selectedBuilding}
-            onChange={(e) => setSelectedBuilding(e.target.value)}
-          >
-            <option value="" disabled>— Select a Building —</option>
-            <option value="APM Terminal">APM Terminal</option>
-            <option value="EH Lake West">EH Lake West</option>
-            <option value="EH Lake East">EH Lake East</option>
-            <option value="Rendsborg Park">Rendsborg Park</option>
-            <option value="P-hus">P-hus</option>
-            <option value="NN East">NN East</option>
-            <option value="Hovvej West">Hovvej West</option>
-            <option value="Hovvej East">Hovvej East</option>
-            <option value="EC-JCP1">EC-JCP1</option>
-            <option value="BA-DD">BA-DD</option>
-          </select>
+      <div className="exec-dashboard-container">
+        {/* ── BUILDING & DATE SELECTOR ── */}
+        <div className="exec-building-selector-row" style={{ margin: "10px 24px 12px 24px", padding: "12px 16px", display: "flex", gap: "24px", flexWrap: "wrap", alignItems: "center" }}>
+          <div className="exec-building-selector-group">
+            <span className="exec-building-lbl">BUILDING</span>
+            <select
+              className="exec-building-select"
+              value={selectedBuilding}
+              onChange={(e) => setSelectedBuilding(e.target.value)}
+            >
+              <option value="" disabled>— Select a Building —</option>
+              <option value="APM Terminal">APM Terminal</option>
+              <option value="EH Lake West">EH Lake West</option>
+              <option value="EH Lake East">EH Lake East</option>
+              <option value="Rendsborg Park">Rendsborg Park</option>
+              <option value="P-hus">P-hus</option>
+              <option value="NN East">NN East</option>
+              <option value="Hovvej West">Hovvej West</option>
+              <option value="Hovvej East">Hovvej East</option>
+              <option value="EC-JCP1">EC-JCP1</option>
+              <option value="BA-DD">BA-DD</option>
+            </select>
+          </div>
+
+          {/* Date Range Inputs */}
+          <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <span className="exec-building-lbl">START DATE</span>
+              <input
+                type="date"
+                className="exec-date-input"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                style={{
+                  borderRadius: "6px",
+                  padding: "8px 12px",
+                  fontSize: "13px",
+                  height: "38px",
+                  outline: "none"
+                }}
+              />
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <span className="exec-building-lbl">END DATE</span>
+              <input
+                type="date"
+                className="exec-date-input"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                style={{
+                  borderRadius: "6px",
+                  padding: "8px 12px",
+                  fontSize: "13px",
+                  height: "38px",
+                  outline: "none"
+                }}
+              />
+            </div>
+
+            {(fromDate || toDate) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setFromDate("");
+                  setToDate("");
+                }}
+                style={{
+                  marginTop: "16px",
+                  backgroundColor: "transparent",
+                  border: "none",
+                  color: "var(--accent, #00e5a0)",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px"
+                }}
+              >
+                ✕ Clear Date
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Date Range Inputs */}
-        <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            <span className="exec-building-lbl">START DATE</span>
-            <input
-              type="date"
-              className="exec-date-input"
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              style={{
-                borderRadius: "6px",
-                padding: "8px 12px",
-                fontSize: "13px",
-                height: "38px",
-                outline: "none"
-              }}
-            />
+        {/* ── FLOOR TABS ── */}
+        <div className="exec-tabs-container">
+          <div className="exec-tabs-left">
+            {["Overview", ...floorTabNames].map((tab) => (
+              <button
+                key={tab}
+                className={`exec-tab-btn ${activeTab === tab ? "active" : ""}`}
+                onClick={() => setActiveTab(tab)}
+              >
+                {tab}
+              </button>
+            ))}
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            <span className="exec-building-lbl">END DATE</span>
-            <input
-              type="date"
-              className="exec-date-input"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              style={{
-                borderRadius: "6px",
-                padding: "8px 12px",
-                fontSize: "13px",
-                height: "38px",
-                outline: "none"
-              }}
-            />
-          </div>
-
-          {(fromDate || toDate) && (
-            <button
-              type="button"
-              onClick={() => {
-                setFromDate("");
-                setToDate("");
-              }}
-              style={{
-                marginTop: "16px",
-                backgroundColor: "transparent",
-                border: "none",
-                color: "var(--accent, #00e5a0)",
-                cursor: "pointer",
-                fontSize: "13px",
-                fontWeight: "600",
-                display: "flex",
-                alignItems: "center",
-                gap: "4px"
-              }}
-            >
-              ✕ Clear Date
-            </button>
+          {activeTab !== "Overview" && (
+            <div className="exec-tabs-right">
+              <button
+                className={`action-btn-toggle ${isZonesActive ? "active" : ""}`}
+                onClick={() => setIsZonesActive((prev) => !prev)}
+              >
+                <i className={`ti ${isZonesActive ? "ti-square-check" : "ti-square"}`} />
+                Zones
+              </button>
+            </div>
           )}
         </div>
-      </div>
 
-      {/* ── FLOOR TABS ── */}
-      <div className="exec-tabs-container">
-        <div className="exec-tabs-left">
-          {["Overview", ...floorTabNames].map((tab) => (
-            <button
-              key={tab}
-              className={`exec-tab-btn ${activeTab === tab ? "active" : ""}`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
+        {/* ── TAB CONTENT ── */}
+        <div className="exec-content-area">
+          {activeTab === "Overview" ? (
+            /* ════════ OVERVIEW TAB ════════ */
+            <div className="overview-tab-view animate-fade-in">
+              {/* Metric Cards Row */}
+              <div className="overview-metrics-grid">
+                {dynamicOverviewMetrics.map((metric) => (
+                  <div key={metric.id} className={`overview-card metric-card-${metric.color}`}>
+                    <div className="card-lbl">{metric.label}</div>
+                    <div className="card-val">{metric.value}</div>
+                    <div className="card-sub">{metric.sub}</div>
+                  </div>
+                ))}
+              </div>
 
-        {activeTab !== "Overview" && (
-          <div className="exec-tabs-right">
-            <button
-              className={`action-btn-toggle ${isZonesActive ? "active" : ""}`}
-              onClick={() => setIsZonesActive((prev) => !prev)}
-            >
-              <i className={`ti ${isZonesActive ? "ti-square-check" : "ti-square"}`} />
-              Zones
-            </button>
-          </div>
-        )}
-      </div>
+              {/* Permit Statuses & Floor grid Row */}
+              <div className="overview-middle-row">
+                {/* Permit Statuses Chart & Legend */}
+                <div className="overview-card status-panel">
+                  <h4>PERMIT STATUSES (SSW)</h4>
 
-      {/* ── TAB CONTENT ── */}
-      <div className="exec-content-area">
-        {activeTab === "Overview" ? (
-          /* ════════ OVERVIEW TAB ════════ */
-          <div className="overview-tab-view animate-fade-in">
-            {/* Metric Cards Row */}
-            <div className="overview-metrics-grid">
-              {dynamicOverviewMetrics.map((metric) => (
-                <div key={metric.id} className={`overview-card metric-card-${metric.color}`}>
-                  <div className="card-lbl">{metric.label}</div>
-                  <div className="card-val">{metric.value}</div>
-                  <div className="card-sub">{metric.sub}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Permit Statuses & Floor grid Row */}
-            <div className="overview-middle-row">
-              {/* Permit Statuses Chart & Legend */}
-              <div className="overview-card status-panel">
-                <h4>PERMIT STATUSES (SSW)</h4>
-
-                {/* Horizontal Progress Bar */}
-                <div className="status-progress-bar">
-                  {dynamicPermitStatuses.map((status) => {
-                    const totalPermits = overviewData?.metrics?.total || 1;
-                    const pct = (status.count / totalPermits) * 100;
-                    return (
-                      <div
-                        key={status.name}
-                        className="status-progress-seg"
-                        style={{
-                          width: `${pct}%`,
-                          backgroundColor: status.color,
-                        }}
-                        title={`${status.name}: ${status.count} (${pct.toFixed(1)}%)`}
-                      />
-                    );
-                  })}
-                </div>
-
-                {/* Legend List */}
-                <div className="status-legend-list">
-                  {dynamicPermitStatuses.map((status) => (
-                    <div key={status.name} className="legend-row">
-                      <div className="legend-left">
-                        <span
-                          className="legend-dot"
-                          style={{ backgroundColor: status.color }}
+                  {/* Horizontal Progress Bar */}
+                  <div className="status-progress-bar">
+                    {dynamicPermitStatuses.map((status) => {
+                      const totalPermits = overviewData?.metrics?.total || 1;
+                      const pct = (status.count / totalPermits) * 100;
+                      return (
+                        <div
+                          key={status.name}
+                          className="status-progress-seg"
+                          style={{
+                            width: `${pct}%`,
+                            backgroundColor: status.color,
+                          }}
+                          title={`${status.name}: ${status.count} (${pct.toFixed(1)}%)`}
                         />
-                        <span className="legend-name">{status.name}</span>
-                      </div>
-                      <span className="legend-count">{status.count}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                      );
+                    })}
+                  </div>
 
-              {/* Floor Permit Cards Grid */}
-              <div className="overview-card floors-panel">
-                <h4>Floors</h4>
-                <div className="floors-mini-grid">
-                  {dynamicFloors.map((floor) => (
-                    <div
-                      key={floor.name}
-                      className="floor-mini-card"
-                      style={{ cursor: "pointer" }}
-                      onClick={() => setActiveTab(floor.name)}
-                    >
-                      <div className="floor-card-title">
-                        <span className={`status-dot-indicator dot-${floor.status}`} />
-                        {floor.name}
+                  {/* Legend List */}
+                  <div className="status-legend-list">
+                    {dynamicPermitStatuses.map((status) => (
+                      <div key={status.name} className="legend-row">
+                        <div className="legend-left">
+                          <span
+                            className="legend-dot"
+                            style={{ backgroundColor: status.color }}
+                          />
+                          <span className="legend-name">{status.name}</span>
+                        </div>
+                        <span className="legend-count">{status.count}</span>
                       </div>
-                      <div className="floor-card-stats">
-                        <span>{floor.permits} permits</span>
-                        <span>{floor.rooms} rooms</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Companies Table Row */}
-            <div className="overview-card companies-panel-card">
-              <h4>Companies</h4>
-              <div className="companies-table-wrapper">
-                <table className="companies-table">
-                  <thead>
-                    <tr>
-                      <th>COMPANY</th>
-                      <th>PERMITS</th>
-                      <th>ROOMS</th>
-                      <th>CLASHES</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dynamicOverviewCompanies.map((company) => (
-                      <tr key={company.name}>
-                        <td>
-                          <div className="company-name-cell">
-                            <span
-                              className="company-letter-badge"
-                              style={{ backgroundColor: company.color }}
-                            >
-                              {company.code}
-                            </span>
-                            {company.name}
-                          </div>
-                        </td>
-                        <td>{company.permits}</td>
-                        <td>{company.rooms}</td>
-                        <td className="clash-highlight">{company.clashes}</td>
-                      </tr>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </div>
+
+                {/* Floor Permit Cards Grid */}
+                <div className="overview-card floors-panel">
+                  <h4>Floors</h4>
+                  <div className="floors-mini-grid">
+                    {dynamicFloors.map((floor) => (
+                      <div
+                        key={floor.name}
+                        className="floor-mini-card"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => setActiveTab(floor.name)}
+                      >
+                        <div className="floor-card-title">
+                          <span className={`status-dot-indicator dot-${floor.status}`} />
+                          {floor.name}
+                        </div>
+                        <div className="floor-card-stats">
+                          <span>{floor.permits} permits</span>
+                          <span>{floor.rooms} rooms</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Companies Table Row */}
+              <div className="overview-card companies-panel-card">
+                <h4>Companies</h4>
+                <div className="companies-table-wrapper">
+                  <table className="companies-table">
+                    <thead>
+                      <tr>
+                        <th>COMPANY</th>
+                        <th>PERMITS</th>
+                        <th>ROOMS</th>
+                        <th>CLASHES</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dynamicOverviewCompanies.map((company) => (
+                        <tr key={company.name}>
+                          <td>
+                            <div className="company-name-cell">
+                              <span
+                                className="company-letter-badge"
+                                style={{ backgroundColor: company.color }}
+                              >
+                                {company.code}
+                              </span>
+                              {company.name}
+                            </div>
+                          </td>
+                          <td>{company.permits}</td>
+                          <td>{company.rooms}</td>
+                          <td className="clash-highlight">{company.clashes}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
-          </div>
-        ) : (
-          /* ════════ FLOOR LAYOUTS (Ground Floor, etc.) ════════ */
-          <div className="floor-layout-view animate-fade-in">
+          ) : (
+            /* ════════ FLOOR LAYOUTS (Ground Floor, etc.) ════════ */
+            <div className="floor-layout-view animate-fade-in">
 
-            <div className="three-column-grid">
-              {/* ── COLUMN 1: FILTERS (Left) ── */}
-              <div className={`panel-col filter-panel ${isLeftOpen ? "panel-open" : "panel-closed"}`}>
+              <div className="three-column-grid">
+                {/* ── COLUMN 1: FILTERS (Left) ── */}
+                <div className={`panel-col filter-panel ${isLeftOpen ? "panel-open" : "panel-closed"}`}>
 
-                {/* Auto Approve Button inside the Left Panel */}
-                {/* <div className="panel-auto-approve-wrapper">
+                  {/* Auto Approve Button inside the Left Panel */}
+                  {/* <div className="panel-auto-approve-wrapper">
                   <button className="auto-approve-btn" onClick={handleAutoApprove}>
                     <i className="ti ti-check" /> Auto-approve clear rooms
                   </button>
@@ -963,652 +963,652 @@ function ExecutiveDashboard() {
 
 
 
-                {/* Companies Section */}
-                <div className="filter-group companies-filter-group">
-                  <div className="filter-header-row">
-                    <label className="filter-lbl">COMPANIES</label>
-                    <div className="toggle-links">
-                      <button onClick={() => setSelectedCompanies(new Set(activeCompaniesList.map((c) => c.name)))}>all</button>
-                      <span>|</span>
-                      <button onClick={() => setSelectedCompanies(new Set())}>none</button>
-                    </div>
-                  </div>
-                  <div className="search-input-wrapper">
-                    <i className="ti ti-search search-icon" />
-                    <input
-                      type="text"
-                      className="search-control"
-                      placeholder="Search company..."
-                      value={companySearch}
-                      onChange={(e) => setCompanySearch(e.target.value)}
-                    />
-                  </div>
-                  <div className="companies-scroll-list">
-                    {filteredCompanies.map((company) => (
-                      <div
-                        key={company.name}
-                        className={`company-list-item ${selectedCompanies.has(company.name) ? "enabled" : "disabled"}`}
-                        onClick={() => toggleCompany(company.name)}
-                        style={{
-                          cursor: "pointer",
-                          opacity: selectedCompanies.has(company.name) ? 1 : 0.45,
-                          transition: "opacity 0.2s",
-                        }}
-                      >
-                        <div className="company-item-left">
-                          <CompanyLogo
-                            logo={company.logo}
-                            name={company.name}
-                            code={company.code}
-                            color={company.color}
-                          />
-                          <span className="company-item-name">{company.name}</span>
-                        </div>
-                        <span className="company-item-count">{company.count}</span>
+                  {/* Companies Section */}
+                  <div className="filter-group companies-filter-group">
+                    <div className="filter-header-row">
+                      <label className="filter-lbl">COMPANIES</label>
+                      <div className="toggle-links">
+                        <button onClick={() => setSelectedCompanies(new Set(activeCompaniesList.map((c) => c.name)))}>all</button>
+                        <span>|</span>
+                        <button onClick={() => setSelectedCompanies(new Set())}>none</button>
                       </div>
-                    ))}
-                    {filteredCompanies.length === 0 && (
-                      <div className="no-results">No companies found</div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Permit Type Checkboxes */}
-                <div className="filter-group">
-                  <div className="filter-header-row">
-                    <label className="filter-lbl">PERMIT TYPE</label>
-                    <div className="toggle-links">
-                      <button onClick={() => handleToggleAllPermitTypes(true)}>all</button>
-                      <span>|</span>
-                      <button onClick={() => handleToggleAllPermitTypes(false)}>none</button>
+                    </div>
+                    <div className="search-input-wrapper">
+                      <i className="ti ti-search search-icon" />
+                      <input
+                        type="text"
+                        className="search-control"
+                        placeholder="Search company..."
+                        value={companySearch}
+                        onChange={(e) => setCompanySearch(e.target.value)}
+                      />
+                    </div>
+                    <div className="companies-scroll-list">
+                      {filteredCompanies.map((company) => (
+                        <div
+                          key={company.name}
+                          className={`company-list-item ${selectedCompanies.has(company.name) ? "enabled" : "disabled"}`}
+                          onClick={() => toggleCompany(company.name)}
+                          style={{
+                            cursor: "pointer",
+                            opacity: selectedCompanies.has(company.name) ? 1 : 0.45,
+                            transition: "opacity 0.2s",
+                          }}
+                        >
+                          <div className="company-item-left">
+                            <CompanyLogo
+                              logo={company.logo}
+                              name={company.name}
+                              code={company.code}
+                              color={company.color}
+                            />
+                            <span className="company-item-name">{company.name}</span>
+                          </div>
+                          <span className="company-item-count">{company.count}</span>
+                        </div>
+                      ))}
+                      {filteredCompanies.length === 0 && (
+                        <div className="no-results">No companies found</div>
+                      )}
                     </div>
                   </div>
-                  <div className="checkbox-list">
-                    <label className="checkbox-item">
-                      <input
-                        type="checkbox"
-                        checked={permitTypes.commissioning}
-                        onChange={(e) =>
-                          setPermitTypes((prev) => ({
-                            ...prev,
-                            commissioning: e.target.checked,
-                          }))
-                        }
-                      />
-                      Commissioning ({displayCounts.permitTypes.commissioning})
-                    </label>
-                    <label className="checkbox-item">
-                      <input
-                        type="checkbox"
-                        checked={permitTypes.construction}
-                        onChange={(e) =>
-                          setPermitTypes((prev) => ({
-                            ...prev,
-                            construction: e.target.checked,
-                          }))
-                        }
-                      />
-                      Construction ({displayCounts.permitTypes.construction})
-                    </label>
-                  </div>
-                </div>
 
-                {/* Permit Status Checkboxes */}
-                <div className="filter-group">
-                  <div className="filter-header-row">
-                    <label className="filter-lbl">PERMIT STATUS</label>
-                    <div className="toggle-links">
-                      <button onClick={() => handleToggleAllStatuses(true)}>all</button>
-                      <span>|</span>
-                      <button onClick={() => handleToggleAllStatuses(false)}>none</button>
+                  {/* Permit Type Checkboxes */}
+                  <div className="filter-group">
+                    <div className="filter-header-row">
+                      <label className="filter-lbl">PERMIT TYPE</label>
+                      <div className="toggle-links">
+                        <button onClick={() => handleToggleAllPermitTypes(true)}>all</button>
+                        <span>|</span>
+                        <button onClick={() => handleToggleAllPermitTypes(false)}>none</button>
+                      </div>
                     </div>
-                  </div>
-                  <div className="checkbox-list">
-                    <label className="checkbox-item">
-                      <input
-                        type="checkbox"
-                        checked={permitStatuses.opened}
-                        onChange={(e) =>
-                          setPermitStatuses((prev) => ({
-                            ...prev,
-                            opened: e.target.checked,
-                          }))
-                        }
-                      />
-                      <span className="status-dot dot-blue" style={{ marginRight: 6, backgroundColor: "#2563eb" }} />
-                      Opened ({displayCounts.permitStatuses.opened})
-                    </label>
-                    <label className="checkbox-item">
-                      <input
-                        type="checkbox"
-                        checked={permitStatuses.preApproved}
-                        onChange={(e) =>
-                          setPermitStatuses((prev) => ({
-                            ...prev,
-                            preApproved: e.target.checked,
-                          }))
-                        }
-                      />
-                      <span className="status-dot dot-green" style={{ marginRight: 6, backgroundColor: "#059669" }} />
-                      Pre-approved ({displayCounts.permitStatuses.preApproved})
-                    </label>
-                    <label className="checkbox-item">
-                      <input
-                        type="checkbox"
-                        checked={permitStatuses.approved}
-                        onChange={(e) =>
-                          setPermitStatuses((prev) => ({
-                            ...prev,
-                            approved: e.target.checked,
-                          }))
-                        }
-                      />
-                      <span className="status-dot dot-green" style={{ marginRight: 6, backgroundColor: "#10b981" }} />
-                      Approved ({displayCounts.permitStatuses.approved})
-                    </label>
-                    <label className="checkbox-item">
-                      <input
-                        type="checkbox"
-                        checked={permitStatuses.hold}
-                        onChange={(e) =>
-                          setPermitStatuses((prev) => ({
-                            ...prev,
-                            hold: e.target.checked,
-                          }))
-                        }
-                      />
-                      <span className="status-dot dot-yellow" style={{ marginRight: 6, backgroundColor: "#d97706" }} />
-                      Hold ({displayCounts.permitStatuses.hold})
-                    </label>
-                    <label className="checkbox-item">
-                      <input
-                        type="checkbox"
-                        checked={permitStatuses.rejected}
-                        onChange={(e) =>
-                          setPermitStatuses((prev) => ({
-                            ...prev,
-                            rejected: e.target.checked,
-                          }))
-                        }
-                      />
-                      <span className="status-dot dot-red" style={{ marginRight: 6, backgroundColor: "#dc2626" }} />
-                      Rejected ({displayCounts.permitStatuses.rejected})
-                    </label>
-                    <label className="checkbox-item">
-                      <input
-                        type="checkbox"
-                        checked={permitStatuses.draft}
-                        onChange={(e) =>
-                          setPermitStatuses((prev) => ({
-                            ...prev,
-                            draft: e.target.checked,
-                          }))
-                        }
-                      />
-                      <span className="status-dot dot-gray" style={{ marginRight: 6, backgroundColor: "#6b7280" }} />
-                      Draft ({displayCounts.permitStatuses.draft})
-                    </label>
-                    <label className="checkbox-item">
-                      <input
-                        type="checkbox"
-                        checked={permitStatuses.cancelled}
-                        onChange={(e) =>
-                          setPermitStatuses((prev) => ({
-                            ...prev,
-                            cancelled: e.target.checked,
-                          }))
-                        }
-                      />
-                      <span className="status-dot dot-red" style={{ marginRight: 6, backgroundColor: "#e11d48" }} />
-                      Cancelled ({displayCounts.permitStatuses.cancelled})
-                    </label>
-                    <label className="checkbox-item">
-                      <input
-                        type="checkbox"
-                        checked={permitStatuses.closed}
-                        onChange={(e) =>
-                          setPermitStatuses((prev) => ({
-                            ...prev,
-                            closed: e.target.checked,
-                          }))
-                        }
-                      />
-                      <span className="status-dot dot-gray" style={{ marginRight: 6, backgroundColor: "#475569" }} />
-                      Closed ({displayCounts.permitStatuses.closed})
-                    </label>
-                    <label className="checkbox-item">
-                      <input
-                        type="checkbox"
-                        checked={permitStatuses.autoCancel}
-                        onChange={(e) =>
-                          setPermitStatuses((prev) => ({
-                            ...prev,
-                            autoCancel: e.target.checked,
-                          }))
-                        }
-                      />
-                      <span className="status-dot dot-purple" style={{ marginRight: 6, backgroundColor: "#9333ea" }} />
-                      Auto-Cancel ({displayCounts.permitStatuses.autoCancel})
-                    </label>
-                  </div>
-                </div>
-
-                {/* Activity Risk Type Checkboxes */}
-                <div className="filter-group">
-                  <div className="filter-header-row">
-                    <label className="filter-lbl">ACTIVITY RISK TYPE</label>
-                    <div className="toggle-links">
-                      <button onClick={() => handleToggleAllRiskTypes(true)}>all</button>
-                      <span>|</span>
-                      <button onClick={() => handleToggleAllRiskTypes(false)}>none</button>
-                    </div>
-                  </div>
-                  <div className="checkbox-list">
-                    <label className="checkbox-item">
-                      <input
-                        type="checkbox"
-                        checked={activityRiskTypes.nonHra}
-                        onChange={(e) =>
-                          setActivityRiskTypes((prev) => ({
-                            ...prev,
-                            nonHra: e.target.checked,
-                          }))
-                        }
-                      />
-                      <span className="status-dot dot-gray" style={{ marginRight: 6, backgroundColor: "#94a3b8" }} />
-                      Non-HRA ({displayCounts.activityRiskTypes.nonHra})
-                    </label>
-                    <label className="checkbox-item">
-                      <input
-                        type="checkbox"
-                        checked={activityRiskTypes.hra}
-                        onChange={(e) => {
-                          const val = e.target.checked;
-                          setActivityRiskTypes((prev) => ({
-                            ...prev,
-                            hra: val,
-                            hotWork: val,
-                            electrical: val,
-                            hazardousSubstances: val,
-                            workingAtHeight: val,
-                            confinedSpaces: val,
-                            excavation: val,
-                            cranesLifting: val,
-                            pressureTesting: val,
-                          }));
-                        }}
-                      />
-                      <span className="status-dot dot-red" style={{ marginRight: 6, backgroundColor: "#ef4444" }} />
-                      HRA ({displayCounts.activityRiskTypes.hra})
-                    </label>
-                    
-                    {/* HRA Nested List */}
-                    <div className="nested-checkbox-list" style={{ paddingLeft: 16, display: "flex", flexDirection: "column", gap: 6 }}>
+                    <div className="checkbox-list">
                       <label className="checkbox-item">
                         <input
                           type="checkbox"
-                          checked={activityRiskTypes.hotWork}
+                          checked={permitTypes.commissioning}
                           onChange={(e) =>
-                            setActivityRiskTypes((prev) => ({
+                            setPermitTypes((prev) => ({
                               ...prev,
-                              hotWork: e.target.checked,
+                              commissioning: e.target.checked,
                             }))
                           }
                         />
-                        <span className="status-dot dot-red" style={{ marginRight: 6, backgroundColor: "#ef4444" }} />
-                        Hot Work ({displayCounts.activityRiskTypes.hotWork})
+                        Commissioning ({displayCounts.permitTypes.commissioning})
                       </label>
                       <label className="checkbox-item">
                         <input
                           type="checkbox"
-                          checked={activityRiskTypes.electrical}
+                          checked={permitTypes.construction}
                           onChange={(e) =>
-                            setActivityRiskTypes((prev) => ({
+                            setPermitTypes((prev) => ({
                               ...prev,
-                              electrical: e.target.checked,
+                              construction: e.target.checked,
                             }))
                           }
                         />
-                        <span className="status-dot dot-yellow" style={{ marginRight: 6, backgroundColor: "#eab308" }} />
-                        Electrical Systems ({displayCounts.activityRiskTypes.electrical})
+                        Construction ({displayCounts.permitTypes.construction})
                       </label>
+                    </div>
+                  </div>
+
+                  {/* Permit Status Checkboxes */}
+                  <div className="filter-group">
+                    <div className="filter-header-row">
+                      <label className="filter-lbl">PERMIT STATUS</label>
+                      <div className="toggle-links">
+                        <button onClick={() => handleToggleAllStatuses(true)}>all</button>
+                        <span>|</span>
+                        <button onClick={() => handleToggleAllStatuses(false)}>none</button>
+                      </div>
+                    </div>
+                    <div className="checkbox-list">
                       <label className="checkbox-item">
                         <input
                           type="checkbox"
-                          checked={activityRiskTypes.hazardousSubstances}
+                          checked={permitStatuses.opened}
                           onChange={(e) =>
-                            setActivityRiskTypes((prev) => ({
+                            setPermitStatuses((prev) => ({
                               ...prev,
-                              hazardousSubstances: e.target.checked,
-                            }))
-                          }
-                        />
-                        <span className="status-dot dot-yellow" style={{ marginRight: 6, backgroundColor: "#facc15" }} />
-                        Hazardous Substances ({displayCounts.activityRiskTypes.hazardousSubstances})
-                      </label>
-                      <label className="checkbox-item">
-                        <input
-                          type="checkbox"
-                          checked={activityRiskTypes.workingAtHeight}
-                          onChange={(e) =>
-                            setActivityRiskTypes((prev) => ({
-                              ...prev,
-                              workingAtHeight: e.target.checked,
+                              opened: e.target.checked,
                             }))
                           }
                         />
                         <span className="status-dot dot-blue" style={{ marginRight: 6, backgroundColor: "#2563eb" }} />
-                        Working at Height ({displayCounts.activityRiskTypes.workingAtHeight})
+                        Opened ({displayCounts.permitStatuses.opened})
                       </label>
                       <label className="checkbox-item">
                         <input
                           type="checkbox"
-                          checked={activityRiskTypes.confinedSpaces}
+                          checked={permitStatuses.preApproved}
                           onChange={(e) =>
-                            setActivityRiskTypes((prev) => ({
+                            setPermitStatuses((prev) => ({
                               ...prev,
-                              confinedSpaces: e.target.checked,
+                              preApproved: e.target.checked,
                             }))
                           }
                         />
-                        <span className="status-dot dot-orange" style={{ marginRight: 6, backgroundColor: "#f97316" }} />
-                        Confined Spaces ({displayCounts.activityRiskTypes.confinedSpaces})
+                        <span className="status-dot dot-green" style={{ marginRight: 6, backgroundColor: "#059669" }} />
+                        Pre-approved ({displayCounts.permitStatuses.preApproved})
                       </label>
                       <label className="checkbox-item">
                         <input
                           type="checkbox"
-                          checked={activityRiskTypes.excavation}
+                          checked={permitStatuses.approved}
                           onChange={(e) =>
-                            setActivityRiskTypes((prev) => ({
+                            setPermitStatuses((prev) => ({
                               ...prev,
-                              excavation: e.target.checked,
+                              approved: e.target.checked,
                             }))
                           }
                         />
-                        <span className="status-dot dot-green" style={{ marginRight: 6, backgroundColor: "#22c55e" }} />
-                        Excavation Works ({displayCounts.activityRiskTypes.excavation})
+                        <span className="status-dot dot-green" style={{ marginRight: 6, backgroundColor: "#10b981" }} />
+                        Approved ({displayCounts.permitStatuses.approved})
                       </label>
                       <label className="checkbox-item">
                         <input
                           type="checkbox"
-                          checked={activityRiskTypes.cranesLifting}
+                          checked={permitStatuses.hold}
                           onChange={(e) =>
-                            setActivityRiskTypes((prev) => ({
+                            setPermitStatuses((prev) => ({
                               ...prev,
-                              cranesLifting: e.target.checked,
+                              hold: e.target.checked,
                             }))
                           }
                         />
-                        <span className="status-dot dot-purple" style={{ marginRight: 6, backgroundColor: "#a855f7" }} />
-                        Cranes / Lifting ({displayCounts.activityRiskTypes.cranesLifting})
+                        <span className="status-dot dot-yellow" style={{ marginRight: 6, backgroundColor: "#d97706" }} />
+                        Hold ({displayCounts.permitStatuses.hold})
                       </label>
                       <label className="checkbox-item">
                         <input
                           type="checkbox"
-                          checked={activityRiskTypes.pressureTesting}
+                          checked={permitStatuses.rejected}
                           onChange={(e) =>
-                            setActivityRiskTypes((prev) => ({
+                            setPermitStatuses((prev) => ({
                               ...prev,
-                              pressureTesting: e.target.checked,
+                              rejected: e.target.checked,
                             }))
                           }
                         />
-                        <span className="status-dot dot-teal" style={{ marginRight: 6, backgroundColor: "#0d9488" }} />
-                        Pressure Testing ({displayCounts.activityRiskTypes.pressureTesting})
+                        <span className="status-dot dot-red" style={{ marginRight: 6, backgroundColor: "#dc2626" }} />
+                        Rejected ({displayCounts.permitStatuses.rejected})
                       </label>
+                      <label className="checkbox-item">
+                        <input
+                          type="checkbox"
+                          checked={permitStatuses.draft}
+                          onChange={(e) =>
+                            setPermitStatuses((prev) => ({
+                              ...prev,
+                              draft: e.target.checked,
+                            }))
+                          }
+                        />
+                        <span className="status-dot dot-gray" style={{ marginRight: 6, backgroundColor: "#6b7280" }} />
+                        Draft ({displayCounts.permitStatuses.draft})
+                      </label>
+                      <label className="checkbox-item">
+                        <input
+                          type="checkbox"
+                          checked={permitStatuses.cancelled}
+                          onChange={(e) =>
+                            setPermitStatuses((prev) => ({
+                              ...prev,
+                              cancelled: e.target.checked,
+                            }))
+                          }
+                        />
+                        <span className="status-dot dot-red" style={{ marginRight: 6, backgroundColor: "#e11d48" }} />
+                        Cancelled ({displayCounts.permitStatuses.cancelled})
+                      </label>
+                      <label className="checkbox-item">
+                        <input
+                          type="checkbox"
+                          checked={permitStatuses.closed}
+                          onChange={(e) =>
+                            setPermitStatuses((prev) => ({
+                              ...prev,
+                              closed: e.target.checked,
+                            }))
+                          }
+                        />
+                        <span className="status-dot dot-gray" style={{ marginRight: 6, backgroundColor: "#475569" }} />
+                        Closed ({displayCounts.permitStatuses.closed})
+                      </label>
+                      <label className="checkbox-item">
+                        <input
+                          type="checkbox"
+                          checked={permitStatuses.autoCancel}
+                          onChange={(e) =>
+                            setPermitStatuses((prev) => ({
+                              ...prev,
+                              autoCancel: e.target.checked,
+                            }))
+                          }
+                        />
+                        <span className="status-dot dot-purple" style={{ marginRight: 6, backgroundColor: "#9333ea" }} />
+                        Auto-Cancel ({displayCounts.permitStatuses.autoCancel})
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Activity Risk Type Checkboxes */}
+                  <div className="filter-group">
+                    <div className="filter-header-row">
+                      <label className="filter-lbl">ACTIVITY RISK TYPE</label>
+                      <div className="toggle-links">
+                        <button onClick={() => handleToggleAllRiskTypes(true)}>all</button>
+                        <span>|</span>
+                        <button onClick={() => handleToggleAllRiskTypes(false)}>none</button>
+                      </div>
+                    </div>
+                    <div className="checkbox-list">
+                      <label className="checkbox-item">
+                        <input
+                          type="checkbox"
+                          checked={activityRiskTypes.nonHra}
+                          onChange={(e) =>
+                            setActivityRiskTypes((prev) => ({
+                              ...prev,
+                              nonHra: e.target.checked,
+                            }))
+                          }
+                        />
+                        <span className="status-dot dot-gray" style={{ marginRight: 6, backgroundColor: "#94a3b8" }} />
+                        Non-HRA ({displayCounts.activityRiskTypes.nonHra})
+                      </label>
+                      <label className="checkbox-item">
+                        <input
+                          type="checkbox"
+                          checked={activityRiskTypes.hra}
+                          onChange={(e) => {
+                            const val = e.target.checked;
+                            setActivityRiskTypes((prev) => ({
+                              ...prev,
+                              hra: val,
+                              hotWork: val,
+                              electrical: val,
+                              hazardousSubstances: val,
+                              workingAtHeight: val,
+                              confinedSpaces: val,
+                              excavation: val,
+                              cranesLifting: val,
+                              pressureTesting: val,
+                            }));
+                          }}
+                        />
+                        <span className="status-dot dot-red" style={{ marginRight: 6, backgroundColor: "#ef4444" }} />
+                        HRA ({displayCounts.activityRiskTypes.hra})
+                      </label>
+
+                      {/* HRA Nested List */}
+                      <div className="nested-checkbox-list" style={{ paddingLeft: 16, display: "flex", flexDirection: "column", gap: 6 }}>
+                        <label className="checkbox-item">
+                          <input
+                            type="checkbox"
+                            checked={activityRiskTypes.hotWork}
+                            onChange={(e) =>
+                              setActivityRiskTypes((prev) => ({
+                                ...prev,
+                                hotWork: e.target.checked,
+                              }))
+                            }
+                          />
+                          <span className="status-dot dot-red" style={{ marginRight: 6, backgroundColor: "#ef4444" }} />
+                          Hot Work ({displayCounts.activityRiskTypes.hotWork})
+                        </label>
+                        <label className="checkbox-item">
+                          <input
+                            type="checkbox"
+                            checked={activityRiskTypes.electrical}
+                            onChange={(e) =>
+                              setActivityRiskTypes((prev) => ({
+                                ...prev,
+                                electrical: e.target.checked,
+                              }))
+                            }
+                          />
+                          <span className="status-dot dot-yellow" style={{ marginRight: 6, backgroundColor: "#eab308" }} />
+                          Electrical Systems ({displayCounts.activityRiskTypes.electrical})
+                        </label>
+                        <label className="checkbox-item">
+                          <input
+                            type="checkbox"
+                            checked={activityRiskTypes.hazardousSubstances}
+                            onChange={(e) =>
+                              setActivityRiskTypes((prev) => ({
+                                ...prev,
+                                hazardousSubstances: e.target.checked,
+                              }))
+                            }
+                          />
+                          <span className="status-dot dot-yellow" style={{ marginRight: 6, backgroundColor: "#facc15" }} />
+                          Hazardous Substances ({displayCounts.activityRiskTypes.hazardousSubstances})
+                        </label>
+                        <label className="checkbox-item">
+                          <input
+                            type="checkbox"
+                            checked={activityRiskTypes.workingAtHeight}
+                            onChange={(e) =>
+                              setActivityRiskTypes((prev) => ({
+                                ...prev,
+                                workingAtHeight: e.target.checked,
+                              }))
+                            }
+                          />
+                          <span className="status-dot dot-blue" style={{ marginRight: 6, backgroundColor: "#2563eb" }} />
+                          Working at Height ({displayCounts.activityRiskTypes.workingAtHeight})
+                        </label>
+                        <label className="checkbox-item">
+                          <input
+                            type="checkbox"
+                            checked={activityRiskTypes.confinedSpaces}
+                            onChange={(e) =>
+                              setActivityRiskTypes((prev) => ({
+                                ...prev,
+                                confinedSpaces: e.target.checked,
+                              }))
+                            }
+                          />
+                          <span className="status-dot dot-orange" style={{ marginRight: 6, backgroundColor: "#f97316" }} />
+                          Confined Spaces ({displayCounts.activityRiskTypes.confinedSpaces})
+                        </label>
+                        <label className="checkbox-item">
+                          <input
+                            type="checkbox"
+                            checked={activityRiskTypes.excavation}
+                            onChange={(e) =>
+                              setActivityRiskTypes((prev) => ({
+                                ...prev,
+                                excavation: e.target.checked,
+                              }))
+                            }
+                          />
+                          <span className="status-dot dot-green" style={{ marginRight: 6, backgroundColor: "#22c55e" }} />
+                          Excavation Works ({displayCounts.activityRiskTypes.excavation})
+                        </label>
+                        <label className="checkbox-item">
+                          <input
+                            type="checkbox"
+                            checked={activityRiskTypes.cranesLifting}
+                            onChange={(e) =>
+                              setActivityRiskTypes((prev) => ({
+                                ...prev,
+                                cranesLifting: e.target.checked,
+                              }))
+                            }
+                          />
+                          <span className="status-dot dot-purple" style={{ marginRight: 6, backgroundColor: "#a855f7" }} />
+                          Cranes / Lifting ({displayCounts.activityRiskTypes.cranesLifting})
+                        </label>
+                        <label className="checkbox-item">
+                          <input
+                            type="checkbox"
+                            checked={activityRiskTypes.pressureTesting}
+                            onChange={(e) =>
+                              setActivityRiskTypes((prev) => ({
+                                ...prev,
+                                pressureTesting: e.target.checked,
+                              }))
+                            }
+                          />
+                          <span className="status-dot dot-teal" style={{ marginRight: 6, backgroundColor: "#0d9488" }} />
+                          Pressure Testing ({displayCounts.activityRiskTypes.pressureTesting})
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* ── COLUMN 2: MAP VIEWER (Center) ── */}
+                <div className="panel-col map-viewer-panel">
+                  {/* Left panel collapse tab */}
+                  <button
+                    className={`panel-toggle-tab toggle-tab-left ${isLeftOpen ? "open" : "closed"}`}
+                    onClick={() => setIsLeftOpen(!isLeftOpen)}
+                    title={isLeftOpen ? "Collapse Left Panel" : "Expand Left Panel"}
+                  >
+                    <i className={`ti ${isLeftOpen ? "ti-chevron-left" : "ti-chevron-right"}`} />
+                  </button>
+
+                  {/* Right panel collapse tab */}
+                  <button
+                    className={`panel-toggle-tab toggle-tab-right ${isRightOpen ? "open" : "closed"}`}
+                    onClick={() => setIsRightOpen(!isRightOpen)}
+                    title={isRightOpen ? "Collapse Right Panel" : "Expand Right Panel"}
+                  >
+                    <i className={`ti ${isRightOpen ? "ti-chevron-right" : "ti-chevron-left"}`} />
+                  </button>
+
+                  <div className="map-view-header">
+                    <div className="map-title-badge">{activeTab === "Ground Floor" ? "JG- Ground floor" : `${activeTab}`}</div>
+                  </div>
+
+
+
+                  <div className="map-image-wrapper" ref={mapContainerRef} style={{ position: "relative", overflow: "visible" }}>
+                    {selectedPdf ? (
+                      <DashboardPolygonViewer
+                        pdf={selectedPdf}
+                        rooms={rooms}
+                        width={mapWidth}
+                        isZonesActive={isZonesActive}
+                        isIconsActive={isIconsActive}
+                        roomsToReview={filteredRoomsToReview}
+                        roomHoverData={buildingData?.roomHoverData}
+                        activeCompaniesList={activeCompaniesList}
+                        onHoverRoom={handleHoverRoom}
+                      />
+                    ) : (
+                      <img
+                        src={groundFloorPlan}
+                        alt="Ground Floor CAD drawing"
+                        className="static-cad-image"
+                      />
+                    )}
+                  </div>
+
+                  {/* Map Legend Footer */}
+                  <div className="map-legend-footer">
+                    <div className="legend-indicator-item">
+                      <span className="legend-indicator-dot dot-indicator-ok" />
+                      OK
+                    </div>
+                    <div className="legend-indicator-item">
+                      <span className="legend-indicator-dot dot-indicator-nowork" />
+                      No work
+                    </div>
+                    <div className="legend-indicator-item">
+                      <span className="legend-indicator-dot dot-indicator-clash" />
+                      Clash
                     </div>
                   </div>
                 </div>
 
-              </div>
-
-              {/* ── COLUMN 2: MAP VIEWER (Center) ── */}
-              <div className="panel-col map-viewer-panel">
-                {/* Left panel collapse tab */}
-                <button
-                  className={`panel-toggle-tab toggle-tab-left ${isLeftOpen ? "open" : "closed"}`}
-                  onClick={() => setIsLeftOpen(!isLeftOpen)}
-                  title={isLeftOpen ? "Collapse Left Panel" : "Expand Left Panel"}
-                >
-                  <i className={`ti ${isLeftOpen ? "ti-chevron-left" : "ti-chevron-right"}`} />
-                </button>
-
-                {/* Right panel collapse tab */}
-                <button
-                  className={`panel-toggle-tab toggle-tab-right ${isRightOpen ? "open" : "closed"}`}
-                  onClick={() => setIsRightOpen(!isRightOpen)}
-                  title={isRightOpen ? "Collapse Right Panel" : "Expand Right Panel"}
-                >
-                  <i className={`ti ${isRightOpen ? "ti-chevron-right" : "ti-chevron-left"}`} />
-                </button>
-
-                <div className="map-view-header">
-                  <div className="map-title-badge">{activeTab === "Ground Floor" ? "JG- Ground floor" : `${activeTab}`}</div>
-                </div>
+                {/* ── COLUMN 3: ROOMS TO REVIEW (Right) ── */}
+                <div className={`panel-col review-panel ${isRightOpen ? "panel-open" : "panel-closed"}`}>
 
 
-
-                <div className="map-image-wrapper" ref={mapContainerRef} style={{ position: "relative", overflow: "visible" }}>
-                  {selectedPdf ? (
-                    <DashboardPolygonViewer
-                      pdf={selectedPdf}
-                      rooms={rooms}
-                      width={mapWidth}
-                      isZonesActive={isZonesActive}
-                      isIconsActive={isIconsActive}
-                      roomsToReview={filteredRoomsToReview}
-                      roomHoverData={buildingData?.roomHoverData}
-                      activeCompaniesList={activeCompaniesList}
-                      onHoverRoom={handleHoverRoom}
-                    />
-                  ) : (
-                    <img
-                      src={groundFloorPlan}
-                      alt="Ground Floor CAD drawing"
-                      className="static-cad-image"
-                    />
-                  )}
-                </div>
-
-                {/* Map Legend Footer */}
-                <div className="map-legend-footer">
-                  <div className="legend-indicator-item">
-                    <span className="legend-indicator-dot dot-indicator-ok" />
-                    OK
+                  {/* Room Search */}
+                  <div className="filter-group room-search-filter-group" style={{ marginBottom: "16px" }}>
+                    <label className="filter-lbl">ROOM SEARCH</label>
+                    <div className="search-input-wrapper">
+                      <i className="ti ti-search search-icon" />
+                      <input
+                        type="text"
+                        className="search-control"
+                        placeholder="Search room..."
+                        value={roomSearch}
+                        onChange={(e) => setRoomSearch(e.target.value)}
+                      />
+                    </div>
                   </div>
-                  <div className="legend-indicator-item">
-                    <span className="legend-indicator-dot dot-indicator-nowork" />
-                    No work
+
+                  <div className="review-list-header">
+                    <h5>ROOMS TO REVIEW</h5>
                   </div>
-                  <div className="legend-indicator-item">
-                    <span className="legend-indicator-dot dot-indicator-clash" />
-                    Clash
-                  </div>
-                </div>
-              </div>
 
-              {/* ── COLUMN 3: ROOMS TO REVIEW (Right) ── */}
-              <div className={`panel-col review-panel ${isRightOpen ? "panel-open" : "panel-closed"}`}>
+                  <div className="review-scroll-container">
+                    {filteredRoomsToReview.map((item) => (
+                      <div key={item.zone} className="review-card-item">
+                        <div className="review-card-top-row">
+                          <span className="review-zone-name">{item.zone}</span>
+                          {/* Avatar Row */}
+                          <div className="review-avatar-row">
+                            {item.companies.slice(0, 3).map((c, i) => {
+                              const comp = activeCompaniesList.find(cl => cl.code === c || cl.name === c);
+                              const compColor = comp?.color || "#3b82f6";
+                              const compLogo = comp?.logo;
+                              return (
+                                <CompanyLogo
+                                  key={c}
+                                  logo={compLogo}
+                                  name={comp?.name || c}
+                                  code={c}
+                                  color={compColor}
+                                  size={22}
+                                  className="mini-avatar"
+                                  style={{ zIndex: 10 - i, marginRight: 0 }}
+                                />
+                              );
+                            })}
+                            {item.companies.length > 3 && (
+                              <span className="mini-avatar avatar-plus">+{item.companies.length - 3}</span>
+                            )}
+                          </div>
+                        </div>
 
-
-                {/* Room Search */}
-                <div className="filter-group room-search-filter-group" style={{ marginBottom: "16px" }}>
-                  <label className="filter-lbl">ROOM SEARCH</label>
-                  <div className="search-input-wrapper">
-                    <i className="ti ti-search search-icon" />
-                    <input
-                      type="text"
-                      className="search-control"
-                      placeholder="Search room..."
-                      value={roomSearch}
-                      onChange={(e) => setRoomSearch(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="review-list-header">
-                  <h5>ROOMS TO REVIEW</h5>
-                </div>
-
-                <div className="review-scroll-container">
-                  {filteredRoomsToReview.map((item) => (
-                    <div key={item.zone} className="review-card-item">
-                      <div className="review-card-top-row">
-                        <span className="review-zone-name">{item.zone}</span>
-                        {/* Avatar Row */}
-                        <div className="review-avatar-row">
-                          {item.companies.slice(0, 3).map((c, i) => {
-                            const comp = activeCompaniesList.find(cl => cl.code === c || cl.name === c);
-                            const compColor = comp?.color || "#3b82f6";
-                            const compLogo = comp?.logo;
-                            return (
-                              <CompanyLogo
-                                key={c}
-                                logo={compLogo}
-                                name={comp?.name || c}
-                                code={c}
-                                color={compColor}
-                                size={22}
-                                className="mini-avatar"
-                                style={{ zIndex: 10 - i, marginRight: 0 }}
-                              />
-                            );
-                          })}
-                          {item.companies.length > 3 && (
-                            <span className="mini-avatar avatar-plus">+{item.companies.length - 3}</span>
+                        {/* Status Pills */}
+                        <div className="review-pills-row">
+                          {item.clash && <span className="pill-badge pill-red">CLASH</span>}
+                          {item.hra && <span className="pill-badge pill-darkred">HRA</span>}
+                          {item.onHold && <span className="pill-badge pill-purple">ON HOLD</span>}
+                          {item.preOk > 0 && (
+                            <span className="pill-badge pill-green">{item.preOk} PRE-OK</span>
                           )}
                         </div>
-                      </div>
 
-                      {/* Status Pills */}
-                      <div className="review-pills-row">
-                        {item.clash && <span className="pill-badge pill-red">CLASH</span>}
-                        {item.hra && <span className="pill-badge pill-darkred">HRA</span>}
-                        {item.onHold && <span className="pill-badge pill-purple">ON HOLD</span>}
-                        {item.preOk > 0 && (
-                          <span className="pill-badge pill-green">{item.preOk} PRE-OK</span>
-                        )}
-                      </div>
-
-                      <div className="review-card-footer">
-                        <span>{item.sub}</span>
-                      </div>
-                    </div>
-                  ))}
-                  {filteredRoomsToReview.length === 0 && (
-                    <div className="no-results" style={{ padding: "20px", color: "var(--text-muted)", textAlign: "center" }}>
-                      No rooms to review match filters.
-                    </div>
-                  )}
-                </div>
-
-              </div>
-            </div>
-
-          </div>
-        )}
-      </div>
-    </div>
-
-    {/* ── HOVER CARD PORTAL — rendered at document.body to escape all overflow containers ── */}
-    {hoveredRoomData && hoveredRoom && ReactDOM.createPortal(
-      <div
-        className="map-tooltip-overlay"
-        onMouseEnter={handleHoverCardEnter}
-        onMouseLeave={handleHoverCardLeave}
-        style={getPortalTooltipStyle(hoveredRoom.x, hoveredRoom.y)}
-      >
-        <div
-          style={{
-            backgroundColor: "#111827",
-            color: "#ffffff",
-            padding: "14px 18px",
-            borderRadius: "10px",
-            boxShadow: "0 20px 50px -5px rgba(0,0,0,0.7), 0 10px 20px -8px rgba(0,0,0,0.6)",
-            border: "1px solid rgba(255,255,255,0.18)",
-          }}
-        >
-          <div style={{ fontWeight: 800, fontSize: "14.5px", marginBottom: "4px" }}>
-            {hoveredRoomData.title}
-          </div>
-          <div style={{ color: "#94a3b8", marginBottom: "8px", fontSize: "12px" }}>
-            {hoveredRoomData.subtitle}
-          </div>
-          {hoveredRoomData.isNoWork ? (
-            <div style={{ color: "#94a3b8", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px", marginTop: "4px" }}>
-              <span style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#94a3b8", display: "inline-block" }} />
-              No work (0 active permits)
-            </div>
-          ) : (
-            <>
-              <div style={{ color: hoveredRoomData.clash?.includes("Clash") ? "#ef4444" : "#10b981", fontWeight: 700, marginBottom: "6px", display: "flex", alignItems: "center", gap: "5px", fontSize: "13px" }}>
-                <i className={hoveredRoomData.clash?.includes("Clash") ? "ti ti-alert-triangle" : "ti ti-check"} />
-                {hoveredRoomData.clash}
-              </div>
-              <div style={{ display: "flex", gap: "8px", marginBottom: "8px", flexWrap: "wrap" }}>
-                <span style={{ backgroundColor: "#1e293b", border: "1px solid #334155", padding: "3px 10px", borderRadius: "20px", color: "#e2e8f0", fontSize: "11px", fontWeight: 600 }}>
-                  {hoveredRoomData.companies}
-                </span>
-                <span style={{ backgroundColor: "#1e293b", border: "1px solid #334155", padding: "3px 10px", borderRadius: "20px", color: "#e2e8f0", fontSize: "11px", fontWeight: 600 }}>
-                  {hoveredRoomData.permits}
-                </span>
-              </div>
-              {hoveredRoomData.hra && (
-                <div style={{ fontSize: "11.5px", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "8px", marginBottom: "8px", color: "#cbd5e1" }}>
-                  <span style={{ fontWeight: 700, color: "#fca5a5" }}>HRA:</span>{" "}
-                  {typeof hoveredRoomData.hra === "string" ? hoveredRoomData.hra.replace("HRA:", "").trim() : "High Risk Activity"}
-                </div>
-              )}
-              {hoveredRoomData.compDetails && hoveredRoomData.compDetails.length > 0 && (
-                <div style={{ marginTop: "8px", borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: "8px" }}>
-                  <div style={{ fontSize: "10.5px", fontWeight: 700, color: "#94a3b8", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                    Companies & HRAs Involved ({hoveredRoomData.compDetails.length}):
-                  </div>
-                  <div
-                    className="hover-card-comp-scroll"
-                    onWheel={(e) => e.stopPropagation()}
-                    style={{ display: "flex", flexDirection: "column", gap: "5px", maxHeight: "180px", overflowY: "auto", paddingRight: "4px" }}
-                  >
-                    {hoveredRoomData.compDetails.map((cObj, idx) => (
-                      <div
-                        key={idx}
-                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", backgroundColor: "rgba(255,255,255,0.06)", padding: "5px 8px", borderRadius: "6px", gap: "8px" }}
-                      >
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
-                          <CompanyLogo
-                            logo={cObj.logo}
-                            name={cObj.name}
-                            code={cObj.code}
-                            color={cObj.color}
-                            size={20}
-                            style={{ marginRight: 0, flexShrink: 0 }}
-                          />
-                          <span style={{ fontSize: "12px", fontWeight: 600, color: "#f8fafc", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{cObj.name}</span>
+                        <div className="review-card-footer">
+                          <span>{item.sub}</span>
                         </div>
-                        {cObj.hraLogos && cObj.hraLogos.length > 0 && (
-                          <div style={{ display: "flex", gap: "3px", flexShrink: 0 }}>
-                            {cObj.hraLogos.map((hra) => (
-                              <img
-                                key={hra.key}
-                                src={hra.img}
-                                alt={hra.title}
-                                title={hra.title}
-                                style={{ width: 16, height: 16, borderRadius: "50%", objectFit: "cover", border: "1px solid rgba(255,255,255,0.4)" }}
-                              />
-                            ))}
-                          </div>
-                        )}
                       </div>
                     ))}
+                    {filteredRoomsToReview.length === 0 && (
+                      <div className="no-results" style={{ padding: "20px", color: "var(--text-muted)", textAlign: "center" }}>
+                        No rooms to review match filters.
+                      </div>
+                    )}
                   </div>
+
                 </div>
-              )}
-            </>
+              </div>
+
+            </div>
           )}
         </div>
-      </div>,
-      document.body
-    )}
+      </div>
+
+      {/* ── HOVER CARD PORTAL — rendered at document.body to escape all overflow containers ── */}
+      {hoveredRoomData && hoveredRoom && ReactDOM.createPortal(
+        <div
+          className="map-tooltip-overlay"
+          onMouseEnter={handleHoverCardEnter}
+          onMouseLeave={handleHoverCardLeave}
+          style={getPortalTooltipStyle(hoveredRoom.x, hoveredRoom.y)}
+        >
+          <div
+            style={{
+              backgroundColor: "#111827",
+              color: "#ffffff",
+              padding: "14px 18px",
+              borderRadius: "10px",
+              boxShadow: "0 20px 50px -5px rgba(0,0,0,0.7), 0 10px 20px -8px rgba(0,0,0,0.6)",
+              border: "1px solid rgba(255,255,255,0.18)",
+            }}
+          >
+            <div style={{ fontWeight: 800, fontSize: "14.5px", marginBottom: "4px" }}>
+              {hoveredRoomData.title}
+            </div>
+            <div style={{ color: "#94a3b8", marginBottom: "8px", fontSize: "12px" }}>
+              {hoveredRoomData.subtitle}
+            </div>
+            {hoveredRoomData.isNoWork ? (
+              <div style={{ color: "#94a3b8", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px", marginTop: "4px" }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#94a3b8", display: "inline-block" }} />
+                No work (0 active permits)
+              </div>
+            ) : (
+              <>
+                <div style={{ color: hoveredRoomData.clash?.includes("Clash") ? "#ef4444" : "#10b981", fontWeight: 700, marginBottom: "6px", display: "flex", alignItems: "center", gap: "5px", fontSize: "13px" }}>
+                  <i className={hoveredRoomData.clash?.includes("Clash") ? "ti ti-alert-triangle" : "ti ti-check"} />
+                  {hoveredRoomData.clash}
+                </div>
+                <div style={{ display: "flex", gap: "8px", marginBottom: "8px", flexWrap: "wrap" }}>
+                  <span style={{ backgroundColor: "#1e293b", border: "1px solid #334155", padding: "3px 10px", borderRadius: "20px", color: "#e2e8f0", fontSize: "11px", fontWeight: 600 }}>
+                    {hoveredRoomData.companies}
+                  </span>
+                  <span style={{ backgroundColor: "#1e293b", border: "1px solid #334155", padding: "3px 10px", borderRadius: "20px", color: "#e2e8f0", fontSize: "11px", fontWeight: 600 }}>
+                    {hoveredRoomData.permits}
+                  </span>
+                </div>
+                {hoveredRoomData.hra && (
+                  <div style={{ fontSize: "11.5px", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "8px", marginBottom: "8px", color: "#cbd5e1" }}>
+                    <span style={{ fontWeight: 700, color: "#fca5a5" }}>HRA:</span>{" "}
+                    {typeof hoveredRoomData.hra === "string" ? hoveredRoomData.hra.replace("HRA:", "").trim() : "High Risk Activity"}
+                  </div>
+                )}
+                {hoveredRoomData.compDetails && hoveredRoomData.compDetails.length > 0 && (
+                  <div style={{ marginTop: "8px", borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: "8px" }}>
+                    <div style={{ fontSize: "10.5px", fontWeight: 700, color: "#94a3b8", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      Companies & HRAs Involved ({hoveredRoomData.compDetails.length}):
+                    </div>
+                    <div
+                      className="hover-card-comp-scroll"
+                      onWheel={(e) => e.stopPropagation()}
+                      style={{ display: "flex", flexDirection: "column", gap: "5px", maxHeight: "180px", overflowY: "auto", paddingRight: "4px" }}
+                    >
+                      {hoveredRoomData.compDetails.map((cObj, idx) => (
+                        <div
+                          key={idx}
+                          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", backgroundColor: "rgba(255,255,255,0.06)", padding: "5px 8px", borderRadius: "6px", gap: "8px" }}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
+                            <CompanyLogo
+                              logo={cObj.logo}
+                              name={cObj.name}
+                              code={cObj.code}
+                              color={cObj.color}
+                              size={20}
+                              style={{ marginRight: 0, flexShrink: 0 }}
+                            />
+                            <span style={{ fontSize: "12px", fontWeight: 600, color: "#f8fafc", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{cObj.name}</span>
+                          </div>
+                          {cObj.hraLogos && cObj.hraLogos.length > 0 && (
+                            <div style={{ display: "flex", gap: "3px", flexShrink: 0 }}>
+                              {cObj.hraLogos.map((hra) => (
+                                <img
+                                  key={hra.key}
+                                  src={hra.img}
+                                  alt={hra.title}
+                                  title={hra.title}
+                                  style={{ width: 16, height: 16, borderRadius: "50%", objectFit: "cover", border: "1px solid rgba(255,255,255,0.4)" }}
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
     </>
   );
 }

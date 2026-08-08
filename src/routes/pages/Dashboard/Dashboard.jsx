@@ -222,8 +222,15 @@ function Dashboard() {
   const navigate = useNavigate();
   const user = localStorage.getItem("user");
   const parsedUser = user ? JSON.parse(user) : null;
-  const userRole = localStorage.getItem("UserType") || parsedUser?.role || parsedUser?.userType || "";
-  const isContractor = String(userRole).toLowerCase() === 'subcontractor';
+  const rawRole = (localStorage.getItem("UserType") || parsedUser?.role || parsedUser?.userType || parsedUser?.user_type || "").toLowerCase();
+  const userTypesArr = Array.isArray(parsedUser?.userTypes)
+    ? parsedUser.userTypes.map(t => String(t).toLowerCase())
+    : (Array.isArray(parsedUser?.userType) ? parsedUser.userType.map(t => String(t).toLowerCase()) : [rawRole]);
+
+  const isObserver = rawRole.includes("observer") || userTypesArr.some(t => t.includes("observer"));
+  const isDepartment = rawRole.includes("department") || userTypesArr.some(t => t.includes("department"));
+  const isContractor = rawRole.includes("subcontractor") || rawRole.includes("contractor") || userTypesArr.some(t => t.includes("subcontractor") || t.includes("contractor"));
+  const isDepartmentOrContractor = isDepartment || isContractor;
 
   const barChartRef = useRef(null)
   const donutChartRef = useRef(null)
@@ -363,6 +370,21 @@ function Dashboard() {
     const textColor = computedStyle.getPropertyValue('--text-main').trim() || '#fff';
     const gridColor = computedStyle.getPropertyValue('--border-light').trim() || 'rgba(255,255,255,0.07)';
 
+    // Compute a clean round stepSize so Y-axis shows 0, 100, 200... or 0, 500, 1000... etc.
+    const allValues = [...approvedData, ...openData, ...closedData, ...rejectedData];
+    const maxVal = Math.max(...allValues, 1);
+    const niceStepSize = (() => {
+      const raw = maxVal / 5;  // target ~5 ticks
+      const magnitude = Math.pow(10, Math.floor(Math.log10(raw)));
+      const normalized = raw / magnitude;
+      let nice;
+      if (normalized <= 1) nice = 1;
+      else if (normalized <= 2) nice = 2;
+      else if (normalized <= 5) nice = 5;
+      else nice = 10;
+      return nice * magnitude;
+    })();
+
     barChartInst.current = new Chart(ctx, {
       type: 'bar',
       data: {
@@ -449,7 +471,7 @@ function Dashboard() {
             ticks: {
               color: textColor,
               precision: 0,
-              stepSize: 1,
+              stepSize: niceStepSize,
             },
             grid: { color: gridColor },
           },
@@ -759,17 +781,23 @@ function Dashboard() {
     <div>
 
       {/* ── QUICK ACTIONS ── */}
-      <div className="dash-actions">
-        <button className="btn-action-primary" onClick={handleAdd}>
-          <Icons.Plus /> New Request
-        </button>
-        <button className="btn-action-outline" onClick={handleUpdate}>
-          <Icons.PersonPlus /> New Employee
-        </button>
-        <button className="btn-action-outline" onClick={handleDelete}>
-          <Icons.Briefcase /> New Contractor
-        </button>
-      </div>
+      {!isObserver && (
+        <div className="dash-actions">
+          <button className="btn-action-primary" onClick={handleAdd}>
+            <Icons.Plus /> New Request
+          </button>
+          {!isDepartmentOrContractor && (
+            <>
+              <button className="btn-action-outline" onClick={handleUpdate}>
+                <Icons.PersonPlus /> New Employee
+              </button>
+              <button className="btn-action-outline" onClick={handleDelete}>
+                <Icons.Briefcase /> New Contractor
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
       {/* ── STAT CARDS ── */}
       <div className="stat-cards-row">
