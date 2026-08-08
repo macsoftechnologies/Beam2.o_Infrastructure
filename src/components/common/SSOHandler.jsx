@@ -14,15 +14,18 @@ export function SSOHandler({ children }) {
     }
 
     const performSsoLogin = async () => {
-      const baseApiUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.beam.safesiteworks.com/m3infrastructure';
-      const endpoints = Array.from(new Set([
-        baseApiUrl.endsWith('/') ? `${baseApiUrl}auth/sso-login` : `${baseApiUrl}/auth/sso-login`,
-        baseApiUrl.endsWith('/') ? `${baseApiUrl}api/auth/sso-login` : `${baseApiUrl}/api/auth/sso-login`,
+      const baseApiUrl = (import.meta.env.VITE_API_BASE_URL || 'https://api.beam.safesiteworks.com/m3infrastructure').replace(/\/$/, '');
+      const endpoints = [
+        `${baseApiUrl}/auth/sso-login`,
+        `${baseApiUrl}/api/auth/sso-login`,
         'https://api.beam.safesiteworks.com/m3infrastructure/auth/sso-login',
         'https://api.beam.safesiteworks.com/m3infrastructure/api/auth/sso-login',
-        'http://localhost:3000/auth/sso-login',
-        'http://localhost:3000/api/auth/sso-login',
-      ]));
+      ];
+
+      if (baseApiUrl.includes('localhost')) {
+        endpoints.push('http://localhost:3000/auth/sso-login');
+        endpoints.push('http://localhost:3000/api/auth/sso-login');
+      }
 
       let success = false;
       let data = null;
