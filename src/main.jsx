@@ -76,27 +76,25 @@ function renderApp() {
       if (success && data) {
         const validToken = data.token || data.access_token;
 
-        // Portal LocalStorage Keys
-        localStorage.setItem('m3_infrastructure_token', validToken);
-        localStorage.setItem('m3_infrastructure_access_token', validToken);
-        localStorage.setItem('m3_infrastructure_UserType', data.userType || 'Admin');
-        localStorage.setItem('m3_infrastructure_app-theme', 'default-dark');
-        localStorage.setItem('m3_infrastructure_loglevel', 'ERROR');
-        localStorage.setItem('m3_infrastructure_isLoggedIn', 'true');
+        const userObj = {
+          id: data.id || 1,
+          username: data.username || 'Superadmin',
+          role: data.role || 'Admin',
+          userType: data.userType || 'Admin',
+          name: data.name || data.username || 'Superadmin',
+          typeId: data.typeId || 1,
+          empId: data.empId || 1,
+        };
+        const userObjStr = JSON.stringify(userObj);
 
-        // Portal database user object
-        localStorage.setItem(
-          'm3_infrastructure_user',
-          JSON.stringify({
-            id: data.id || 1,
-            username: data.username || 'Superadmin',
-            role: data.role || 'Admin',
-            userType: data.userType || 'Admin',
-            name: data.name || data.username || 'Superadmin',
-            typeId: data.typeId || 1,
-            empId: data.empId || 1,
-          })
-        );
+        // Standard keys (scopedStorage will dynamically prefix with m3infra_)
+        localStorage.setItem('token', validToken);
+        localStorage.setItem('access_token', validToken);
+        localStorage.setItem('UserType', data.userType || 'Admin');
+        localStorage.setItem('app-theme', 'default-dark');
+        localStorage.setItem('loglevel', 'ERROR');
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('user', userObjStr);
 
         // Superadmin user_info object
         const userInfoObj = data.user_info || {
@@ -107,7 +105,17 @@ function renderApp() {
           address: 'Vizag',
           role: 'superadmin',
         };
-        localStorage.setItem('m3_infrastructure_user_info', JSON.stringify(userInfoObj));
+        localStorage.setItem('user_info', JSON.stringify(userInfoObj));
+
+        // Direct raw keys for absolute scope compatibility
+        const setDirect = window.localStorage.setItem.bind(window.localStorage);
+        ['m3infra_', 'm3_infrastructure_'].forEach((p) => {
+          setDirect(`${p}token`, validToken);
+          setDirect(`${p}access_token`, validToken);
+          setDirect(`${p}UserType`, data.userType || 'Admin');
+          setDirect(`${p}isLoggedIn`, 'true');
+          setDirect(`${p}user`, userObjStr);
+        });
 
         // Clean SSO token from URL and navigate to dashboard
         const currentOrigin = window.location.origin;
