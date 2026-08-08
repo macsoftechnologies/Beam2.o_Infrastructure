@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { login } from "../../../services/authService";
 import { showSuccess, showError } from "../../../components/common/Toast/Toast";
-import { navigateTo } from "../../../config/basePath";
+import { navigateTo, BASE_PATH } from "../../../config/basePath";
 import { isTokenValid } from "../../../components/common/PublicRoute";
 import "./Login.css";
 
@@ -101,12 +101,19 @@ export default function Login() {
       </div>
 
       {/* Back Link */}
-      <Link to="/" className="back-link">
+      <a
+        href={`${BASE_PATH}/`}
+        onClick={(e) => {
+          e.preventDefault();
+          navigateTo("/");
+        }}
+        className="back-link"
+      >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M19 12H5M12 19l-7-7 7-7" />
         </svg>
         Back to portal selection
-      </Link>
+      </a>
 
       <main>
         <div className="login-container">
