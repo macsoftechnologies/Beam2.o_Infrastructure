@@ -521,7 +521,7 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
           <i className="ti ti-menu-2" />
         </button>
         <div className="navbar-title">
-          <h4>M3 North Dashboard</h4>
+          <h4>M3 Infrastructure Dashboard</h4>
           <p>Operational Overview &amp; System Analytics</p>
         </div>
       </div>
