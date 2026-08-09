@@ -507,6 +507,13 @@ function NewRequest() {
     return [String(roleVal).trim().toLowerCase()];
   }, [currentUser]);
   const isSubcontractor = userRoles.includes("subcontractor");
+  const isAdmin = userRoles.some(r => ["admin", "superadmin"].includes(r));
+  const isDept = userRoles.includes("department");
+  const isDept1 = userRoles.includes("department1");
+  const isMultiDept = isDept && isDept1;
+  const isDepartmentAccess = isDept || isDept1 || isMultiDept;
+  const canEditOpenedPermit = isAdmin || isDepartmentAccess;
+  const isReadOnly = isEditMode && (editRequest?.Request_status === "Opened" || editRequest?.request_status === "Opened") && !canEditOpenedPermit;
   const canDeleteNotes = userRoles.some(r => ["admin", "superadmin", "department", "department1"].includes(r));
   const [isnewrequestcreated, setIsnewrequestcreated] = useState(false);
   const [selectedRooms, setSelectedRooms] = useState([]);
@@ -1923,7 +1930,7 @@ function NewRequest() {
       Room_Nos,
       // RoomNos: Room_Nos,
       Room_Type: level,
-      Request_status: status === "Hold" ? "Hold" : "Draft",
+      Request_status: status || (isEditMode && (editRequest?.Request_status || editRequest?.request_status) ? (editRequest?.Request_status || editRequest?.request_status) : "Draft"),
       userId: currentUserId,
       Request_Date: isEditMode ? editRequest.Request_Date : getTodayDateString(),
       Working_Date: formData.Working_Date,
