@@ -7,7 +7,7 @@ function Footer() {
       <div className="footer-content">
         <div className="footer-top-row">
           <span>&copy; {new Date().getFullYear()}</span>
-          <span className="footer-brand">M3 Infrastructure</span>
+          <span className="footer-brand">SSW - M3 Infrastructure</span>
         </div>
         <span className="footer-sep">—</span>
         <span className="footer-rights">All rights reserved.</span>

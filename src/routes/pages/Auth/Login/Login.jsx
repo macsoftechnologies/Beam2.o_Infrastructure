@@ -122,19 +122,18 @@ export default function Login() {
           <div className="panel-left">
             <div className="panel-glow"></div>
             <div className="panel-glow-2"></div>
-            <div className="panel-compass">N</div>
+            <div className="panel-compass">I</div>
 
             <div className="panel-top">
               <div className="panel-badge">
-                <span className="dot"></span>Division 01
+                <span className="dot"></span>Division 03
               </div>
               <h2 className="panel-title">
-                M3 <span>North</span>
+                M3 <span>Infrastructure</span>
                 <br />Operations
               </h2>
               <p className="panel-desc">
-                Your secure gateway to the North regional operations platform —
-                project management, field coordination, and real-time reporting.
+                Your secure gateway to the M3 Infrastructure operations platform — permit management, field coordination and real-time reporting.
               </p>
             </div>
           </div>
@@ -147,7 +146,7 @@ export default function Login() {
               <br />
               <span>Back</span>
             </h1>
-            <p className="form-subtext">Sign in to your M3 North account to continue</p>
+            <p className="form-subtext">Sign in to your M3 Infrastructure account to continue</p>
 
             {error && (
               <div className="error-box show">
