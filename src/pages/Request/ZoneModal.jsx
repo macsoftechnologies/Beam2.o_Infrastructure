@@ -5,7 +5,7 @@ import PdfPolygonViewer from "../../components/PdfPolygonViewer";
 import { showError } from "../../components/common/Toast/Toast";
 
 // Using a direct CDN URL avoids Nginx MIME-type issues with .mjs workers
-// when the app is deployed under a sub-path (e.g. /m3infrastructure_frontend/).
+// when the app is deployed under a sub-path (e.g. /m3north_frontend/).
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 const ZOOM_STEP = 0.25;
@@ -31,17 +31,35 @@ function ZoneModal({
     setSelectedRooms(globalSelectedRooms);
   }, [globalSelectedRooms]);
 
+  const getRoomStatusFromMap = (item) => {
+    if (!item) return null;
+    let rName = "";
+    if (typeof item === "object") {
+      rName = item.name || item.room_name || "";
+    } else {
+      const str = String(item);
+      const parts = str.split(":::");
+      rName = parts[parts.length - 1];
+    }
+    const cleanKey = rName.toLowerCase().trim();
+    if (roomStatusMap && roomStatusMap[cleanKey]) {
+      return roomStatusMap[cleanKey];
+    }
+    if (zone && zone.status) return zone.status;
+    return null;
+  };
+
   const toggleRoom = (roomName) => {
     if (selectedRooms.includes(roomName)) {
       setSelectedRooms((prev) => prev.filter((r) => r !== roomName));
       return;
     }
 
-    const newRoomStatus = roomStatusMap ? roomStatusMap[roomName.toLowerCase().trim()] : null;
+    const newRoomStatus = getRoomStatusFromMap(roomName) || (zone ? zone.status : null);
     if (newRoomStatus) {
-      const activeStatus = selectedRooms.reduce((status, name) => {
+      const activeStatus = selectedRooms.reduce((status, item) => {
         if (status) return status;
-        return roomStatusMap ? roomStatusMap[name.toLowerCase().trim()] : null;
+        return getRoomStatusFromMap(item);
       }, null);
 
       if (activeStatus && activeStatus !== newRoomStatus) {
@@ -283,13 +301,13 @@ function ZoneModal({
               cursor: "pointer",
             }}
           >
-          {(() => {
-            const selectedRoomsInZoneCount = (zone?.rooms || []).filter((r) => {
-              const name = typeof r === "object" ? r.name : r;
-              return selectedRooms.includes(name);
-            }).length;
-            return `Rooms Checklist (${selectedRoomsInZoneCount})`;
-          })()}
+            {(() => {
+              const selectedRoomsInZoneCount = (zone?.rooms || []).filter((r) => {
+                const name = typeof r === "object" ? r.name : r;
+                return selectedRooms.includes(name);
+              }).length;
+              return `Rooms Checklist (${selectedRoomsInZoneCount})`;
+            })()}
           </button>
         </div>
 
