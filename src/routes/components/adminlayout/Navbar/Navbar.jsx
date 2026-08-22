@@ -522,9 +522,9 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
         </button>
         <div className="navbar-title">
           <div className="beam20-title-row">
-<h4>M3 Infrastructure Dashboard</h4>
-<span className="beam20-nav-badge">BEAM 2.0</span>
-</div>
+            <h4>M3 Infrastructure Dashboard</h4>
+            <span className="beam20-nav-badge">BEAM 2.0</span>
+          </div>
           <p>Operational Overview &amp; System Analytics</p>
         </div>
       </div>
@@ -632,7 +632,7 @@ function Navbar({ toggleSidebar, theme, onThemeChange }) {
                 <div className="pd-avatar">{getInitials(currentUser.name)}</div>
                 <div>
                   <div className="pd-name">{currentUser.name}</div>
-                  <div className="pd-role">{currentUser.role} · M3 North</div>
+                  <div className="pd-role">{currentUser.role} · M3 Infrastructure</div>
                 </div>
               </div>
 
