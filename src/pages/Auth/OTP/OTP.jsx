@@ -25,14 +25,14 @@ const DIVISIONS = {
   },
 };
 
-const ACTIVE_DIVISION = "infrastructure"; // ← match Login.jsx
+const ACTIVE_DIVISION = "north"; // ← change to match Login.jsx
 // ────────────────────────────────────────────────────────────────────
 
 const OTP_LENGTH = 6;
 
 export default function OTP() {
   if (isTokenValid()) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/modules" replace />;
   }
 
   const tempUserStr = localStorage.getItem("tempUser");
@@ -43,14 +43,14 @@ export default function OTP() {
   useEffect(() => {
     const handleCheck = () => {
       if (isTokenValid()) {
-        navigateTo("/dashboard", true);
+        navigateTo("/modules", true);
       } else if (!localStorage.getItem("tempUser")) {
         navigateTo("/login", true);
       }
     };
 
     if (isTokenValid()) {
-      navigateTo("/dashboard", true);
+      navigateTo("/modules", true);
       return;
     }
     if (!localStorage.getItem("tempUser")) {
@@ -177,7 +177,8 @@ export default function OTP() {
           username: response.username,
           role: response.userType, // UserType is the role
           name: response.username,
-          typeId: response.typeId
+          typeId: response.typeId,
+          moduleAccess: response.moduleAccess || tempUser?.moduleAccess || "incident-management,safety-observations,safety-inspection,spot-checks",
         };
         localStorage.setItem("user", JSON.stringify(activeUser));
         localStorage.setItem("UserType", response.userType);
@@ -189,7 +190,7 @@ export default function OTP() {
 
         setTimeout(() => {
           setLoading(false);
-          navigateTo("/dashboard", true);
+          navigateTo("/modules", true);
         }, 1500);
       } else {
         setLoading(false);
@@ -209,9 +210,15 @@ export default function OTP() {
     if (!canResend || resendLoading) return;
     const stored = localStorage.getItem("tempUser");
     const tUser = stored ? JSON.parse(stored) : null;
-    if (!tUser) { navigateTo("/login"); return; }
+    if (!tUser) {
+      navigateTo("/login");
+      return;
+    }
     setResendLoading(true);
     try {
+      // Re-trigger login to regenerate and resend OTP
+      // We need stored credentials — but since we don't store password, we call a dedicated resend
+      // Fallback: just show a message directing user to login again
       setResent(true);
       setCanResend(false);
       setTimer(30);
