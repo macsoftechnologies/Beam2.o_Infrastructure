@@ -384,11 +384,16 @@ const resolveZoneObjectsFromRequest = (row, zonesList = [], roomsList = []) => {
     ? row.zone_name.trim()
     : (typeof row.zone === "string" && row.zone.trim().length > 0 && row.zone !== "—" ? row.zone.trim() : "");
 
+  const targetBuildingId = row.Building_Id || row.building_id ? Number(row.Building_Id || row.building_id) : null;
+
   if (explicitZoneName) {
     explicitZoneName.split(',').forEach(zStr => {
       const nameClean = zStr.trim();
       if (nameClean && !matchedZoneMap.has(nameClean.toLowerCase())) {
-        const dbZone = zonesList.find(z => (z.zone || z.zone_name || "").toLowerCase().trim() === nameClean.toLowerCase());
+        const dbZone = zonesList.find(z => 
+          (z.zone || z.zone_name || "").toLowerCase().trim() === nameClean.toLowerCase() &&
+          (!targetBuildingId || Number(z.building_id || z.build_id) === targetBuildingId)
+        );
         const zId = dbZone ? Number(dbZone.id ?? dbZone.zoneStatusId) : null;
         if (zId) {
           matchedZoneMap.set(nameClean.toLowerCase(), { Zone_Id: zId, zone: nameClean });
@@ -462,17 +467,28 @@ const resolveZoneObjectsFromRequest = (row, zonesList = [], roomsList = []) => {
     let zonesToSearch = [];
 
     if (levelKey) {
-      const levelLower = String(levelKey).toLowerCase().trim();
-      const foundKey = Object.keys(ZONE_MAPPING).find(k =>
-        k.toLowerCase().trim().includes(levelLower) || levelLower.includes(k.toLowerCase().trim())
-      );
+      const levelLower = String(levelKey).toLowerCase().trim().replace(/\s+/g, '');
+      const foundKey = Object.keys(ZONE_MAPPING).find(k => {
+        const kClean = k.toLowerCase().trim().replace(/\s+/g, '');
+        return kClean.includes(levelLower) || levelLower.includes(kClean);
+      });
       if (foundKey) {
         zonesToSearch = ZONE_MAPPING[foundKey] || [];
       }
     }
 
     if (zonesToSearch.length === 0) {
-      zonesToSearch = Object.values(ZONE_MAPPING).flat();
+      const bName = (row.building_name || "").toLowerCase().trim();
+      const bPrefix = bName ? bName.split(/\s+/)[0] : "";
+      const relevantKeys = Object.keys(ZONE_MAPPING).filter(k => {
+        const kLower = k.toLowerCase().trim();
+        if (bPrefix && kLower.startsWith(bPrefix)) return true;
+        if (bName && kLower.includes(bName)) return true;
+        return false;
+      });
+      if (relevantKeys.length > 0) {
+        zonesToSearch = relevantKeys.flatMap(k => ZONE_MAPPING[k] || []);
+      }
     }
 
     const mappingZoneNames = [];
@@ -498,7 +514,10 @@ const resolveZoneObjectsFromRequest = (row, zonesList = [], roomsList = []) => {
     mappingZoneNames.forEach(mappingName => {
       const key = mappingName.toLowerCase().trim();
       if (!matchedZoneMap.has(key)) {
-        const dbZone = zonesList.find(z => (z.zone || z.zone_name || "").toLowerCase().trim() === key);
+        const dbZone = zonesList.find(z => 
+          (z.zone || z.zone_name || "").toLowerCase().trim() === key &&
+          (!targetBuildingId || Number(z.building_id || z.build_id) === targetBuildingId)
+        );
         if (dbZone) {
           const zId = Number(dbZone.id ?? dbZone.zoneStatusId);
           matchedZoneMap.set(key, { Zone_Id: zId, zone: dbZone.zone || dbZone.zone_name || mappingName });
